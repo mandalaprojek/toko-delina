@@ -7,8 +7,10 @@ Marketplace perlengkapan alat tulis kantor (ATK) dan jasa fotokopi modern terper
 ## 🌐 Cara Akses Website Toko
 
 ### 1. Akses Live di GitHub Pages
-- **URL Resmi Langsung:** `https://mandalaprojek.github.io/toko-delina/`
-- Halaman utama toko sekarang disajikan langsung dari root repositori tanpa redirect URL tambahan.
+- **Etalase Pelanggan:** `https://mandalaprojek.github.io/toko-delina/`
+- **Portal Kasir & Super Admin:** `https://mandalaprojek.github.io/toko-delina/admin.html`
+  * **PIN Kasir POS:** `1234` *(akses antrean pesanan, ubah status, quick stock +/- & cetak struk)*
+  * **PIN Super Admin:** `9999` *(akses penuh omzet, tambah produk, edit tarif, kupon, profil toko)*
 
 ### 2. Akses Secara Lokal di Komputer / Tablet
 1. Buka folder proyek ini di komputer atau tablet.

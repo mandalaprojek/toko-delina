@@ -55,14 +55,6 @@
           <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-badge"></span>
           Asisten AI "Kiko" Siaga 24 Jam
         </span>
-        <button 
-          data-pos-trigger="true"
-          onclick="openPosModal()" 
-          class="bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 transition-all text-[11px] border border-amber-300/40 cursor-pointer"
-          title="Mode Kasir & Kelola Pesanan Toko"
-        >
-          <i class="bi bi-shop"></i> Kasir POS
-        </button>
         <a href="#kikoAssistant" class="text-amber-300 hover:underline flex items-center gap-1">
           <i class="bi bi-telegram"></i> Bot Telegram
         </a>
@@ -104,18 +96,6 @@
 
       <!-- Aksi Pengguna: Keranjang & Bantuan Kiko -->
       <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-        <!-- Shortcut Mode Kasir POS (Fitur 2) -->
-        <button 
-          id="btnHeaderKasirPos"
-          data-pos-trigger="true"
-          onclick="openPosModal()"
-          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 text-xs font-extrabold border border-amber-300 transition-all shadow-xs cursor-pointer active:scale-95"
-          title="Mode Kasir Tablet & Kelola Pesanan Toko"
-        >
-          <i class="bi bi-shop text-amber-800 text-sm"></i>
-          <span>Kasir POS</span>
-        </button>
-
         <!-- Tombol Keranjang -->
         <button 
           onclick="toggleCartDrawer(true)"
@@ -424,8 +404,12 @@
         </div>
       </div>
 
-      <div class="border-t border-gray-100 mt-6 pt-4 text-center text-[11px] text-gray-400">
-        © 2026 Toko ATK dan Fotokopi Delina. Didukung oleh Asisten AI Kiko. InsyaAllah Berkah & Amanah.
+      <div class="border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-2">
+        <div>© 2026 Toko ATK dan Fotokopi Delina. Didukung oleh Asisten AI Kiko. InsyaAllah Berkah & Amanah.</div>
+        <a href="admin.html" class="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-700 transition-colors font-semibold">
+          <i class="bi bi-shield-lock"></i>
+          <span>Portal Kasir & Admin Toko</span>
+        </a>
       </div>
     </div>
   </footer>
@@ -690,54 +674,10 @@
               <span class="text-gray-500 text-[10px]">NMID: ID102030405099</span>
             </div>
 
-            <!-- Gambar Barcode QRIS Mockup Bersih -->
+            <!-- Gambar Barcode QRIS Mockup / Live Image -->
             <div class="flex flex-col items-center justify-center py-1">
               <div class="p-3 bg-white rounded-2xl shadow-md border border-gray-200 inline-block relative">
-                <!-- SVG Mockup QR Code Bersih dengan Logo Delina -->
-                <svg class="w-36 h-36 sm:w-44 sm:h-44 text-gray-900 mx-auto" viewBox="0 0 100 100" fill="currentColor">
-                  <!-- Sudut QR Posisi -->
-                  <rect x="2" y="2" width="28" height="28" fill="#111827" rx="3"/>
-                  <rect x="6" y="6" width="20" height="20" fill="white" rx="2"/>
-                  <rect x="10" y="10" width="12" height="12" fill="#065f46" rx="1"/>
-
-                  <rect x="70" y="2" width="28" height="28" fill="#111827" rx="3"/>
-                  <rect x="74" y="6" width="20" height="20" fill="white" rx="2"/>
-                  <rect x="78" y="10" width="12" height="12" fill="#065f46" rx="1"/>
-
-                  <rect x="2" y="70" width="28" height="28" fill="#111827" rx="3"/>
-                  <rect x="6" y="74" width="20" height="20" fill="white" rx="2"/>
-                  <rect x="10" y="78" width="12" height="12" fill="#065f46" rx="1"/>
-
-                  <!-- Pola Data Grid Mockup -->
-                  <rect x="34" y="5" width="6" height="6" fill="#111827"/>
-                  <rect x="44" y="5" width="8" height="6" fill="#111827"/>
-                  <rect x="56" y="5" width="6" height="6" fill="#111827"/>
-                  <rect x="34" y="15" width="10" height="6" fill="#111827"/>
-                  <rect x="50" y="15" width="12" height="6" fill="#111827"/>
-                  <rect x="5" y="34" width="12" height="6" fill="#111827"/>
-                  <rect x="20" y="34" width="8" height="8" fill="#111827"/>
-                  <rect x="72" y="34" width="10" height="6" fill="#111827"/>
-                  <rect x="86" y="34" width="8" height="8" fill="#111827"/>
-                  <rect x="5" y="46" width="8" height="10" fill="#111827"/>
-                  <rect x="18" y="48" width="10" height="6" fill="#111827"/>
-                  <rect x="72" y="46" width="10" height="8" fill="#111827"/>
-                  <rect x="86" y="48" width="8" height="8" fill="#111827"/>
-                  
-                  <!-- Logo Badge Tengah Delina -->
-                  <rect x="35" y="35" width="30" height="30" fill="#03AC0E" rx="6"/>
-                  <rect x="37" y="37" width="26" height="26" fill="#065f46" rx="4"/>
-                  <text x="50" y="55" font-size="16" font-weight="900" fill="#fef08a" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif">D</text>
-
-                  <rect x="34" y="72" width="10" height="8" fill="#111827"/>
-                  <rect x="48" y="72" width="6" height="8" fill="#111827"/>
-                  <rect x="58" y="72" width="8" height="6" fill="#111827"/>
-                  <rect x="72" y="68" width="8" height="12" fill="#111827"/>
-                  <rect x="84" y="68" width="10" height="6" fill="#111827"/>
-                  <rect x="34" y="84" width="8" height="10" fill="#111827"/>
-                  <rect x="46" y="86" width="16" height="8" fill="#111827"/>
-                  <rect x="66" y="84" width="10" height="10" fill="#111827"/>
-                  <rect x="80" y="84" width="14" height="10" fill="#111827"/>
-                </svg>
+                <img id="qrisBarcodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD" alt="QRIS Toko Delina" class="w-36 h-36 sm:w-44 sm:h-44 object-contain mx-auto" />
                 <div class="mt-1 text-[10px] font-extrabold text-delina-emerald tracking-wide">
                   DELINA ATK & FOTOKOPI
                 </div>
@@ -752,11 +692,10 @@
             <!-- Opsi Transfer Bank Manual -->
             <div class="bg-white rounded-xl p-2.5 border border-emerald-100 flex items-center justify-between text-[11px]">
               <div class="text-left">
-                <span class="text-gray-400 block text-[10px]">Nomor Rekening BCA:</span>
-                <span class="font-extrabold text-gray-800 tracking-wider">8801234567</span>
-                <span class="text-gray-500 text-[10px] block">a.n. Toko Delina</span>
+                <span class="text-gray-400 block text-[10px]">Nomor Rekening Toko:</span>
+                <span id="checkoutRekeningText" class="font-extrabold text-gray-800 tracking-wider">BCA 1234567890 a.n Delina Shop</span>
               </div>
-              <button type="button" onclick="copyRekening('8801234567')" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] border border-emerald-200">
+              <button type="button" onclick="copyRekening(document.getElementById('checkoutRekeningText').innerText)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] border border-emerald-200">
                 <i class="bi bi-copy mr-0.5"></i> Salin
               </button>
             </div>
@@ -885,174 +824,6 @@
 
     </div>
   </div>
-
-  <!-- =========================================================================
-       MODAL MODE KASIR TABLET (POS MINI & KELOLA PESANAN) - FITUR 2 & 3
-       ========================================================================= -->
-  <div id="posModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col animate-fadeIn">
-      
-      <!-- Header Mode Kasir -->
-      <div class="p-3.5 sm:p-4 bg-gradient-to-r from-delina-emerald to-emerald-800 text-white flex items-center justify-between flex-shrink-0 shadow-sm">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-amber-300 text-lg">
-            <i class="bi bi-shop"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h3 class="font-extrabold text-sm sm:text-base leading-tight">Mode Kasir Tablet (POS)</h3>
-              <span class="bg-amber-400/25 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-300/30">
-                Samsung Tab A9+ Ready
-              </span>
-            </div>
-            <p class="text-[11px] text-emerald-100/80">Pantau pesanan live, ubah status, cetak struk termal, & notif WhatsApp</p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Tombol Refresh (hanya tampil saat login) -->
-          <button 
-            id="posBtnRefresh" 
-            onclick="loadPosOrders(true)" 
-            class="hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all"
-            title="Segarkan Data Pesanan"
-          >
-            <i class="bi bi-arrow-clockwise"></i>
-          </button>
-          <!-- Tombol Kunci / Logout -->
-          <button 
-            id="posBtnLock" 
-            onclick="lockPosSession()" 
-            class="hidden px-2.5 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 text-xs font-bold transition-all flex items-center gap-1 border border-red-400/30"
-            title="Kunci Panel Kasir"
-          >
-            <i class="bi bi-lock-fill"></i>
-            <span class="hidden sm:inline">Kunci</span>
-          </button>
-          <!-- Tombol Tutup -->
-          <button 
-            onclick="closePosModal()" 
-            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"
-            title="Tutup Modal"
-          >
-            <i class="bi bi-x-lg text-sm"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- KONTEN A: LAYAR MASUKKAN PIN KASIR -->
-      <div id="posPinScreen" class="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-4 my-auto">
-        <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-3xl shadow-inner border border-amber-200">
-          <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        <div class="max-w-xs space-y-1">
-          <h4 class="font-extrabold text-base text-gray-800">Autentikasi Kasir Toko</h4>
-          <p class="text-xs text-gray-500">Masukkan PIN keamanan kasir untuk mengakses data pesanan dan cetak nota.</p>
-        </div>
-        <form onsubmit="handlePosPinSubmit(event)" class="w-full max-w-xs space-y-3">
-          <input 
-            type="password" 
-            id="posPinInput" 
-            maxlength="6" 
-            placeholder="Ketik PIN (Default: 1234)" 
-            class="w-full text-center tracking-widest text-lg font-black bg-gray-50 border-2 border-gray-200 rounded-2xl py-3 focus:outline-none focus:border-tokopedia-green focus:bg-white transition-all"
-            required
-            autocomplete="off"
-          />
-          <button 
-            type="submit" 
-            class="w-full py-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2"
-          >
-            <i class="bi bi-unlock-fill"></i>
-            <span>Buka Panel Kasir</span>
-          </button>
-          <p class="text-[11px] text-gray-400 italic">PIN default toko: <strong>1234</strong> (dapat diubah di Script Properties)</p>
-        </form>
-      </div>
-
-      <!-- KONTEN B: DASHBOARD PESANAN REAL-TIME -->
-      <div id="posDashboardScreen" class="hidden flex-1 flex flex-col overflow-hidden">
-        
-        <!-- Bar Kontrol & Filter -->
-        <div class="p-3 sm:p-4 bg-gray-50 border-b border-gray-200 space-y-2.5 flex-shrink-0">
-          <!-- Filter Tabs Status -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs font-bold">
-            <button onclick="setPosFilter('all')" data-pos-filter="all" class="pos-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
-            <button onclick="setPosFilter('Menunggu Verifikasi')" data-pos-filter="Menunggu Verifikasi" class="pos-filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-emerald-300">Menunggu</button>
-            <button onclick="setPosFilter('Sedang Diproses')" data-pos-filter="Sedang Diproses" class="pos-filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-emerald-300">Diproses</button>
-            <button onclick="setPosFilter('Siap Diambil')" data-pos-filter="Siap Diambil" class="pos-filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-emerald-300">Siap Diambil</button>
-            <button onclick="setPosFilter('Selesai')" data-pos-filter="Selesai" class="pos-filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-emerald-300">Selesai</button>
-          </div>
-
-          <!-- Kolom Pencarian Cepat -->
-          <div class="relative">
-            <i class="bi bi-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
-            <input 
-              type="text" 
-              id="posSearchInput" 
-              oninput="handlePosSearch(this.value)" 
-              placeholder="Cari berdasarkan No. Nota (#DLN-...), Nama Pemesan, atau No. WhatsApp..." 
-              class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-tokopedia-green"
-            />
-          </div>
-        </div>
-
-        <!-- Daftar Kartu Pesanan (Scrollable) -->
-        <div id="posOrdersContainer" class="p-3 sm:p-4 overflow-y-auto flex-1 space-y-3 bg-[#F8FAF9]">
-          <!-- Kartu pesanan akan diisi dinamis oleh app.js -->
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       MODAL PRATINJAU STRUK TERMAL (58mm / 80mm) - FITUR 2
-       ========================================================================= -->
-  <div id="thermalReceiptModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col animate-fadeIn">
-      
-      <!-- Header Struk Modal -->
-      <div class="p-3 bg-gray-900 text-white flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="bi bi-printer text-amber-400"></i>
-          <span class="font-bold text-xs">Pratinjau Struk Termal Kasir</span>
-        </div>
-        <button onclick="closeThermalReceiptModal()" class="text-gray-400 hover:text-white">
-          <i class="bi bi-x-lg text-sm"></i>
-        </button>
-      </div>
-
-      <!-- Isi Tampilan Fisik Kertas Struk (Simulasi Roll 58mm) -->
-      <div class="p-4 bg-gray-100 overflow-y-auto max-h-[70vh] flex justify-center">
-        <div id="thermalReceiptPreview" class="thermal-receipt bg-white p-4 shadow-md rounded-lg border border-gray-200">
-          <!-- Diisi otomatis oleh app.js -->
-        </div>
-      </div>
-
-      <!-- Footer Tombol Cetak -->
-      <div class="p-3.5 bg-white border-t border-gray-200 flex items-center gap-2">
-        <button 
-          onclick="closeThermalReceiptModal()" 
-          class="px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs"
-        >
-          Tutup
-        </button>
-        <button 
-          onclick="executeThermalPrint()" 
-          class="flex-1 py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
-        >
-          <i class="bi bi-printer-fill text-amber-400"></i>
-          <span>Cetak Struk Sekarang (58mm/80mm)</span>
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- AREA KHUSUS CETAK PRINTER (HANYA MUNCUL SAAT PRINT DIAKTIFKAN) -->
-  <div id="thermal-print-container" class="hidden"></div>
 
   <!-- NOTIFIKASI TOAST -->
   <div

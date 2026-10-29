@@ -468,6 +468,17 @@ function updatePrintTypeUI(type) {
   calculateFotokopi();
 }
 
+// Tarif Fotokopi & Jilid Live dari Backend
+let LIVE_TARIF = {
+  PRINT_BW_A4: 250,
+  PRINT_COLOR_A4: 1000,
+  PRINT_BW_F4: 300,
+  PRINT_COLOR_F4: 1200,
+  JILID_LAKBAN: 4000,
+  JILID_SPIRAL: 10000,
+  ONGKIR_KURIR: 5000
+};
+
 function calculateFotokopi() {
   const lembarInput = document.getElementById("lembarCount");
   const rangkapInput = document.getElementById("rangkapCount");
@@ -479,10 +490,14 @@ function calculateFotokopi() {
   const jilid = jilidSelect ? jilidSelect.value : "none";
   const size = sizeSelect ? sizeSelect.value : "A4";
 
-  const pricePerLembar = currentPrintType === "bw" ? 250 : 1000;
+  const keyRate = (currentPrintType === "bw")
+    ? (size === "F4" ? "PRINT_BW_F4" : "PRINT_BW_A4")
+    : (size === "F4" ? "PRINT_COLOR_F4" : "PRINT_COLOR_A4");
+
+  const pricePerLembar = (LIVE_TARIF && LIVE_TARIF[keyRate]) ? LIVE_TARIF[keyRate] : (currentPrintType === "bw" ? 250 : 1000);
   let jilidCost = 0;
-  if (jilid === "lakban") jilidCost = 4000;
-  if (jilid === "spiral") jilidCost = 10000;
+  if (jilid === "lakban") jilidCost = (LIVE_TARIF && LIVE_TARIF.JILID_LAKBAN) || 4000;
+  if (jilid === "spiral") jilidCost = (LIVE_TARIF && LIVE_TARIF.JILID_SPIRAL) || 10000;
 
   const totalHalaman = lembar * rangkap;
   const total = totalHalaman * pricePerLembar + jilidCost * rangkap;
@@ -657,8 +672,8 @@ function hitungDiskonGrosirKeranjang() {
   return totalDiskonGrosir;
 }
 
-// Daftar Kupon Promo Berkah
-const PROMO_COUPONS = {
+// Daftar Kupon Promo Berkah (Dapat Diperbarui Dinamis dari Google Sheets)
+let PROMO_COUPONS = {
   "JUMATBERKAH": {
     code: "JUMATBERKAH",
     type: "fixed",
@@ -786,10 +801,11 @@ function renderCheckoutSummary() {
   // 2. Diskon Kupon Promo Berkah
   let diskonKupon = 0;
   if (appliedCoupon) {
-    if (appliedCoupon.type === "fixed") {
-      diskonKupon = appliedCoupon.discount;
-    } else if (appliedCoupon.type === "percent") {
-      diskonKupon = Math.min(appliedCoupon.maxDiscount || 999999, Math.round(subtotal * appliedCoupon.rate));
+    if (appliedCoupon.type === "fixed" || appliedCoupon.type === "NOMINAL") {
+      diskonKupon = appliedCoupon.discount || appliedCoupon.value || 0;
+    } else if (appliedCoupon.type === "percent" || appliedCoupon.type === "PERSEN") {
+      const rate = appliedCoupon.rate || ((appliedCoupon.discount || appliedCoupon.value || 0) / 100);
+      diskonKupon = Math.min(appliedCoupon.maxDiscount || 999999, Math.round(subtotal * rate));
     }
 
     if (rowKupon && kuponElem) {
@@ -1346,7 +1362,7 @@ function formatMarkdown(text) {
   return safe;
 }
 
-// Ambil Produk Live dari Google Sheets jika tersedia
+// Ambil Data Live (Produk, Tarif, Kupon & Profil Toko) dari Google Sheets
 async function fetchProductsFromGAS() {
   if (typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL || !CONFIG.ENABLE_LIVE_BACKEND) return;
 
@@ -1354,11 +1370,52 @@ async function fetchProductsFromGAS() {
     const res = await fetch(CONFIG.GAS_API_URL);
     if (!res.ok) return;
     const json = await res.json();
-    if (json && json.status === "success" && Array.isArray(json.products) && json.products.length > 0) {
+    if (!json || json.status !== "success") return;
+
+    // 1. Sinkron Katalog Produk
+    if (Array.isArray(json.products) && json.products.length > 0) {
       console.log("Alhamdulillah, produk berhasil dimuat dari Google Sheets:", json.products.length, "barang");
       DUMMY_PRODUCTS.length = 0;
       json.products.forEach(p => DUMMY_PRODUCTS.push(p));
       renderProducts();
+    }
+
+    // 2. Sinkron Tarif Fotokopi & Jilid
+    if (json.rates && typeof json.rates === "object") {
+      for (const k in json.rates) {
+        if (json.rates[k] && json.rates[k].harga !== undefined) {
+          LIVE_TARIF[k] = json.rates[k].harga;
+        }
+      }
+      calculateFotokopi();
+    }
+
+    // 3. Sinkron Kupon Diskon Aktif
+    if (Array.isArray(json.coupons) && json.coupons.length > 0) {
+      PROMO_COUPONS = {};
+      json.coupons.forEach(c => {
+        PROMO_COUPONS[c.code] = {
+          code: c.code,
+          type: c.type === "PERSEN" ? "percent" : "fixed",
+          discount: c.value,
+          rate: c.type === "PERSEN" ? (c.value / 100) : 0,
+          minSpend: c.minSpend,
+          desc: c.description || (c.type === "PERSEN" ? `Diskon ${c.value}%` : `Potongan ${formatRupiah(c.value)}`)
+        };
+      });
+    }
+
+    // 4. Sinkron Profil Toko, QRIS, & Rekening Bank
+    if (json.toko) {
+      const t = json.toko;
+      const rekTextEl = document.getElementById("checkoutRekeningText");
+      if (rekTextEl && t.rekening) {
+        rekTextEl.textContent = t.rekening;
+      }
+      const qrisImgEl = document.getElementById("qrisBarcodeImg");
+      if (qrisImgEl && t.qris) {
+        qrisImgEl.src = t.qris;
+      }
     }
   } catch (e) {
     console.log("Memuat katalog lokal Toko Delina:", e.message);
