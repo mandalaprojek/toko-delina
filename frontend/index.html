@@ -2,21 +2,1039 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="refresh" content="0; url=../" />
-  <title>Toko ATK & Fotokopi Delina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Toko ATK & Fotokopi Delina - Belanja Lengkap & Berkah</title>
+  
+  <!-- Font Google: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    window.location.replace("../");
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'tokopedia-green': '#03AC0E',
+            'tokopedia-dark': '#028a0b',
+            'delina-emerald': '#065f46',
+            'delina-dark': '#044e39',
+            'delina-gold': '#d97706',
+            'delina-amber': '#f59e0b',
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
   </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/custom.css?v=20261030_01" />
 </head>
-<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F6F8F7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1e293b;">
-  <div style="text-align: center; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); max-width: 400px;">
-    <div style="font-size: 36px; margin-bottom: 12px;">🏪</div>
-    <h2 style="margin: 0 0 8px 0; font-size: 18px; color: #065f46;">Toko ATK & Fotokopi Delina</h2>
-    <p style="margin: 0 0 16px 0; font-size: 14px; color: #64748b;">Mengarahkan ke halaman utama toko...</p>
-    <a href="../" style="display: inline-block; padding: 10px 20px; background-color: #03AC0E; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 13px;">
-      Buka Beranda Toko &rarr;
-    </a>
+<body class="bg-[#F6F8F7] text-gray-800 antialiased min-h-screen flex flex-col pb-24">
+
+  <!-- ================= TOPBAR ISLAMI & INFORMASI TOKO ================= -->
+  <div class="bg-delina-dark text-white text-[11px] py-1.5 px-4 hidden md:block">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-amber-300 font-semibold flex items-center gap-1">
+          <i class="bi bi-moon-stars-fill text-xs"></i> Bismillah, Melayani dengan Amanah & Berkah
+        </span>
+        <span class="text-emerald-300/40">•</span>
+        <span class="text-gray-200">Buka Tiap Hari: 07.30 - 21.00 WIB</span>
+      </div>
+      <div class="flex items-center gap-4 text-gray-200">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-badge"></span>
+          Asisten AI "Kiko" Siaga 24 Jam
+        </span>
+        <a href="#kikoAssistant" class="text-amber-300 hover:underline flex items-center gap-1">
+          <i class="bi bi-telegram"></i> Bot Telegram
+        </a>
+      </div>
+    </div>
   </div>
+
+  <!-- ================= HEADER UTAMA (GAYA TOKOPEDIA) ================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-4 md:gap-6">
+      
+      <!-- Logo Delina -->
+      <a href="index.html" class="flex items-center gap-2 flex-shrink-0 group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-delina-emerald to-tokopedia-green flex items-center justify-center text-white font-black text-lg shadow-sm shadow-emerald-200 group-hover:rotate-3 transition-transform">
+          D
+        </div>
+        <div class="leading-tight">
+          <span class="block text-base sm:text-lg font-black text-delina-emerald tracking-tight">
+            DELINA<span class="text-tokopedia-green">.store</span>
+          </span>
+          <span class="text-[10px] text-gray-400 font-medium tracking-wider uppercase block">
+            ATK & Fotokopi
+          </span>
+        </div>
+      </a>
+
+      <!-- Kolom Pencarian Ala Tokopedia -->
+      <div class="flex-1 relative">
+        <div class="relative flex items-center">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="Cari buku, pulpen, kertas, map, atau layanan fotokopi..."
+            class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm rounded-xl pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white focus:ring-2 focus:ring-emerald-100 transition-all placeholder:text-gray-400 text-gray-700"
+          />
+          <i class="bi bi-search absolute left-3 sm:left-3.5 text-gray-400 text-xs sm:text-sm"></i>
+        </div>
+      </div>
+
+      <!-- Aksi Pengguna: Keranjang & Bantuan Kiko -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <!-- Tombol Keranjang -->
+        <button 
+          onclick="toggleCartDrawer(true)"
+          class="relative p-2 sm:px-3 sm:py-2 rounded-xl text-gray-700 hover:text-tokopedia-green hover:bg-emerald-50 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-emerald-100"
+          title="Keranjang Belanja"
+        >
+          <i class="bi bi-cart3 text-xl sm:text-lg"></i>
+          <span class="hidden sm:inline text-xs font-bold">Keranjang</span>
+          <!-- Badge Counter -->
+          <span class="cart-badge absolute -top-1 -right-1 sm:top-1 sm:right-1 bg-delina-gold text-white text-[10px] font-extrabold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-sm" style="display: none;">
+            0
+          </span>
+        </button>
+
+        <!-- Shortcut Chat Kiko -->
+        <button 
+          onclick="openKikoChat()"
+          class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-delina-emerald hover:bg-emerald-100 text-xs font-bold border border-emerald-200/60 transition-all"
+        >
+          <span class="w-2 h-2 rounded-full bg-tokopedia-green pulse-badge"></span>
+          <span>Tanya Kiko AI</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= KONTEN UTAMA ================= -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 flex-1 w-full space-y-6">
+
+    <!-- 1. HERO BANNER PROMOSI (Grid Responsif) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      
+      <!-- Banner Utama: Jasa Fotokopi & Cetak Kilat -->
+      <div class="md:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-r from-delina-emerald via-emerald-800 to-tokopedia-dark text-white p-5 sm:p-7 shadow-sm flex flex-col justify-between min-h-[170px] sm:min-h-[200px]">
+        <div class="relative z-10 max-w-md">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold text-amber-300 mb-2.5">
+            <i class="bi bi-lightning-charge-fill"></i> Layanan Prioritas Kilat
+          </div>
+          <h2 class="text-lg sm:text-2xl font-extrabold tracking-tight leading-snug">
+            Fotokopi & Cetak Dokumen Praktis dari Rumah
+          </h2>
+          <p class="text-xs sm:text-sm text-emerald-100 mt-1.5 leading-relaxed">
+            Hitung biaya otomatis, upload file dokumen dari HP/Tablet, langsung kami proses tanpa perlu antre di toko.
+          </p>
+        </div>
+        <div class="relative z-10 mt-4 flex items-center gap-3">
+          <a href="#fotokopiCalculatorSection" class="inline-flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md transition-all">
+            <i class="bi bi-calculator"></i> Hitung Biaya Cetak
+          </a>
+          <span class="text-[11px] text-emerald-200 hidden sm:inline">
+            <i class="bi bi-shield-check text-amber-300"></i> File dijaga aman & amanah
+          </span>
+        </div>
+        <!-- Ornamen Latar -->
+        <div class="absolute -right-8 -bottom-10 text-emerald-600/30 text-9xl pointer-events-none">
+          <i class="bi bi-printer"></i>
+        </div>
+      </div>
+
+      <!-- Banner Sekunder: Asisten AI Kiko -->
+      <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-white to-emerald-50 border border-emerald-100 p-5 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+              AI Multi-Channel
+            </span>
+            <span class="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-tokopedia-green pulse-badge"></span> 24 Jam
+            </span>
+          </div>
+          <h3 class="text-base font-bold text-gray-800">
+            Perkenalkan "Kiko"
+          </h3>
+          <p class="text-xs text-gray-600 mt-1 leading-relaxed">
+            Asisten toko cerdas beradab Islami. Siap bantu cek stok ATK, info harga, dan panduan cetak kapan saja.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-emerald-100 flex items-center justify-between">
+          <button onclick="openKikoChat()" class="text-xs font-bold text-delina-emerald hover:underline flex items-center gap-1">
+            <i class="bi bi-chat-dots-fill text-tokopedia-green"></i> Chat di Web
+          </button>
+          <a href="https://t.me/" target="_blank" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+            <i class="bi bi-telegram"></i> Buka Telegram
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. PILIHAN KATEGORI ETALASE (Horizontal Scroll / Sticky Style) -->
+    <section id="categorySection" class="space-y-2 scroll-mt-20">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+          <i class="bi bi-grid text-tokopedia-green"></i> Kategori Produk
+        </h3>
+        <span class="text-xs text-gray-400">Pilih untuk menyaring barang</span>
+      </div>
+
+      <!-- Kategori Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+        <button 
+          data-category="Semua Produk"
+          onclick="selectCategory('Semua Produk')" 
+          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-emerald-800 text-white shadow-sm transition-all"
+        >
+          <i class="bi bi-grid-fill"></i> Semua Produk
+        </button>
+        <button 
+          data-category="Kertas & Buku"
+          onclick="selectCategory('Kertas & Buku')" 
+          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+        >
+          <i class="bi bi-book"></i> Kertas & Buku
+        </button>
+        <button 
+          data-category="Alat Tulis & Pulpen"
+          onclick="selectCategory('Alat Tulis & Pulpen')" 
+          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+        >
+          <i class="bi bi-pen"></i> Alat Tulis & Pulpen
+        </button>
+        <button 
+          data-category="Peralatan Kantor & Map"
+          onclick="selectCategory('Peralatan Kantor & Map')" 
+          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+        >
+          <i class="bi bi-briefcase"></i> Peralatan Kantor & Map
+        </button>
+        <button 
+          data-category="Jasa Cetak & Fotokopi"
+          onclick="selectCategory('Jasa Cetak & Fotokopi')" 
+          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+        >
+          <i class="bi bi-printer"></i> Jasa Cetak & Fotokopi
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. GRID PRODUK ATK (Adaptif untuk Tablet 11" Samsung & HP) -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-gray-800">
+          Katalog Pilihan Delina
+        </h3>
+        <span class="text-xs text-emerald-700 font-semibold cursor-pointer" onclick="selectCategory('Semua Produk')">
+          Reset Filter
+        </span>
+      </div>
+
+      <!-- Container Grid: 2 kolom di HP, 3-4 kolom di Tablet Samsung Tab A9+, 4 di Layar Lebar -->
+      <div 
+        id="productGrid" 
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4"
+      >
+        <!-- Daftar produk akan diisi secara dinamis oleh frontend/js/app.js -->
+      </div>
+    </section>
+
+    <!-- 4. SECTION KHUSUS: KALKULATOR JASA FOTOKOPI & CETAK KILAT -->
+    <section id="fotokopiCalculatorSection" class="mt-8 bg-white rounded-2xl border border-emerald-100 p-4 sm:p-6 card-shadow scroll-mt-20">
+      <div class="border-b border-gray-100 pb-3 mb-4 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md inline-block">
+            Menu Spesial
+          </span>
+          <h3 class="text-base sm:text-lg font-bold text-gray-800 mt-1 flex items-center gap-2">
+            <i class="bi bi-printer text-tokopedia-green"></i> Kalkulator Estimasi Jasa Fotokopi
+          </h3>
+          <p class="text-xs text-gray-500">Hitung perkiraan biaya sebelum upload file atau pesan.</p>
+        </div>
+        <span class="text-xs bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-200 font-medium">
+          <i class="bi bi-info-circle mr-1"></i> Gratis Staples Dokumen
+        </span>
+      </div>
+
+      <!-- Form Interaktif Kalkulator & Unggah Dokumen -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Kolom 1: Pilihan Kertas & Jenis Cetak -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Ukuran Kertas</label>
+            <select id="kertasSize" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" onchange="calculateFotokopi()">
+              <option value="A4" selected>A4 (HVS 75/80 gr)</option>
+              <option value="F4">F4 / Folio (HVS 75/80 gr)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Cetak</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="cursor-pointer border rounded-xl p-2.5 text-center flex flex-col items-center gap-1 hover:border-emerald-500 transition-all bg-emerald-50/50 border-emerald-400" id="labelBW">
+                <input type="radio" name="printType" value="bw" checked class="hidden" onchange="updatePrintTypeUI('bw')" />
+                <span class="text-xs font-bold text-gray-800">Hitam Putih</span>
+                <span class="text-[10px] text-gray-500">Rp 250 / lbr</span>
+              </label>
+              <label class="cursor-pointer border rounded-xl p-2.5 text-center flex flex-col items-center gap-1 hover:border-emerald-500 transition-all border-gray-200" id="labelColor">
+                <input type="radio" name="printType" value="color" class="hidden" onchange="updatePrintTypeUI('color')" />
+                <span class="text-xs font-bold text-gray-800">Warna</span>
+                <span class="text-[10px] text-gray-500">Rp 1.000 / lbr</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom 2: Lembar, Rangkap & Jilid -->
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Jumlah Lembar</label>
+              <input type="number" id="lembarCount" min="1" value="10" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" oninput="calculateFotokopi()" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Rangkap (Copy)</label>
+              <input type="number" id="rangkapCount" min="1" value="1" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" oninput="calculateFotokopi()" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Opsi Jilid Dokumen</label>
+            <select id="jilidOption" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" onchange="calculateFotokopi()">
+              <option value="none">Tanpa Jilid (Gratis Staples)</option>
+              <option value="lakban">Jilid Lakban Biasa (+ Rp 4.000)</option>
+              <option value="spiral">Jilid Spiral Kawat/Plastik (+ Rp 10.000)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Kolom 3: Unggah File Dokumen & Catatan -->
+        <div class="space-y-2.5">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1 flex items-center justify-between">
+              <span>Unggah File Dokumen</span>
+              <span class="text-[10px] text-emerald-700 font-normal">Maks 10 MB</span>
+            </label>
+            <label for="fotokopiFileInput" class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-2.5 text-center flex flex-col items-center justify-center cursor-pointer bg-emerald-50/40 hover:bg-emerald-50 transition-all">
+              <i class="bi bi-file-earmark-arrow-up-fill text-2xl text-emerald-700"></i>
+              <span id="fotokopiFileNameText" class="text-xs font-bold text-gray-700 mt-1 truncate max-w-[200px]">Pilih File Dokumen</span>
+              <span id="fotokopiFileSizeText" class="text-[10px] text-gray-500">PDF, DOC, DOCX, JPG, PNG</span>
+              <input type="file" id="fotokopiFileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden" onchange="handleFotokopiFileSelect(event)" />
+            </label>
+            <div id="fotokopiFileNotice" class="hidden mt-1 text-[11px] bg-emerald-100/80 text-emerald-800 px-2.5 py-1 rounded-lg flex items-center justify-between">
+              <span class="truncate flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> <span id="fotokopiNoticeText"></span></span>
+              <button type="button" onclick="clearFotokopiFile()" class="text-red-600 hover:text-red-800 font-bold ml-1 text-xs">Hapus</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Cetak/Jilid (Opsional)</label>
+            <input type="text" id="fotokopiNotes" placeholder="Misal: Cover mika biru, jilid rapi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white" />
+          </div>
+        </div>
+
+        <!-- Kolom 4: Hasil Estimasi & Tombol Aksi -->
+        <div class="bg-gray-50 rounded-xl p-4 flex flex-col justify-between border border-gray-100">
+          <div>
+            <span class="text-[11px] text-gray-500 block">Estimasi Total Biaya:</span>
+            <span id="fotokopiTotal" class="text-2xl font-black text-delina-emerald block mt-1">
+              Rp 2.500
+            </span>
+            <p class="text-[10px] text-gray-400 mt-1 leading-snug">
+              *Harga sudah termasuk kertas HVS berkualitas. Belum termasuk ongkos kirim jika diantar.
+            </p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-gray-200 flex flex-col gap-2">
+            <button 
+              onclick="addFotokopiToCart()" 
+              class="w-full py-2.5 px-3 rounded-xl bg-delina-emerald hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+            >
+              <i class="bi bi-cart-plus"></i> Masukkan Pesanan Cetak
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER MODERN BERGAYA ISLAMI ================= -->
+  <footer class="bg-white border-t border-gray-100 mt-12 py-8 text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <span class="text-base font-black text-delina-emerald block mb-1">
+            DELINA<span class="text-tokopedia-green">.store</span>
+          </span>
+          <p class="text-gray-500 leading-relaxed max-w-sm">
+            Toko Online Alat Tulis Kantor (ATK) dan Jasa Fotokopi terpercaya. Melayani pembelian eceran, grosir sekolah, kebutuhan kantor, dan cetak tugas secara amanah.
+          </p>
+          <!-- Tautan Alamat Fisik Toko Dinamis (Google Maps) -->
+          <div class="mt-3 text-xs text-gray-500 flex items-start gap-1.5">
+            <i class="bi bi-geo-alt-fill text-emerald-600 mt-0.5 flex-shrink-0"></i>
+            <a id="footerAlamatLink" href="https://maps.google.com/?q=Toko+Delina+ATK" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition-colors underline decoration-dotted font-medium">
+              <span id="footerAlamatText">Jl. Raya Delina No. 12, Samping Masjid</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold text-gray-800 mb-2">Saluran Layanan</h4>
+          <ul class="space-y-1.5 text-xs text-gray-600">
+            <li>
+              <a id="footerWaLink" href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition-colors inline-flex items-center">
+                <i class="bi bi-whatsapp text-emerald-600 mr-2 text-sm"></i> WhatsApp Pemilik Toko
+              </a>
+            </li>
+            <li>
+              <a id="footerTgLink" href="https://t.me/KikoDelinaBot" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition-colors inline-flex items-center">
+                <i class="bi bi-telegram text-blue-500 mr-2 text-sm"></i> Bot Telegram Kiko
+              </a>
+            </li>
+            <li>
+              <a id="footerMapsLink" href="https://maps.google.com/?q=Toko+Delina+ATK" target="_blank" rel="noopener noreferrer" class="hover:text-amber-700 transition-colors inline-flex items-center">
+                <i class="bi bi-geo-alt text-amber-600 mr-2 text-sm"></i> Toko Fisik Delina ATK
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold text-gray-800 mb-2">Metode Pembayaran</h4>
+          <p class="text-gray-500 mb-2 text-xs">Mendukung QRIS Bebas Biaya (BCA, Mandiri, BRI, BSI, DANA, GoPay, OVO).</p>
+          <button 
+            type="button" 
+            onclick="openQrisInfoModal()" 
+            class="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 active:scale-95 px-3 py-2 rounded-lg border border-emerald-200 transition-all cursor-pointer w-fit shadow-xs"
+          >
+            <i class="bi bi-qr-code-scan text-base text-delina-emerald"></i>
+            <span>QRIS & Transfer Manual</span>
+            <i class="bi bi-box-arrow-up-right text-[10px] text-emerald-600 ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-2">
+        <div>© 2026 Toko ATK dan Fotokopi Delina. Didukung oleh Asisten AI Kiko. InsyaAllah Berkah & Amanah.</div>
+        <a href="admin.html" class="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-700 transition-colors font-semibold">
+          <i class="bi bi-shield-lock"></i>
+          <span>Portal Kasir & Admin Toko</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= FLOATING BUTTON KIKO AI (POJOK KANAN BAWAH) ================= -->
+  <div class="fixed bottom-24 right-4 sm:right-6 z-30 flex items-center gap-2">
+    <!-- Balon Dialog Sapaan Kiko (Chidori Lightning Anime Loop) -->
+    <div 
+      id="kikoFloatingTooltip" 
+      onclick="openKikoChat()"
+      class="cursor-pointer items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border-2 border-emerald-200 text-xs text-gray-800 chidori-hidden select-none max-w-[210px] sm:max-w-xs transition-transform"
+      title="Klik untuk chat dengan Kiko AI"
+    >
+      <div class="flex items-center gap-1.5 leading-snug">
+        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black flex-shrink-0">
+          ⚡
+        </span>
+        <p class="text-[11px] sm:text-xs">
+          <strong class="text-emerald-700 font-extrabold">Kiko:</strong> "Assalamu'alaikum! Butuh bantuan ATK dan Fotokopi?"
+        </p>
+      </div>
+    </div>
+
+    <!-- Tombol Lingkaran Kiko -->
+    <button 
+      onclick="openKikoChat()" 
+      class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-delina-emerald to-tokopedia-green text-white flex items-center justify-center text-xl sm:text-2xl shadow-lg hover:scale-105 active:scale-95 transition-all relative border-2 border-white flex-shrink-0"
+      title="Tanya Kiko Asisten AI"
+    >
+      <i class="bi bi-chat-quote-fill"></i>
+      <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white pulse-badge"></span>
+    </button>
+  </div>
+
+  <!-- ================= LACI KERANJANG BELANJA (OFF-CANVAS DRAWER) ================= -->
+  <div id="cartOverlay" onclick="toggleCartDrawer(false)" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+  
+  <div id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header Drawer -->
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-cart3 text-tokopedia-green text-lg"></i>
+        <h3 class="text-sm font-bold text-gray-800">Keranjang Belanja Delina</h3>
+      </div>
+      <button onclick="toggleCartDrawer(false)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Daftar Barang di Keranjang -->
+    <div id="cartItemsList" class="p-4 flex-1 overflow-y-auto space-y-3">
+      <!-- Diisi oleh app.js -->
+    </div>
+
+    <!-- Bagian Bawah: Total & Tombol Checkout -->
+    <div class="p-4 border-t border-gray-100 bg-gray-50 space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-500">Total Belanja:</span>
+        <span id="cartTotalPrice" class="text-base font-extrabold text-delina-emerald">Rp 0</span>
+      </div>
+      <button 
+        onclick="goToCheckout()"
+        class="w-full py-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+      >
+        <span>Lanjut ke Pembayaran & Nota</span>
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= POPUP / WIDGET CHAT KIKO SEMENTARA (PREVIEW FASE 1) ================= -->
+  <div id="kikoChatModal" onclick="if(event.target === this) closeKikoChat()" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[85vh]">
+      <!-- Header Kiko -->
+      <div class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-amber-300 font-bold">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold">Kiko (Asisten AI Delina)</h4>
+            <span class="text-[10px] text-emerald-200 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online • Beradab Islami
+            </span>
+          </div>
+        </div>
+        <button onclick="closeKikoChat()" class="text-white/80 hover:text-white text-lg">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Container Percakapan Kiko Live -->
+      <div id="kikoChatMessages" class="p-4 flex-1 overflow-y-auto space-y-3 text-xs bg-gray-50/70 min-h-[260px] max-h-[380px]">
+        <div class="flex gap-2">
+          <div class="w-6 h-6 rounded-full bg-delina-emerald text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs">K</div>
+          <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 text-gray-700 shadow-xs leading-relaxed max-w-[85%]">
+            Assalamu'alaikum Warahmatullahi Wabarakatuh kak! Saya Kiko, asisten toko Delina. Ada yang bisa Kiko bantu terkait stok ATK atau hitungan biaya fotokopi hari ini?
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="px-3 py-1.5 bg-gray-100/70 border-t border-gray-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[10px]">
+        <button type="button" onclick="sendQuickKikoQuestion('Stok kertas HVS A4 ada?')" class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          📄 Stok Kertas HVS
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Berapa tarif fotokopi warna dan jilid?')" class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          🖨️ Tarif Fotokopi & Jilid
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Rekomendasi pulpen yang bagus untuk ujian')" class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          ✒️ Pulpen Ujian
+        </button>
+      </div>
+
+      <!-- Input Chat Kiko -->
+      <div class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+        <input 
+          type="text" 
+          id="kikoChatInput"
+          placeholder="Tanya stok, harga, atau jasa fotokopi..."
+          class="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white transition-all"
+          onkeydown="if(event.key === 'Enter') sendKikoMessage()"
+        />
+        <button 
+          id="kikoSendBtn"
+          onclick="sendKikoMessage()" 
+          class="w-9 h-9 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-sm active:scale-95"
+          title="Kirim pesan"
+        >
+          <i class="bi bi-send-fill text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2) ================= -->
+  <div id="checkoutModal" onclick="if(event.target === this) closeCheckoutModal()" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[92vh] animate-fadeIn">
+      
+      <!-- Header Modal Checkout -->
+      <div class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-4 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-amber-300 font-bold">
+            <i class="bi bi-receipt-cutoff text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold">Checkout & Pembayaran Pesanan</h3>
+            <span class="text-[10px] text-emerald-200">Toko ATK & Fotokopi Delina</span>
+          </div>
+        </div>
+        <button onclick="closeCheckoutModal()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Konten Formulir Checkout (Scrollable) -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs text-gray-700 flex-1">
+        
+        <!-- 1. Ringkasan Pesanan & Total Tagihan -->
+        <div class="bg-gray-50 rounded-xl p-3.5 border border-gray-100 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-gray-800 border-b border-gray-200 pb-2">
+            <span>Ringkasan Item Belanja</span>
+            <span id="checkoutItemCount" class="text-emerald-700 font-semibold">0 Barang</span>
+          </div>
+          <div id="checkoutItemsList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            <!-- Diisi secara dinamis oleh app.js -->
+          </div>
+          <div class="border-t border-gray-200 pt-2 space-y-1 text-xs">
+            <div class="flex justify-between text-gray-500">
+              <span>Subtotal Produk & Cetak:</span>
+              <span id="checkoutSubtotal" class="font-bold text-gray-700">Rp 0</span>
+            </div>
+            <!-- Potongan Diskon Grosir Bertingkat (Fitur 4) -->
+            <div id="rowDiskonGrosir" class="hidden flex justify-between text-emerald-700 font-semibold bg-emerald-50/80 px-2 py-1 rounded-lg">
+              <span>🏷️ Diskon Grosir Otomatis:</span>
+              <span id="checkoutDiskonGrosir">-Rp 0</span>
+            </div>
+            <!-- Potongan Kupon Promo Berkah (Fitur 4) -->
+            <div id="rowDiskonKupon" class="hidden flex justify-between text-delina-emerald font-semibold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200/60">
+              <span id="checkoutKuponLabel">🎟️ Diskon Kupon:</span>
+              <div class="flex items-center gap-1.5">
+                <span id="checkoutDiskonKupon">-Rp 0</span>
+                <button type="button" onclick="removeCouponCode()" class="text-red-500 hover:text-red-700 font-bold text-[10px]" title="Batalkan kupon">✕</button>
+              </div>
+            </div>
+            <div class="flex justify-between text-gray-500">
+              <span>Ongkos Kirim:</span>
+              <span id="checkoutOngkir" class="font-bold text-gray-700">Rp 0 (Ambil di Toko)</span>
+            </div>
+            <div class="flex justify-between text-sm font-extrabold text-delina-emerald pt-1.5 border-t border-dashed border-gray-300">
+              <span>Total Tagihan:</span>
+              <span id="checkoutGrandTotal" class="text-base text-delina-emerald">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- Input Kupon Promo Berkah (Fitur 4) -->
+          <div class="pt-2 border-t border-gray-200/70">
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <i class="bi bi-ticket-perforated text-amber-500 absolute left-3 top-2.5 text-xs"></i>
+                <input 
+                  type="text" 
+                  id="couponInput" 
+                  placeholder="Kode Kupon (Contoh: JUMATBERKAH)" 
+                  class="w-full bg-white border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs uppercase font-bold focus:outline-none focus:border-tokopedia-green placeholder:normal-case placeholder:font-normal"
+                />
+              </div>
+              <button 
+                type="button" 
+                onclick="applyCouponCode()" 
+                class="px-3.5 py-2 rounded-xl bg-delina-emerald hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs flex-shrink-0"
+              >
+                Gunakan
+              </button>
+            </div>
+            <div id="couponMessage" class="text-[11px] mt-1.5 hidden font-medium"></div>
+          </div>
+        </div>
+
+        <!-- 2. Data Pemesan -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+            <i class="bi bi-person-fill text-tokopedia-green"></i> Data Pemesan
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-600 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+              <input type="text" id="custName" placeholder="Contoh: Ahmad Fauzi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white" required />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-600 mb-1">Nomor WhatsApp Aktif <span class="text-red-500">*</span></label>
+              <input type="tel" id="custPhone" placeholder="Contoh: 081234567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white" required />
+            </div>
+          </div>
+
+          <!-- Pilihan Metode Pengambilan -->
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Metode Pengambilan Pesanan</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 bg-emerald-50/60 border-emerald-400 transition-all" id="labelPickup">
+                <input type="radio" name="deliveryMethod" value="pickup" checked onchange="handleDeliveryChange('pickup')" class="text-emerald-600" />
+                <div class="text-[11px] leading-tight">
+                  <span class="font-bold text-gray-800 block">Ambil Sendiri di Toko</span>
+                  <span class="text-gray-500 text-[10px]">Gratis • Siap diambil saat pesanan jadi</span>
+                </div>
+              </label>
+              <label class="delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 border-gray-200 hover:border-emerald-300 transition-all" id="labelCourier">
+                <input type="radio" name="deliveryMethod" value="courier" onchange="handleDeliveryChange('courier')" class="text-emerald-600" />
+                <div class="text-[11px] leading-tight">
+                  <span class="font-bold text-gray-800 block">Diantar Kurir Toko</span>
+                  <span class="text-emerald-700 font-semibold text-[10px]">+ Ongkir Rp 5.000</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Kolom Alamat Pengiriman (Muncul jika pilih kurir) -->
+          <div id="addressFieldContainer" class="hidden">
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Alamat Lengkap Pengiriman <span class="text-red-500">*</span></label>
+            <textarea id="custAddress" rows="2" placeholder="Nama Jalan, No. Rumah, RT/RW, Patokan atau Kantor/Sekolah" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white"></textarea>
+          </div>
+        </div>
+
+        <!-- 3. Informasi Pembayaran QRIS & Transfer Bank -->
+        <div class="space-y-3 pt-2 border-t border-gray-100">
+          <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+            <i class="bi bi-qr-code text-tokopedia-green"></i> Pembayaran QRIS Bebas Biaya Admin
+          </h4>
+          
+          <!-- Box QRIS Toko Delina -->
+          <div class="bg-gradient-to-b from-emerald-50/70 to-white rounded-2xl p-4 border border-emerald-200 text-center space-y-3">
+            <div class="flex items-center justify-between text-[11px] border-b border-emerald-100 pb-2">
+              <span class="font-extrabold text-delina-emerald tracking-wide">QRIS RESMI TOKO DELINA</span>
+              <span class="text-gray-500 text-[10px]">NMID: ID102030405099</span>
+            </div>
+
+            <!-- Gambar Barcode QRIS Mockup / Live Image -->
+            <div class="flex flex-col items-center justify-center py-1">
+              <div class="p-3 bg-white rounded-2xl shadow-md border border-gray-200 inline-block relative">
+                <img id="qrisBarcodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD" alt="QRIS Toko Delina" class="w-36 h-36 sm:w-44 sm:h-44 object-contain mx-auto" />
+                <div class="mt-1 text-[10px] font-extrabold text-delina-emerald tracking-wide">
+                  DELINA ATK & FOTOKOPI
+                </div>
+              </div>
+            </div>
+
+            <!-- Petunjuk Scan & Rekening Alternatif -->
+            <p class="text-[11px] text-gray-600 leading-snug">
+              Buka aplikasi perbankan (BCA, Mandiri, BRI, BSI) atau e-Wallet (GoPay, DANA, OVO), lalu scan barcode di atas dan transfer sesuai nominal.
+            </p>
+
+            <!-- Opsi Transfer Bank Manual -->
+            <div class="bg-white rounded-xl p-2.5 border border-emerald-100 flex items-center justify-between text-[11px]">
+              <div class="text-left">
+                <span class="text-gray-400 block text-[10px]">Nomor Rekening Toko:</span>
+                <span id="checkoutRekeningText" class="font-extrabold text-gray-800 tracking-wider">BCA 1234567890 a.n Delina Shop</span>
+              </div>
+              <button type="button" onclick="copyRekening(document.getElementById('checkoutRekeningText').innerText)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] border border-emerald-200">
+                <i class="bi bi-copy mr-0.5"></i> Salin
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Unggah Bukti Bayar -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-gray-700">
+              Unggah Bukti Bayar (Tangkapan Layar / Struk Transfer) <span class="text-red-500">*</span>
+            </label>
+            <label for="paymentProofInput" class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-emerald-50/40 transition-all">
+              <i class="bi bi-image text-2xl text-gray-400"></i>
+              <span id="paymentProofNameText" class="text-xs font-bold text-gray-700 mt-1">Pilih Foto Bukti Transfer</span>
+              <span id="paymentProofSizeText" class="text-[10px] text-gray-400">JPG, JPEG, PNG (Maks 5 MB)</span>
+              <input type="file" id="paymentProofInput" accept="image/*" class="hidden" onchange="handlePaymentProofSelect(event)" />
+            </label>
+
+            <!-- Pratinjau Gambar Bukti Bayar -->
+            <div id="paymentProofPreviewContainer" class="hidden mt-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <img id="paymentProofPreviewImg" src="" alt="Pratinjau Bukti" class="w-12 h-12 object-cover rounded-lg border bg-white flex-shrink-0" />
+                <div class="text-[11px] text-gray-700 min-w-0">
+                  <span id="paymentProofPreviewName" class="font-bold block truncate max-w-[170px]">bukti.jpg</span>
+                  <span id="paymentProofPreviewSize" class="text-gray-400 text-[10px]">1.2 MB</span>
+                </div>
+              </div>
+              <button type="button" onclick="clearPaymentProof()" class="text-red-600 hover:text-red-800 font-bold text-xs px-2 py-1 flex-shrink-0">
+                Ganti
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Modal Checkout: Tombol Konfirmasi -->
+      <div class="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3 flex-shrink-0">
+        <button 
+          type="button" 
+          onclick="closeCheckoutModal()" 
+          class="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-100"
+        >
+          Batal
+        </button>
+        <button 
+          type="button" 
+          onclick="submitOrderCheckout()" 
+          class="flex-1 py-3 px-4 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
+        >
+          <i class="bi bi-shield-check text-base"></i>
+          <span>Konfirmasi & Terbitkan Nota</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL SUKSES / NOTA PESANAN (FASE 2) ================= -->
+  <div id="orderSuccessModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col text-center p-5 sm:p-6 space-y-4 animate-fadeIn">
+      
+      <!-- Icon Sukses Animasi -->
+      <div class="w-16 h-16 rounded-full bg-emerald-100 text-delina-emerald mx-auto flex items-center justify-center text-3xl shadow-inner">
+        <i class="bi bi-check-circle-fill text-tokopedia-green"></i>
+      </div>
+
+      <div>
+        <span class="text-[11px] font-bold text-delina-emerald bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">
+          Pesanan Berhasil Diterbitkan
+        </span>
+        <h3 class="text-lg font-extrabold text-gray-800 mt-2">
+          Alhamdulillah wa Syukrulillah!
+        </h3>
+        <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+          Terima kasih kak <span id="successCustName" class="font-bold text-gray-700"></span> telah berbelanja di Toko Delina. Pesanan Anda segera kami proses dengan amanah.
+        </p>
+      </div>
+
+      <!-- Rincian Kotak Nota -->
+      <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200 text-left text-xs space-y-2">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+          <span class="text-gray-500 font-medium">Nomor Nota:</span>
+          <div class="flex items-center gap-1.5 font-black text-delina-emerald text-sm">
+            <span id="successOrderId">#DLN-2026-0000</span>
+            <button onclick="copyOrderId()" title="Salin No Nota" class="text-gray-400 hover:text-emerald-700 text-xs">
+              <i class="bi bi-copy"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Waktu Pemesanan:</span>
+          <span id="successOrderTime" class="font-semibold text-gray-800"></span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Metode Pengambilan:</span>
+          <span id="successDeliveryMethod" class="font-semibold text-gray-800"></span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Total Pembayaran:</span>
+          <span id="successOrderTotal" class="font-extrabold text-delina-emerald text-sm"></span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Status Nota:</span>
+          <span class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px] border border-amber-200">
+            Menunggu Verifikasi Toko
+          </span>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi -->
+      <div class="space-y-2 pt-1">
+        <button 
+          onclick="sendConfirmationWhatsApp()" 
+          class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+        >
+          <i class="bi bi-whatsapp text-sm"></i>
+          <span>Kirim Rincian ke WhatsApp Toko Delina</span>
+        </button>
+        <button 
+          onclick="closeSuccessModal()" 
+          class="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
+        >
+          Tutup & Belanja Lagi
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL INFO QRIS & TRANSFER PEMBAYARAN TOKO ================= -->
+  <div id="qrisInfoModal" onclick="if(event.target === this) closeQrisInfoModal()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[90vh]">
+      <!-- Header Modal -->
+      <div class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-lg">
+            <i class="bi bi-qr-code-scan"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Pembayaran QRIS & Transfer Bank</h3>
+            <p class="text-[11px] text-emerald-100">Bebas Biaya Admin • Instan & Amanah</p>
+          </div>
+        </div>
+        <button onclick="closeQrisInfoModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm transition-colors">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Isi Modal -->
+      <div class="p-5 overflow-y-auto space-y-4 text-center">
+        <!-- Foto Barcode QRIS -->
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block shadow-inner w-full">
+          <img 
+            id="modalQrisImg" 
+            src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD" 
+            alt="Barcode QRIS Toko Delina" 
+            class="w-48 h-48 sm:w-56 sm:h-56 object-contain mx-auto rounded-xl shadow-xs cursor-pointer hover:scale-102 transition-transform bg-white p-2 border border-slate-200"
+            onclick="window.open(this.src, '_blank')"
+            title="Klik untuk memperbesar gambar QRIS"
+          />
+          <div class="mt-3 flex items-center justify-center gap-2">
+            <a 
+              id="btnDownloadQris"
+              href="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD" 
+              target="_blank" 
+              download="QRIS-Toko-Delina.png"
+              class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-all shadow-xs"
+            >
+              <i class="bi bi-download"></i> Unduh / Perbesar Gambar QRIS
+            </a>
+          </div>
+        </div>
+
+        <!-- Nomor Rekening Bank -->
+        <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-3.5 text-left">
+          <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Rekening Bank Resmi:</div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="modalRekeningText" class="font-mono font-bold text-slate-800 text-xs sm:text-sm break-all">
+              BCA 1234567890 a.n Delina Shop
+            </span>
+            <button 
+              type="button" 
+              onclick="copyModalRekening()" 
+              class="px-2.5 py-1.5 rounded-lg bg-white border border-emerald-300 text-emerald-800 font-bold text-xs hover:bg-emerald-100 active:scale-95 transition-all flex items-center gap-1 flex-shrink-0 shadow-xs"
+              title="Salin Nomor Rekening"
+            >
+              <i class="bi bi-clipboard"></i> Salin
+            </button>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-gray-500 text-left space-y-1">
+          <p class="font-semibold text-gray-700">Panduan Pembayaran:</p>
+          <ul class="list-disc pl-4 space-y-0.5 text-gray-500">
+            <li>Buka aplikasi m-Banking (BCA, Mandiri, BRI, BSI) atau e-Wallet (GoPay, OVO, DANA).</li>
+            <li>Scan QRIS di atas atau transfer langsung ke nomor rekening tertera.</li>
+            <li>Simpan bukti transfer dan unggah saat checkout di website Toko Delina.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+        <button 
+          type="button" 
+          onclick="closeQrisInfoModal()" 
+          class="px-5 py-2 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs transition-all shadow-sm"
+        >
+          Selesai / Mengerti
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFIKASI TOAST -->
+  <div
+    id="toastNotification" 
+    class="fixed bottom-24 left-1/2 transform -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none"
+  >
+    <div class="bg-gray-900/90 backdrop-blur-md text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+      <i class="bi bi-check-circle-fill text-emerald-400 text-sm"></i>
+      <span id="toastMessage">Alhamdulillah, berhasil.</span>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM NAVIGATION BAR (MOBILE & TABLET SAMSUNG TAB A9+) ================= -->
+  <nav class="mobile-bottom-nav fixed bottom-0 sm:bottom-3.5 left-0 right-0 z-40 px-0 sm:px-4 pointer-events-none">
+    <div class="max-w-md sm:max-w-lg md:max-w-xl mx-auto pointer-events-auto bg-white/95 backdrop-blur-md border-t sm:border border-gray-200/90 sm:rounded-2xl shadow-[0_-2px_15px_rgba(0,0,0,0.06)] sm:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+      <div class="grid grid-cols-5 h-15 sm:h-16 items-center px-1 sm:px-2">
+        
+        <!-- 1. Beranda -->
+        <button 
+          data-nav="home"
+          onclick="handleBottomNav('home')" 
+          class="bottom-nav-btn active flex flex-col items-center justify-center text-tokopedia-green transition-all py-1 focus:outline-none hover:scale-105 active:scale-95"
+          title="Beranda"
+        >
+          <i class="bi bi-house-door-fill text-lg sm:text-xl"></i>
+          <span class="text-[10px] sm:text-xs font-bold mt-0.5">Beranda</span>
+        </button>
+
+        <!-- 2. Kategori -->
+        <button 
+          data-nav="category"
+          onclick="handleBottomNav('category')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 focus:outline-none hover:scale-105 active:scale-95"
+          title="Kategori ATK"
+        >
+          <i class="bi bi-grid text-lg sm:text-xl"></i>
+          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kategori</span>
+        </button>
+
+        <!-- 3. Fotokopi (Aksen Menonjol di Tengah) -->
+        <button 
+          data-nav="fotokopi"
+          onclick="handleBottomNav('fotokopi')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-delina-emerald transition-all py-1 relative focus:outline-none group"
+          title="Jasa Fotokopi"
+        >
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-delina-emerald to-tokopedia-green text-white flex items-center justify-center shadow-lg -mt-6 border-2 border-white group-hover:scale-110 group-active:scale-95 transition-all">
+            <i class="bi bi-printer-fill text-base sm:text-lg"></i>
+          </div>
+          <span class="text-[10px] sm:text-xs font-bold text-delina-emerald mt-0.5">Fotokopi</span>
+        </button>
+
+        <!-- 4. Keranjang (Sinkron Badge Otomatis) -->
+        <button 
+          data-nav="cart"
+          onclick="handleBottomNav('cart')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
+          title="Keranjang Belanja"
+        >
+          <div class="relative">
+            <i class="bi bi-cart3 text-lg sm:text-xl"></i>
+            <span class="cart-badge absolute -top-1.5 -right-2.5 bg-delina-gold text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-sm" style="display: none;">
+              0
+            </span>
+          </div>
+          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Keranjang</span>
+        </button>
+
+        <!-- 5. Kiko AI -->
+        <button 
+          data-nav="kiko"
+          onclick="handleBottomNav('kiko')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
+          title="Asisten Kiko AI"
+        >
+          <div class="relative">
+            <i class="bi bi-chat-quote-fill text-lg sm:text-xl"></i>
+            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white pulse-badge"></span>
+          </div>
+          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kiko AI</span>
+        </button>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Berkas Konfigurasi & JavaScript Logika Utama (dengan Cache Buster) -->
+  <script src="./js/config.js?v=20261030_01"></script>
+  <script src="./js/app.js?v=20261030_01"></script>
 </body>
 </html>
+

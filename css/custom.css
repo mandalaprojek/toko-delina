@@ -145,3 +145,109 @@ body {
     margin: 0;
   }
 }
+
+/* ==========================================================================
+   ANIMASI PETIR CHIDORI SASUKE - TOOLTIP FLOATING KIKO AI
+   GPU-Accelerated (transform, opacity, box-shadow) - Halus & Ringan
+   ========================================================================== */
+
+#kikoFloatingTooltip {
+  transform-origin: right bottom;
+  will-change: transform, opacity, box-shadow;
+  transition: border-color 0.2s ease;
+}
+
+/* 1. Keyframe Masuk: Sambaran Kilat Petir Cyan-White & Emerald + Micro-Jitter */
+@keyframes chidori-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.12) translate(35px, 30px);
+    box-shadow: 0 0 0 rgba(0, 242, 254, 0);
+    filter: brightness(2.2);
+  }
+  20% {
+    opacity: 0.95;
+    transform: scale(0.45) translate(-4px, 2px);
+    box-shadow: 0 0 28px 8px rgba(0, 242, 254, 0.95), 0 0 40px 14px rgba(16, 185, 129, 0.8);
+    filter: brightness(2.6);
+  }
+  35% {
+    transform: scale(0.72) translate(4px, -3px);
+    box-shadow: 0 0 18px 4px #ffffff, 0 0 30px 10px rgba(0, 242, 254, 0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06) translate(-2px, 2px);
+    box-shadow: 0 0 32px 6px rgba(0, 242, 254, 0.8), 0 0 16px 4px rgba(16, 185, 129, 0.7);
+    filter: brightness(1.3);
+  }
+  70% {
+    transform: scale(0.97) translate(1px, -1px);
+    box-shadow: 0 0 18px 3px rgba(0, 242, 254, 0.55), 0 0 10px 2px rgba(16, 185, 129, 0.5);
+  }
+  85% {
+    transform: scale(1.02) translate(0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 14px 2px rgba(0, 242, 254, 0.5);
+    filter: brightness(1);
+  }
+}
+
+/* 2. Tampilan Diam (Resting Glow): Pijaran Listrik Berdenyut Halus di Border (4 Detik) */
+@keyframes chidori-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 0 10px 1px rgba(0, 242, 254, 0.45), 0 0 4px 1px rgba(16, 185, 129, 0.35);
+    border-color: rgba(0, 242, 254, 0.7);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 0 20px 4px rgba(0, 242, 254, 0.85), 0 0 8px 3px rgba(16, 185, 129, 0.7);
+    border-color: rgba(16, 185, 129, 0.9);
+  }
+}
+
+/* 3. Keyframe Keluar: Electric Spark Zap & Ditarik Cepat ke Dalam Tombol Kiko */
+@keyframes chidori-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.08) translate(-3px, 1px);
+    box-shadow: 0 0 32px 8px rgba(0, 242, 254, 1), 0 0 18px 6px #ffffff;
+    filter: brightness(2.4);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scale(0.65) translate(12px, 10px);
+    box-shadow: 0 0 26px 6px rgba(0, 242, 254, 0.85), 0 0 14px 3px rgba(16, 185, 129, 0.75);
+  }
+  75% {
+    opacity: 0.35;
+    transform: scale(0.25) translate(28px, 24px);
+    filter: brightness(2.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.05) translate(45px, 40px);
+    box-shadow: 0 0 0 rgba(0, 242, 254, 0);
+  }
+}
+
+.chidori-enter-active {
+  display: flex !important;
+  animation: chidori-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards, chidori-pulse 2s ease-in-out infinite 0.55s;
+}
+
+.chidori-exit-active {
+  display: flex !important;
+  animation: chidori-exit 0.45s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+.chidori-hidden {
+  display: none !important;
+  opacity: 0;
+}

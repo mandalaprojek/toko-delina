@@ -1023,6 +1023,7 @@ function submitOrderCheckout() {
       customerPhone: customerPhone,
       deliveryMethod: selectedDeliveryMethod === 'courier' ? `Diantar Kurir (+ ${formatRupiah(5000)})` : 'Ambil Sendiri di Toko Delina',
       customerAddress: customerAddress || "-",
+      paymentMethod: uploadedPaymentProof ? "QRIS" : "Bayar Tunai di Toko",
       totalAkhir: totalAkhir,
       couponCode: appliedCoupon ? appliedCoupon.code : null,
       discountAmount: totalPotongan,
@@ -1405,9 +1406,11 @@ async function fetchProductsFromGAS() {
       });
     }
 
-    // 4. Sinkron Profil Toko, QRIS, & Rekening Bank
+    // 4. Sinkron Profil Toko, QRIS, Rekening Bank, Telegram & Google Maps
     if (json.toko) {
       const t = json.toko;
+
+      // Checkout Modal Rekening & QRIS
       const rekTextEl = document.getElementById("checkoutRekeningText");
       if (rekTextEl && t.rekening) {
         rekTextEl.textContent = t.rekening;
@@ -1415,6 +1418,50 @@ async function fetchProductsFromGAS() {
       const qrisImgEl = document.getElementById("qrisBarcodeImg");
       if (qrisImgEl && t.qris) {
         qrisImgEl.src = t.qris;
+      }
+
+      // Modal Informasi QRIS & Transfer Bank (Popup Footer)
+      const modalRekEl = document.getElementById("modalRekeningText");
+      if (modalRekEl && t.rekening) {
+        modalRekEl.textContent = t.rekening;
+      }
+      const modalQrisEl = document.getElementById("modalQrisImg");
+      const btnDownloadQris = document.getElementById("btnDownloadQris");
+      if (modalQrisEl && t.qris) {
+        modalQrisEl.src = t.qris;
+        if (btnDownloadQris) {
+          btnDownloadQris.href = t.qris;
+        }
+      }
+
+      // Footer: Alamat Fisik Toko & Tautan Google Maps
+      const footerAlamatText = document.getElementById("footerAlamatText");
+      const footerAlamatLink = document.getElementById("footerAlamatLink");
+      if (footerAlamatText && t.alamat) {
+        footerAlamatText.textContent = t.alamat;
+      }
+      if (footerAlamatLink && t.maps) {
+        footerAlamatLink.href = t.maps;
+      }
+
+      // Footer: Saluran Layanan WhatsApp, Telegram Bot, dan Google Maps
+      const footerWaLink = document.getElementById("footerWaLink");
+      if (footerWaLink && t.wa) {
+        let cleanWa = String(t.wa).replace(/\D/g, "");
+        if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.slice(1);
+        footerWaLink.href = `https://wa.me/${cleanWa}`;
+      }
+
+      const footerTgLink = document.getElementById("footerTgLink");
+      if (footerTgLink && t.telegram_bot) {
+        let tgUrl = String(t.telegram_bot).trim();
+        if (tgUrl.startsWith("@")) tgUrl = "https://t.me/" + tgUrl.slice(1);
+        footerTgLink.href = tgUrl;
+      }
+
+      const footerMapsLink = document.getElementById("footerMapsLink");
+      if (footerMapsLink && t.maps) {
+        footerMapsLink.href = t.maps;
       }
     }
   } catch (e) {
@@ -1872,12 +1919,118 @@ ${escapeHtml(order.itemsText || "-")}
   `;
 }
 
+// =========================================================================
+// 16. MODAL INFORMASI QRIS & TRANSFER BANK (FOOTER ETALASE)
+// =========================================================================
+
+function openQrisInfoModal() {
+  const modal = document.getElementById("qrisInfoModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeQrisInfoModal() {
+  const modal = document.getElementById("qrisInfoModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function copyModalRekening() {
+  const rekText = document.getElementById("modalRekeningText")?.textContent?.trim() || "";
+  if (!rekText) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(rekText).then(() => {
+      showToast("Alhamdulillah! Nomor rekening berhasil disalin.");
+    }).catch(() => {
+      showToast("Nomor Rekening: " + rekText);
+    });
+  } else {
+    showToast("Nomor Rekening: " + rekText);
+  }
+}
+
+// =========================================================================
+// 17. ANIMASI PETIR CHIDORI SASUKE - TOOLTIP KIKO FLOATING BUTTON
+// Siklus Loop: 4 Detik Tampil - 4 Detik Sembunyi, Pause Saat Hover / Touch
+// =========================================================================
+
+let chidoriTimer = null;
+let isChidoriVisible = false;
+let isChidoriPaused = false;
+
+function initChidoriTooltip() {
+  const tooltip = document.getElementById("kikoFloatingTooltip");
+  if (!tooltip) return;
+
+  // Pause saat mouse hover atau layar sentuh disentuh user
+  const pauseLoop = () => {
+    isChidoriPaused = true;
+  };
+  const resumeLoop = () => {
+    isChidoriPaused = false;
+  };
+
+  tooltip.addEventListener("mouseenter", pauseLoop);
+  tooltip.addEventListener("mouseleave", resumeLoop);
+  tooltip.addEventListener("touchstart", pauseLoop, { passive: true });
+  tooltip.addEventListener("touchend", resumeLoop, { passive: true });
+
+  // Mulai siklus petir Chidori pertama setelah 1.2 detik halaman termuat
+  setTimeout(() => {
+    triggerChidoriCycle();
+  }, 1200);
+}
+
+function triggerChidoriCycle() {
+  const tooltip = document.getElementById("kikoFloatingTooltip");
+  if (!tooltip) return;
+
+  if (chidoriTimer) clearTimeout(chidoriTimer);
+
+  const runCycle = () => {
+    if (isChidoriPaused) {
+      // Jika kursor/touch sedang aktif pada balon, tunda pengecekan tiap 800ms
+      chidoriTimer = setTimeout(runCycle, 800);
+      return;
+    }
+
+    if (!isChidoriVisible) {
+      // FASE MASUK (CHIDORI ENTER): Sambaran Kilat Petir Cyan-White, Tampil Selama 4 Detik
+      tooltip.classList.remove("chidori-exit-active", "chidori-hidden");
+      tooltip.classList.add("chidori-enter-active");
+      isChidoriVisible = true;
+
+      chidoriTimer = setTimeout(() => {
+        runCycle();
+      }, 4000);
+    } else {
+      // FASE KELUAR (CHIDORI EXIT): Electric Zap Menyusut Masuk Tombol Kiko, Sembunyi Selama 4 Detik
+      tooltip.classList.remove("chidori-enter-active");
+      tooltip.classList.add("chidori-exit-active");
+      isChidoriVisible = false;
+
+      // Tunggu animasi exit selesai (450ms) lalu sembunyikan total
+      setTimeout(() => {
+        if (!isChidoriVisible) {
+          tooltip.classList.remove("chidori-exit-active");
+          tooltip.classList.add("chidori-hidden");
+        }
+      }, 450);
+
+      chidoriTimer = setTimeout(() => {
+        runCycle();
+      }, 4000 + 450);
+    }
+  };
+
+  runCycle();
+}
+
 // Inisialisasi Saat Dokumen Dimuat
 document.addEventListener("DOMContentLoaded", () => {
   renderProducts();
   updateCartBadge();
   calculateFotokopi();
   fetchProductsFromGAS();
+  initChidoriTooltip();
 
   // Pasang listener pencarian
   const searchInput = document.getElementById("searchInput");
@@ -1941,4 +2094,8 @@ if (typeof window !== "undefined") {
   window.sendConfirmationWhatsApp = sendConfirmationWhatsApp;
   window.handleBottomNav = handleBottomNav;
   window.showToast = showToast;
+  window.openQrisInfoModal = openQrisInfoModal;
+  window.closeQrisInfoModal = closeQrisInfoModal;
+  window.copyModalRekening = copyModalRekening;
+  window.initChidoriTooltip = initChidoriTooltip;
 }

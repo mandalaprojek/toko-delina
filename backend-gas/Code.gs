@@ -2,6 +2,7 @@
  * =========================================================================
  * BACKEND TOKO DELINA (Google Apps Script - Code.gs)
  * Marketplace ATK, Jasa Fotokopi & Portal Manajemen Kasir / Super Admin
+ * Bot Telegram Kiko AI Canggih (Interactive Inline Keyboard & Callback Query)
  * Arsitektur Serverless 100% Gratis - Google Apps Script + Sheets + Drive + Gemini
  * =========================================================================
  */
@@ -62,6 +63,8 @@ function getPengaturanData(ss) {
     SLOGAN_TOKO: "Lengkap, Murah & Berkah",
     NO_WA_TOKO: "081234567890",
     ALAMAT_TOKO: "Jl. Raya Delina No. 12, Samping Masjid",
+    URL_TELEGRAM_BOT: "https://t.me/KikoDelinaBot",
+    URL_GOOGLE_MAPS: "https://maps.google.com/?q=Toko+Delina+ATK",
     URL_LOGO: "",
     URL_QRIS: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD",
     NOMOR_REKENING: "BCA 1234567890 a.n Delina Shop",
@@ -136,7 +139,7 @@ function validatePin(pin, ss) {
 
 /**
  * =========================================================================
- * 1. FUNGSI SETUP DATABASE OTOMATIS (SETUP SELURUH TAB TERMASUK PENGATURAN & KUPON)
+ * 1. FUNGSI SETUP DATABASE OTOMATIS
  * =========================================================================
  */
 function setupDatabaseOtomatis() {
@@ -222,7 +225,7 @@ function setupDatabaseOtomatis() {
   // --- G. Slot Script Properties ---
   inisialisasiSlotScriptProperties();
 
-  const msg = "Alhamdulillah! Database Toko Delina (Produk, Pesanan, Tarif, Pengaturan, Kupon) berhasil disiapkan.\nURL: " + ss.getUrl();
+  const msg = "Alhamdulillah! Database Toko Delina berhasil disiapkan.\nURL: " + ss.getUrl();
   Logger.log(msg);
   return msg;
 }
@@ -238,6 +241,8 @@ function setupTabPengaturan(sheet) {
     ["SLOGAN_TOKO", "Lengkap, Murah & Berkah", "Slogan toko"],
     ["NO_WA_TOKO", "081234567890", "Nomor WhatsApp customer service toko"],
     ["ALAMAT_TOKO", "Jl. Raya Delina No. 12, Samping Masjid", "Alamat fisik toko"],
+    ["URL_TELEGRAM_BOT", "https://t.me/KikoDelinaBot", "Tautan atau username Bot Telegram Kiko"],
+    ["URL_GOOGLE_MAPS", "https://maps.google.com/?q=Toko+Delina+ATK", "Tautan lokasi fisik toko di Google Maps"],
     ["URL_LOGO", "", "URL logo toko (opsional)"],
     ["URL_QRIS", "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD", "URL barcode QRIS toko"],
     ["NOMOR_REKENING", "BCA 1234567890 a.n Delina Shop", "Nomor rekening bank untuk transfer"],
@@ -329,6 +334,8 @@ function doGet(e) {
           slogan: auth.settings.SLOGAN_TOKO,
           wa: auth.settings.NO_WA_TOKO,
           alamat: auth.settings.ALAMAT_TOKO,
+          telegram_bot: auth.settings.URL_TELEGRAM_BOT || "https://t.me/KikoDelinaBot",
+          maps: auth.settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
           logo: auth.settings.URL_LOGO,
           qris: auth.settings.URL_QRIS,
           rekening: auth.settings.NOMOR_REKENING
@@ -388,6 +395,8 @@ function doGet(e) {
         slogan: settings.SLOGAN_TOKO,
         wa: settings.NO_WA_TOKO,
         alamat: settings.ALAMAT_TOKO,
+        telegram_bot: settings.URL_TELEGRAM_BOT || "https://t.me/KikoDelinaBot",
+        maps: settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
         logo: settings.URL_LOGO,
         qris: settings.URL_QRIS,
         rekening: settings.NOMOR_REKENING
@@ -424,7 +433,67 @@ function doPost(e) {
     const ss = getDelinaSpreadsheet();
 
     // =========================================================
-    // JALUR 1: PESAN MASUK DARI WEBHOOK TELEGRAM
+    // JALUR 1: TELEGRAM WEBHOOK (CALLBACK QUERY DARI INLINE KEYBOARD)
+    // =========================================================
+    if (payload.callback_query) {
+      const cb = payload.callback_query;
+      const cbData = String(cb.data || "").trim();
+      const fromChatId = cb.message ? cb.message.chat.id : (cb.from ? cb.from.id : null);
+      const messageId = cb.message ? cb.message.message_id : null;
+
+      // 1. Menu Cek Status Nota
+      if (cbData === "menu_cek_nota") {
+        answerCallbackQuery(cb.id, "Ketik /cek [No_Nota]");
+        const infoMsg = `📦 *Cara Cek Status Pesanan Toko Delina:*\n\nSilakan ketik */cek [Nomor_Nota]* atau kirim langsung nomor nota kakak.\n\nContoh:\n\`/cek #DLN-2026-9429\``;
+        kirimPesanTelegram(fromChatId, infoMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 2. Menu Info Tarif Fotokopi & Jilid
+      if (cbData === "menu_tarif") {
+        answerCallbackQuery(cb.id, "Memuat daftar tarif...");
+        const rates = ambilDaftarTarif(ss);
+        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA:*\n====================================\n`;
+        for (const k in rates) {
+          tarifMsg += `• ${rates[k].nama} : *Rp ${Number(rates[k].harga).toLocaleString("id-ID")}*\n`;
+        }
+        tarifMsg += `\n_Kakak bisa langsung unggah file PDF/Word di website kami tanpa antre! Barakallahu fiik._`;
+        kirimPesanTelegram(fromChatId, tarifMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 3. Admin Aksi: Verifikasi Lunas
+      if (cbData.startsWith("verify_")) {
+        const orderId = cbData.replace("verify_", "").trim();
+        const updated = updateOrderStatusDiSheet(ss, orderId, "Sedang Diproses (Lunas)");
+        if (updated) {
+          answerCallbackQuery(cb.id, `Nota ${orderId} diverifikasi Lunas!`);
+          kirimPesanTelegram(fromChatId, `✅ *Alhamdulillah!* Nota *${orderId}* telah diverifikasi *Lunas & Sedang Diproses* oleh Admin.`);
+        } else {
+          answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
+        }
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 4. Admin Aksi: Siap Ambil
+      if (cbData.startsWith("ready_")) {
+        const orderId = cbData.replace("ready_", "").trim();
+        const updated = updateOrderStatusDiSheet(ss, orderId, "Siap Diambil di Toko");
+        if (updated) {
+          answerCallbackQuery(cb.id, `Nota ${orderId} diubah ke Siap Diambil!`);
+          kirimPesanTelegram(fromChatId, `📦 *Alhamdulillah!* Nota *${orderId}* telah diubah statusnya menjadi *Siap Diambil di Toko*.`);
+        } else {
+          answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
+        }
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      answerCallbackQuery(cb.id, "OK");
+      return HtmlService.createHtmlOutput("OK");
+    }
+
+    // =========================================================
+    // JALUR 2: TELEGRAM WEBHOOK (PESAN TEKS MASUK DARI PENGGUNA)
     // =========================================================
     if (payload.message && payload.message.text && payload.message.chat) {
       const updateId = payload.update_id;
@@ -439,27 +508,113 @@ function doPost(e) {
       }
 
       const chatId = payload.message.chat.id;
-      const userText = payload.message.text;
+      const userText = String(payload.message.text || "").trim();
+      const settings = getPengaturanData(ss);
 
-      if (userText === "/start") {
-        const welcome = "Assalamu'alaikum Warahmatullahi Wabarakatuh! 🌟\n\nSelamat datang di Bot Resmi *Toko ATK dan Fotokopi Delina*.\nSaya *Kiko*, asisten virtual yang siap melayani kakak 24 jam.\n\nKakak bisa tanya stok kertas, pulpen, buku, peralatan kantor, atau tarif fotokopi kilat kapan saja.\n\nAda yang bisa Kiko bantu hari ini? _Barakallahu fiik._";
-        kirimPesanTelegram(chatId, welcome);
-      } else if (userText === "/status" || userText === "/cek") {
+      // A. Perintah /start atau Salam Pembuka: Menu Interaktif Inline Keyboard
+      const isStart = userText === "/start";
+      const isGreeting = (userText.toLowerCase().startsWith("assalamu") && userText.length < 35);
+
+      if (isStart || isGreeting) {
+        const welcomeText = `Assalamu'alaikum Warahmatullahi Wabarakatuh! 🌟\n\nSelamat datang di Bot Resmi *Toko ATK dan Fotokopi Delina*.\nSaya *Kiko*, asisten virtual toko yang siap melayani kakak 24 jam.\n\nSilakan pilih menu layanan di bawah ini atau tanyakan langsung kebutuhan ATK kakak:`;
+
+        const webAppStoreUrl = "https://mandalaprojek.github.io/toko-delina/";
+        const mapsUrl = settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK";
+
+        const inlineMenu = {
+          inline_keyboard: [
+            [
+              { text: "🛍️ Buka Toko Delina (Web)", url: webAppStoreUrl }
+            ],
+            [
+              { text: "📦 Cek Status Nota", callback_data: "menu_cek_nota" },
+              { text: "🖨️ Info Tarif Fotokopi", callback_data: "menu_tarif" }
+            ],
+            [
+              { text: "📍 Lokasi Toko di Google Maps", url: mapsUrl }
+            ]
+          ]
+        };
+
+        kirimPesanTelegram(chatId, welcomeText, inlineMenu);
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // B. Perintah Cek Status / Resi Pesanan (/cek [Nota] atau format #DLN-...)
+      const matchNota = userText.match(/#?DLN-[\w-]+/i);
+      const isCekCommand = userText.toLowerCase().startsWith("/cek");
+
+      if (isCekCommand || matchNota) {
+        let queryNota = "";
+        if (matchNota) {
+          queryNota = matchNota[0];
+        } else {
+          queryNota = userText.replace(/\/cek/i, "").trim();
+        }
+
+        if (!queryNota) {
+          kirimPesanTelegram(chatId, "📦 Silakan cantumkan nomor nota kakak. Contoh: `/cek #DLN-2026-9429`");
+          return HtmlService.createHtmlOutput("OK");
+        }
+
+        const order = cariPesananDiSheet(ss, queryNota);
+        if (order) {
+          // Tentukan Badge Pembayaran yang Kontras
+          let badgePembayaran = "[📱 QRIS]";
+          const rincianUpper = (order.itemsText || "").toUpperCase();
+          const deliveryUpper = (order.deliveryMethod || "").toUpperCase();
+
+          if (order.paymentProofLink && order.paymentProofLink !== "-") {
+            badgePembayaran = "[📱 QRIS / BUKTI TRANSFER]";
+          } else if (deliveryUpper.includes("AMBIL") || rincianUpper.includes("TUNAI")) {
+            badgePembayaran = "[💵 BAYAR TUNAI DI TOKO]";
+          } else {
+            badgePembayaran = "[🏦 TRANSFER BANK]";
+          }
+
+          const statusMsg = `🧾 *RINCIAN STATUS PESANAN DELINA*
+====================================
+📋 *No. Nota:* \`${order.orderId}\`
+👤 *Nama Pelanggan:* ${order.customerName}
+📅 *Waktu Pesanan:* ${order.orderTime}
+🚚 *Pengambilan:* ${order.deliveryMethod}
+📍 *Alamat:* ${order.customerAddress || "-"}
+
+💳 *Metode Bayar:* *${badgePembayaran}*
+📊 *Status Pesanan:* *${order.orderStatus}*
+
+📦 *Rincian Item:*
+${order.itemsText}
+
+💰 *Total Tagihan:* *Rp ${Number(order.total).toLocaleString("id-ID")}*
+====================================
+_Jazakumullah Khairan Katsiran atas amanah dan kepercayaannya di Toko Delina. Barakallahu fiik._`;
+
+          kirimPesanTelegram(chatId, statusMsg);
+        } else {
+          kirimPesanTelegram(chatId, `Afwan kak, pesanan dengan nota *${queryNota}* belum kami temukan di sistem database Google Sheets Toko Delina.\n\nPastikan nomor nota sudah tepat (contoh: \`#DLN-2026-9429\`) nggih kak. Barakallahu fiik.`);
+        }
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // C. Perintah Cek Status Kunci / Backend
+      if (userText === "/status") {
         const props = PropertiesService.getScriptProperties();
         const geminiKey = props.getProperty("GEMINI_API_KEY");
         const statusAI = geminiKey ? "✅ Terpasang (Google Gemini API)" : "ℹ️ Fallback Cerdas (Database Google Sheets)";
-        const statusMsg = `📊 *Status Asisten Kiko Toko Delina*:\n- Koneksi AI: ${statusAI}\n- Chat ID Telegram: \`${chatId}\`\n- Layanan: Tanya Stok ATK, Tarif Fotokopi, dan Info Toko.\n\nSilakan ajukan pertanyaan kakak nggih! _Barakallahu fiik._`;
+        const statusMsg = `📊 *Status Asisten Kiko Toko Delina*:\n- Koneksi AI: ${statusAI}\n- Chat ID Telegram: \`${chatId}\`\n- Layanan: Cek Stok ATK, Tarif Fotokopi, dan Info Toko.\n\nSilakan ajukan pertanyaan kakak nggih! _Barakallahu fiik._`;
         kirimPesanTelegram(chatId, statusMsg);
-      } else {
-        const jawabanAI = tanyaKikoAI(userText, "Telegram");
-        kirimPesanTelegram(chatId, jawabanAI);
+        return HtmlService.createHtmlOutput("OK");
       }
 
+      // D. Percakapan AI Kiko
+      const jawabanAI = tanyaKikoAI(userText, "Telegram");
+      kirimPesanTelegram(chatId, jawabanAI);
       return HtmlService.createHtmlOutput("OK");
     }
 
     // =========================================================
-    // JALUR 2: CHAT DARI WIDGET KIKO DI WEBSITE
+    // JALUR 3: CHAT DARI WIDGET KIKO DI WEBSITE
     // =========================================================
     if (action === "chatKiko") {
       const jawabanAI = tanyaKikoAI(payload.message || "", "Web Widget");
@@ -470,17 +625,14 @@ function doPost(e) {
     }
 
     // =========================================================
-    // JALUR 3: API ADMIN / KASIR ACTIONS (DENGAN PROTEKSI PIN)
+    // JALUR 4: API ADMIN & KASIR ACTIONS (DENGAN PROTEKSI PIN)
     // =========================================================
 
-    // 3.1 Login Admin / Kasir via POST
+    // 4.1 Login Admin / Kasir
     if (action === "loginAdmin") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid) {
-        return createJsonResponse({
-          status: "error",
-          message: "PIN Keamanan tidak sesuai."
-        });
+        return createJsonResponse({ status: "error", message: "PIN Keamanan tidak sesuai." });
       }
       return createJsonResponse({
         status: "success",
@@ -490,6 +642,8 @@ function doPost(e) {
           slogan: auth.settings.SLOGAN_TOKO,
           wa: auth.settings.NO_WA_TOKO,
           alamat: auth.settings.ALAMAT_TOKO,
+          telegram_bot: auth.settings.URL_TELEGRAM_BOT || "https://t.me/KikoDelinaBot",
+          maps: auth.settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
           logo: auth.settings.URL_LOGO,
           qris: auth.settings.URL_QRIS,
           rekening: auth.settings.NOMOR_REKENING
@@ -497,7 +651,7 @@ function doPost(e) {
       });
     }
 
-    // 3.2 Update Status Pesanan (Bisa oleh Kasir / Admin)
+    // 4.2 Update Status Pesanan
     if (action === "updateOrderStatus") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid) {
@@ -506,20 +660,9 @@ function doPost(e) {
 
       const orderId = String(payload.orderId || "").trim();
       const newStatus = String(payload.newStatus || "").trim();
-      const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
-      if (!sheetPesanan) throw new Error("Tab Pesanan tidak ditemukan.");
+      const updated = updateOrderStatusDiSheet(ss, orderId, newStatus);
 
-      const data = sheetPesanan.getDataRange().getValues();
-      let found = false;
-      for (let i = 1; i < data.length; i++) {
-        if (String(data[i][0]).trim() === orderId) {
-          sheetPesanan.getRange(i + 1, 11).setValue(newStatus);
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
+      if (!updated) {
         return createJsonResponse({ status: "error", message: `Nota ${orderId} tidak ditemukan.` });
       }
 
@@ -531,7 +674,7 @@ function doPost(e) {
       });
     }
 
-    // 3.3 Quick Update Stok Barang (Bisa oleh Kasir / Admin)
+    // 4.3 Quick Update Stok
     if (action === "updateStock") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid) {
@@ -572,7 +715,7 @@ function doPost(e) {
       });
     }
 
-    // 3.4 Simpan / Tambah / Edit Produk ATK (Khusus Super Admin)
+    // 4.4 Simpan / Edit Produk ATK (Khusus Admin)
     if (action === "saveProduct") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid || auth.role !== "admin") {
@@ -582,7 +725,6 @@ function doPost(e) {
       const sheetProduk = ss.getSheetByName(TAB_PRODUK);
       if (!sheetProduk) throw new Error("Tab Produk tidak ditemukan.");
 
-      // Upload gambar produk ke Google Drive jika ada
       let imageUrl = String(payload.imageUrl || "").trim();
       if (payload.imageBase64) {
         imageUrl = saveBase64ToDriveFolder(
@@ -606,7 +748,6 @@ function doPost(e) {
       }
 
       if (rowIndex > 0) {
-        // Update produk yang sudah ada
         if (!imageUrl) imageUrl = String(data[rowIndex - 1][6] || "");
         sheetProduk.getRange(rowIndex, 2).setValue(payload.name || "");
         sheetProduk.getRange(rowIndex, 3).setValue(payload.category || "Umum");
@@ -623,7 +764,6 @@ function doPost(e) {
           imageUrl: imageUrl
         });
       } else {
-        // Tambah produk baru
         if (!prodId) {
           prodId = "ATK-" + String(data.length).padStart(3, "0");
         }
@@ -648,7 +788,7 @@ function doPost(e) {
       }
     }
 
-    // 3.5 Perbarui Pengaturan Toko & Profil Rekening (Khusus Super Admin)
+    // 4.5 Perbarui Pengaturan Toko & Profil
     if (action === "updateSettings") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid || auth.role !== "admin") {
@@ -661,7 +801,6 @@ function doPost(e) {
         setupTabPengaturan(sheetPengaturan);
       }
 
-      // Upload QRIS ke Drive jika ada file baru diunggah
       let urlQris = payload.URL_QRIS;
       if (payload.qrisBase64) {
         urlQris = saveBase64ToDriveFolder(
@@ -671,7 +810,6 @@ function doPost(e) {
         );
       }
 
-      // Upload Logo Toko ke Drive jika ada
       let urlLogo = payload.URL_LOGO;
       if (payload.logoBase64) {
         urlLogo = saveBase64ToDriveFolder(
@@ -686,6 +824,8 @@ function doPost(e) {
         SLOGAN_TOKO: payload.SLOGAN_TOKO,
         NO_WA_TOKO: payload.NO_WA_TOKO,
         ALAMAT_TOKO: payload.ALAMAT_TOKO,
+        URL_TELEGRAM_BOT: payload.URL_TELEGRAM_BOT,
+        URL_GOOGLE_MAPS: payload.URL_GOOGLE_MAPS,
         NOMOR_REKENING: payload.NOMOR_REKENING,
         PIN_ADMIN: payload.PIN_ADMIN,
         PIN_KASIR: payload.PIN_KASIR,
@@ -719,7 +859,7 @@ function doPost(e) {
       });
     }
 
-    // 3.6 Kelola Kupon Diskon (Khusus Super Admin)
+    // 4.6 Kelola Kupon Diskon
     if (action === "saveCoupon") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid || auth.role !== "admin") {
@@ -746,7 +886,6 @@ function doPost(e) {
         }
       }
 
-      // Hapus Kupon
       if (payload.isDelete) {
         if (rowIndex > 0) {
           sheetKupon.deleteRow(rowIndex);
@@ -755,7 +894,6 @@ function doPost(e) {
         return createJsonResponse({ status: "error", message: `Kupon "${code}" tidak ditemukan.` });
       }
 
-      // Update Kupon
       if (rowIndex > 0) {
         sheetKupon.getRange(rowIndex, 2).setValue(String(payload.type || "NOMINAL").toUpperCase());
         sheetKupon.getRange(rowIndex, 3).setValue(Number(payload.value) || 0);
@@ -765,7 +903,6 @@ function doPost(e) {
         return createJsonResponse({ status: "success", message: `Kupon "${code}" berhasil diperbarui.` });
       }
 
-      // Tambah Kupon Baru
       sheetKupon.appendRow([
         code,
         String(payload.type || "NOMINAL").toUpperCase(),
@@ -778,7 +915,7 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: `Kupon baru "${code}" berhasil ditambahkan.` });
     }
 
-    // 3.7 Perbarui Tarif Fotokopi & Jilid (Khusus Super Admin)
+    // 4.7 Perbarui Tarif Fotokopi & Jilid
     if (action === "updateRates") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid || auth.role !== "admin") {
@@ -805,7 +942,7 @@ function doPost(e) {
     }
 
     // =========================================================
-    // JALUR 4: CHECKOUT & PESANAN BARU DARI PELANGGAN (WEBSITE)
+    // JALUR 5: CHECKOUT & PESANAN BARU DARI PELANGGAN (WEBSITE)
     // =========================================================
     let linkDokumenFotokopi = "-";
     if (payload.fotokopiFile && payload.fotokopiFile.base64) {
@@ -903,7 +1040,6 @@ function ambilDaftarPesanan(ss) {
   if (!sheetPesanan || sheetPesanan.getLastRow() <= 1) return orders;
 
   const data = sheetPesanan.getDataRange().getValues();
-  // Ambil dari baris terbaru ke atas (maksimal 100 pesanan)
   for (let i = data.length - 1; i >= 1 && orders.length < 100; i--) {
     const r = data[i];
     if (r[0]) {
@@ -923,6 +1059,56 @@ function ambilDaftarPesanan(ss) {
     }
   }
   return orders;
+}
+
+function updateOrderStatusDiSheet(ss, orderId, newStatus) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+  if (!sheetPesanan) return false;
+
+  const data = sheetPesanan.getDataRange().getValues();
+  const target = String(orderId || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+
+  for (let i = 1; i < data.length; i++) {
+    const rowNota = String(data[i][0] || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    if (rowNota === target || rowNota.endsWith(target)) {
+      sheetPesanan.getRange(i + 1, 11).setValue(newStatus);
+      return true;
+    }
+  }
+  return false;
+}
+
+function cariPesananDiSheet(ss, query) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+  if (!sheetPesanan || sheetPesanan.getLastRow() <= 1) return null;
+
+  const data = sheetPesanan.getDataRange().getValues();
+  const cleanQ = String(query || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+
+  for (let i = data.length - 1; i >= 1; i--) {
+    const r = data[i];
+    const notaId = String(r[0] || "").trim().toUpperCase();
+    const cleanNota = notaId.replace(/[^A-Z0-9-]/g, "");
+
+    if (cleanNota.includes(cleanQ) || (cleanQ.length >= 4 && cleanNota.endsWith(cleanQ))) {
+      return {
+        orderId: String(r[0]),
+        orderTime: String(r[1] || "-"),
+        customerName: String(r[2] || "-"),
+        customerPhone: String(r[3] || "-"),
+        deliveryMethod: String(r[4] || "Ambil di Toko"),
+        customerAddress: String(r[5] || "-"),
+        itemsText: String(r[6] || "-"),
+        total: Number(r[7]) || 0,
+        fotokopiLink: String(r[8] || "-"),
+        paymentProofLink: String(r[9] || "-"),
+        orderStatus: String(r[10] || "Menunggu Verifikasi Toko")
+      };
+    }
+  }
+  return null;
 }
 
 function ambilDaftarProduk(ss) {
@@ -1150,16 +1336,19 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
 
 /**
  * =========================================================================
- * 6. INTEGRASI TELEGRAM BOT & NOTIFIKASI
+ * 6. INTEGRASI TELEGRAM BOT, INLINE KEYBOARD & NOTIFIKASI
  * =========================================================================
  */
-function kirimPesanTelegram(chatId, pesan) {
+function kirimPesanTelegram(chatId, pesan, replyMarkup) {
   const props = PropertiesService.getScriptProperties();
   const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
   if (!botToken || !chatId) return;
 
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const payload = { chat_id: chatId, text: pesan, parse_mode: "Markdown" };
+  if (replyMarkup) {
+    payload.reply_markup = replyMarkup;
+  }
 
   try {
     UrlFetchApp.fetch(url, {
@@ -1176,6 +1365,30 @@ function kirimPesanTelegram(chatId, pesan) {
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     });
+  }
+}
+
+function answerCallbackQuery(callbackQueryId, text) {
+  const props = PropertiesService.getScriptProperties();
+  const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
+  if (!botToken || !callbackQueryId) return;
+
+  const url = `https://api.telegram.org/bot${botToken}/answerCallbackQuery`;
+  const payload = {
+    callback_query_id: callbackQueryId,
+    text: text || "OK",
+    show_alert: false
+  };
+
+  try {
+    UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+  } catch (e) {
+    Logger.log("Notice answerCallbackQuery: " + e.toString());
   }
 }
 
@@ -1196,6 +1409,17 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
 
   let couponText = payload.couponCode ? `\n🎟️ *Kupon Diskon:* \`${payload.couponCode}\` (-Rp ${Number(payload.discountAmount || 0).toLocaleString("id-ID")})` : "";
 
+  // Penentuan Badge Metode Pembayaran Kontras
+  let badgePayment = "[📱 QRIS]";
+  const payMethod = String(payload.paymentMethod || "").toUpperCase();
+  if (payMethod.includes("TRANSFER") || payMethod.includes("BANK")) {
+    badgePayment = "[🏦 TRANSFER BANK]";
+  } else if (payMethod.includes("TUNAI") || payMethod.includes("CASH") || payMethod.includes("COD") || linkBukti === "-") {
+    badgePayment = "[💵 BAYAR TUNAI DI TOKO]";
+  } else if (payMethod.includes("QRIS") || linkBukti !== "-") {
+    badgePayment = "[📱 QRIS]";
+  }
+
   const notifMsg = `🔔 *BISMILLAH, ADA PESANAN BARU MASUK!*
 ====================================
 📋 *No. Nota:* \`${payload.orderId}\`
@@ -1203,6 +1427,8 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
 📱 *WhatsApp:* \`${payload.customerPhone}\`
 🚚 *Metode:* ${payload.deliveryMethod}
 📍 *Alamat:* ${payload.customerAddress || "-"}
+
+💳 *Metode Pembayaran:* *${badgePayment}*
 💰 *Total Tagihan:* *Rp ${Number(payload.totalAkhir).toLocaleString("id-ID")}*${couponText}
 
 📦 *Rincian Belanja:*
@@ -1210,10 +1436,20 @@ ${itemsList}
 
 📄 *Dokumen Fotokopi:* ${linkDokumen !== "-" ? linkDokumen : "Tidak ada berkas"}
 💳 *Bukti Transfer:* ${linkBukti !== "-" ? linkBukti : "Belum diunggah"}
+====================================
+_Silakan klik tombol di bawah untuk proses cepat dari Telegram:_`;
 
-_Silakan buka Portal Kasir Toko Delina untuk memproses pesanan. Barakallahu fiik._`;
+  // Inline Keyboard Verifikasi & Siap Ambil Cepat untuk Pemilik Toko
+  const adminInlineMarkup = {
+    inline_keyboard: [
+      [
+        { text: "✅ Verifikasi Lunas", callback_data: "verify_" + payload.orderId },
+        { text: "📦 Siap Ambil", callback_data: "ready_" + payload.orderId }
+      ]
+    ]
+  };
 
-  kirimPesanTelegram(adminChatId, notifMsg);
+  kirimPesanTelegram(adminChatId, notifMsg, adminInlineMarkup);
 }
 
 function inisialisasiSlotScriptProperties() {
@@ -1250,7 +1486,7 @@ function setTelegramWebhook() {
   if (!botToken) throw new Error("TELEGRAM_BOT_TOKEN belum diset.");
 
   const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
-  const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true`;
+  const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
   const res = UrlFetchApp.fetch(url);
   return "Webhook Telegram berhasil didaftarkan: " + res.getContentText();
 }
@@ -1264,7 +1500,7 @@ function resetDanBersihkanWebhook() {
   const delRes = UrlFetchApp.fetch(delUrl, { muteHttpExceptions: true }).getContentText();
 
   const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
-  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true`;
+  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
   const setRes = UrlFetchApp.fetch(setUrl, { muteHttpExceptions: true }).getContentText();
 
   return `Hapus: ${delRes} | Pasang Ulang: ${setRes}`;

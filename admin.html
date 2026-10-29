@@ -610,6 +610,17 @@
               </div>
             </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Username / Link Bot Telegram</label>
+                <input type="text" id="settingTelegramBot" placeholder="https://t.me/KikoDelinaBot" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Tautan Google Maps Toko</label>
+                <input type="text" id="settingGoogleMaps" placeholder="https://maps.google.com/?q=Toko+Delina+ATK" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+              </div>
+            </div>
+
             <div>
               <label class="block font-bold text-slate-700 mb-1">Alamat Fisik Toko</label>
               <textarea id="settingAlamat" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
@@ -1791,6 +1802,8 @@ ${escapeHtml(order.itemsText || "-")}
       const sloganEl = document.getElementById("settingSloganToko");
       const waEl = document.getElementById("settingNoWa");
       const rekEl = document.getElementById("settingRekening");
+      const tgEl = document.getElementById("settingTelegramBot");
+      const mapsEl = document.getElementById("settingGoogleMaps");
       const alamatEl = document.getElementById("settingAlamat");
       const qrisPreview = document.getElementById("settingQrisPreview");
       const pinAdminEl = document.getElementById("settingPinAdmin");
@@ -1800,6 +1813,8 @@ ${escapeHtml(order.itemsText || "-")}
       if (sloganEl) sloganEl.value = s.SLOGAN_TOKO || "";
       if (waEl) waEl.value = s.NO_WA_TOKO || "";
       if (rekEl) rekEl.value = s.NOMOR_REKENING || "";
+      if (tgEl) tgEl.value = s.URL_TELEGRAM_BOT || "";
+      if (mapsEl) mapsEl.value = s.URL_GOOGLE_MAPS || "";
       if (alamatEl) alamatEl.value = s.ALAMAT_TOKO || "";
       if (qrisPreview && s.URL_QRIS) qrisPreview.src = s.URL_QRIS;
       if (pinAdminEl) pinAdminEl.value = s.PIN_ADMIN || "";
@@ -1833,6 +1848,8 @@ ${escapeHtml(order.itemsText || "-")}
         SLOGAN_TOKO: document.getElementById("settingSloganToko").value.trim(),
         NO_WA_TOKO: document.getElementById("settingNoWa").value.trim(),
         NOMOR_REKENING: document.getElementById("settingRekening").value.trim(),
+        URL_TELEGRAM_BOT: document.getElementById("settingTelegramBot").value.trim(),
+        URL_GOOGLE_MAPS: document.getElementById("settingGoogleMaps").value.trim(),
         ALAMAT_TOKO: document.getElementById("settingAlamat").value.trim(),
         PIN_ADMIN: document.getElementById("settingPinAdmin").value.trim() || "9999",
         PIN_KASIR: document.getElementById("settingPinKasir").value.trim() || "1234",
