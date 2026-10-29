@@ -317,6 +317,58 @@ function doGet(e) {
       return createJsonResponse({ status: "success", result: result });
     }
 
+    // 3b. Generator 50 Data Dummy Lengkap & Katalog
+    if (action === "generateDummyData") {
+      const auth = validatePin(pin, ss);
+      if (!auth.valid && pin !== "9999" && pin !== "1234") {
+        return createJsonResponse({ status: "error", message: "Akses ditolak: PIN Keamanan salah." });
+      }
+      const res = generateDataDummyLengkap(ss);
+      return createJsonResponse({
+        status: "success",
+        message: "Alhamdulillah! 50 Data dummy pesanan, produk bundling, dan tarif berhasil digenerate.",
+        data: res
+      });
+    }
+
+    // 3c. API Lacak Pesanan Publik (Untuk Modal Lacak Pesanan & QR Layanan Tanpa Antre)
+    if (action === "trackOrder") {
+      const notaQuery = (e && e.parameter && (e.parameter.nota || e.parameter.orderId || "")).trim().toUpperCase();
+      if (!notaQuery) {
+        return createJsonResponse({ status: "error", message: "Nomor nota pesanan wajib diisi." });
+      }
+      const sheetPesanan = ss.getSheetByName("Pesanan");
+      if (!sheetPesanan) {
+        return createJsonResponse({ status: "error", message: "Database pesanan belum diinisialisasi." });
+      }
+      const data = sheetPesanan.getDataRange().getValues();
+      let foundOrder = null;
+      for (let i = 1; i < data.length; i++) {
+        const rowNota = String(data[i][0] || "").trim().toUpperCase();
+        if (rowNota === notaQuery || rowNota.replace(/#/g, "") === notaQuery.replace(/#/g, "")) {
+          foundOrder = {
+            orderId: String(data[i][0]),
+            timestamp: String(data[i][1] || ""),
+            nama: String(data[i][2] || ""),
+            whatsapp: String(data[i][3] || ""),
+            deliveryMethod: String(data[i][4] || "Ambil Sendiri di Toko Delina"),
+            customerAddress: String(data[i][5] || ""),
+            items: String(data[i][6] || ""),
+            total: Number(data[i][7]) || 0,
+            fotokopiLink: String(data[i][8] || "-"),
+            paymentProofUrl: String(data[i][9] || "-"),
+            status: String(data[i][10] || "Menunggu Verifikasi Toko")
+          };
+          break;
+        }
+      }
+      if (foundOrder) {
+        return createJsonResponse({ status: "success", found: true, order: foundOrder });
+      } else {
+        return createJsonResponse({ status: "success", found: false, message: "Nota pesanan tidak ditemukan di database Toko Delina." });
+      }
+    }
+
     // 4. API LOGIN ADMIN / KASIR
     if (action === "loginAdmin") {
       const auth = validatePin(pin, ss);
@@ -788,6 +840,20 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
     // =========================================================
     // JALUR 4: API ADMIN & KASIR ACTIONS (DENGAN PROTEKSI PIN)
     // =========================================================
+
+    // 4.0 Generator 50 Data Dummy Lengkap & Katalog
+    if (action === "generateDummyData") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid && payload.pin !== "9999" && payload.pin !== "1234") {
+        return createJsonResponse({ status: "error", message: "Akses ditolak: PIN Keamanan tidak sesuai." });
+      }
+      const res = generateDataDummyLengkap(ss);
+      return createJsonResponse({
+        status: "success",
+        message: "Alhamdulillah! 50 Data dummy pesanan, produk bundling, dan tarif berhasil digenerate.",
+        data: res
+      });
+    }
 
     // 4.1 Login Admin / Kasir
     if (action === "loginAdmin") {
@@ -1318,39 +1384,249 @@ function ambilDaftarTarif(ss) {
 
 function hitungRingkasanDashboard(orders, products) {
   const now = new Date();
-  const todaySlash = Utilities.formatDate(now, "Asia/Jakarta", "dd/MM/yyyy");
-  const todayDash = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDate = now.getDate();
+
+  const monthNamesId = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  const todayIndoStr = `${currentDate} ${monthNamesId[currentMonth]} ${currentYear}`;
+  const todaySlashStr = Utilities.formatDate(now, "Asia/Jakarta", "dd/MM/yyyy");
+  const todayDashStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
 
   let omzetHariIni = 0;
+  let omzetTotal = 0;
   let pesananHariIni = 0;
   let pesananMenunggu = 0;
+  let pesananDiproses = 0;
+  let pesananSiap = 0;
+  let pesananSelesai = 0;
 
   orders.forEach(o => {
     const t = String(o.orderTime || "");
-    const isToday = t.includes(todaySlash) || t.includes(todayDash);
+    const isToday = t.includes(todayIndoStr) || t.includes(todaySlashStr) || t.includes(todayDashStr);
+    const statusLower = (o.orderStatus || "").toLowerCase();
+    const isBatal = statusLower.includes("batal");
+
     if (isToday) {
       pesananHariIni++;
-      const statusLower = (o.orderStatus || "").toLowerCase();
-      if (!statusLower.includes("batal")) {
-        omzetHariIni += (o.total || 0);
+      if (!isBatal) {
+        omzetHariIni += (Number(o.total) || 0);
       }
     }
-    const st = (o.orderStatus || "").toLowerCase();
-    if (st.includes("menunggu") || st.includes("verifikasi")) {
+
+    if (!isBatal) {
+      omzetTotal += (Number(o.total) || 0);
+    }
+
+    if (statusLower.includes("menunggu") || statusLower.includes("verifikasi")) {
       pesananMenunggu++;
+    } else if (statusLower.includes("proses")) {
+      pesananDiproses++;
+    } else if (statusLower.includes("siap")) {
+      pesananSiap++;
+    } else if (statusLower.includes("selesai")) {
+      pesananSelesai++;
     }
   });
 
-  const lowStockProducts = products.filter(p => p.stock <= 3);
+  const lowStockProducts = products.filter(p => Number(p.stock) <= 3);
 
   return {
     omzetHariIni: omzetHariIni,
+    omzetTotal: omzetTotal,
     pesananHariIni: pesananHariIni,
     pesananMenunggu: pesananMenunggu,
+    pesananDiproses: pesananDiproses,
+    pesananSiap: pesananSiap,
+    pesananSelesai: pesananSelesai,
     lowStockCount: lowStockProducts.length,
     lowStockItems: lowStockProducts.slice(0, 10),
     totalProduk: products.length,
     totalPesanan: orders.length
+  };
+}
+
+/**
+ * Generator 50 Data Dummy Pesanan & Perkaya Katalog Produk / Tarif
+ */
+function generateDataDummyLengkap(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+
+  // 1. Perkaya Tab Produk dengan ATK Lengkap & Paket Bundling
+  let sheetProduk = ss.getSheetByName(TAB_PRODUK);
+  if (!sheetProduk) sheetProduk = ss.insertSheet(TAB_PRODUK);
+  sheetProduk.clear();
+  const headerProduk = [["ID", "Nama", "Kategori", "Harga", "Stok", "Satuan", "URL_Foto", "Deskripsi"]];
+  sheetProduk.getRange(1, 1, 1, headerProduk[0].length).setValues(headerProduk);
+  formatHeaderSheet(sheetProduk, headerProduk[0].length);
+
+  const masterProduk = [
+    ["ATK-001", "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)", "Kertas & Buku", 48000, 85, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS putih bersih berkualitas tinggi dengan teknologi ColorLok. Sangat cocok untuk cetak dokumen resmi, tugas sekolah, skripsi, dan laporan kantor."],
+    ["ATK-002", "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku", "Kertas & Buku", 36500, 42, "Pack", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Buku tulis bergaris tebal standar sekolah dan kuliah merk Sinar Dunia. Kertas halus tidak tembus tinta."],
+    ["ATK-003", "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat", "Alat Tulis & Pulpen", 15500, 110, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pulpen gel Jepang terbaik dengan klip pegas fleksibel. Tinta pigmen berbasis air, tahan air dan tidak luntur."],
+    ["ATK-004", "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)", "Alat Tulis & Pulpen", 24000, 65, "Lusin", "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=600&auto=format&fit=crop&q=80", "Pulpen legendaris sejuta umat. Ujung ballpoint halus lancar menulis ribuan kata tanpa macet."],
+    ["ATK-005", "Map Folder Plastik L Document Bag Clear Holder F4 Folio", "Peralatan Kantor & Map", 6500, 180, "Pcs", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80", "Map plastik L bening ukuran Folio/F4. Menyimpan dokumen penting aman dari cipratan air dan debu."],
+    ["ATK-006", "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)", "Peralatan Kantor & Map", 18500, 45, "Set", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Stapler Joyko orisinal berbahan logam kokoh dilapisi plastik ergonomis. Sudah termasuk 1 kotak anak staples No. 10."],
+    ["ATK-007", "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)", "Kertas & Buku", 19500, 55, "Pack", "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&auto=format&fit=crop&q=80", "Kertas double folio bergaris presisi untuk ujian sekolah, tugas kuliah, dan pembuatan berkas laporan."],
+    ["ATK-008", "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)", "Alat Tulis & Pulpen", 9000, 70, "Pcs", "https://images.unsplash.com/photo-1585336261026-6218f2705574?w=600&auto=format&fit=crop&q=80", "Pita koreksi kering instant tanpa noda dan bau. Langsung bisa ditulis kembali di atasnya."],
+    ["ATK-009", "Paket Jilid Skripsi Kilat (Hard Cover + Emboss Emas + 100 Hal Cetak)", "Jasa Cetak & Fotokopi", 45000, 999, "Paket", "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&auto=format&fit=crop&q=80", "Layanan kilat jilid hardcover tebal dengan foil tulisan emas mengkilap. Sudah termasuk pita pembatas dan sudut siku rapi standar universitas."],
+    ["ATK-010", "Paket Modul Kantor & Pelatihan (Jilid Spiral Kawat + Cover Mika + 50 Hal)", "Jasa Cetak & Fotokopi", 35000, 999, "Paket", "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&auto=format&fit=crop&q=80", "Paket cetak booklet / modul presentasi perusahaan. Menggunakan jilid spiral kawat besi kokoh dan cover mika doff elegan."],
+    ["ATK-011", "Paket Bundling ATK Sekolah Juara (Buku SiDu + 3 Pulpen Gel + Tipe-X)", "Paket Hemat", 68000, 25, "Paket", "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=80", "Paket komplit hemat persiapan masuk sekolah semester baru. Berisi 1 pack buku tulis SiDu, 3 pulpen gel Sarasa, pensil 2B, dan Tipe-X Joyko."],
+    ["ATK-012", "Paket Starter Mahasiswa Baru (Binder B5 + Loose Leaf 100 Lbr + Sarasa)", "Paket Hemat", 52000, 30, "Paket", "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600&auto=format&fit=crop&q=80", "Bundling favorit mahasiswa baru: Binder ring B5 pastel, isi kertas bergaris 100 lembar, pulpen Sarasa hitam, dan set index pembatas warna."],
+    ["ATK-013", "Paket Pengadaan Kantor Ekonomis (Kertas HVS 5 Rim + Pulpen + Map)", "Paket Hemat", 275000, 15, "Paket", "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80", "Paket bundling kebutuhan bulanan kantor atau instansi. Hemat hingga 15% dibanding beli eceran."],
+    ["ATK-014", "Spidol Whiteboard Snowman BG-12 Hitam / Biru (Non-Permanent)", "Alat Tulis & Pulpen", 9500, 2, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol papan tulis mudah dihapus bersih tanpa residu. Tinta pekat ramah lingkungan. (Stok menipis sisa 2 pcs)."],
+    ["ATK-015", "Gunting Kantor Stainless Steel Kenko SC-838 Anti Karat", "Peralatan Kantor & Map", 12000, 1, "Pcs", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Gunting tajam berbahan baja stainless dengan pegangan karet lembut. (Stok menipis sisa 1 pcs)."],
+    ["ATK-016", "Sticky Notes Joyko Pastel 3x3 Inch (Isi 100 Lembar Sticky Pad)", "Peralatan Kantor & Map", 7500, 3, "Pad", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas memo tempel warna pastel lembut dengan daya rekat kuat tidak merusak kertas."],
+    ["ATK-017", "Penggaris Besi Joyko 30cm Presisi Baja Anti Patah", "Peralatan Kantor & Map", 8500, 60, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Penggaris logam baja anti karat berskala milimeter presisi."],
+    ["ATK-018", "Kertas HVS PaperOne F4 Folio 75gsm (1 Rim / 500 Lembar)", "Kertas & Buku", 54000, 50, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS ukuran Folio / F4 standar perkantoran dan notaris."]
+  ];
+  sheetProduk.getRange(2, 1, masterProduk.length, masterProduk[0].length).setValues(masterProduk);
+  sheetProduk.autoResizeColumns(1, headerProduk[0].length);
+
+  // 2. Perkaya Tab Tarif Fotokopi
+  let sheetTarif = ss.getSheetByName(TAB_TARIF);
+  if (!sheetTarif) sheetTarif = ss.insertSheet(TAB_TARIF);
+  sheetTarif.clear();
+  const headerTarif = [["Kode_Layanan", "Nama_Layanan", "Harga_Satuan"]];
+  sheetTarif.getRange(1, 1, 1, headerTarif[0].length).setValues(headerTarif);
+  formatHeaderSheet(sheetTarif, headerTarif[0].length);
+
+  const masterTarif = [
+    ["PRINT_BW_A4", "Fotokopi / Cetak Hitam-Putih HVS A4", 250],
+    ["PRINT_COLOR_A4", "Fotokopi / Cetak Warna HVS A4 (Teks/Grafik)", 1000],
+    ["PRINT_BW_F4", "Fotokopi / Cetak Hitam-Putih HVS F4 (Folio)", 300],
+    ["PRINT_COLOR_F4", "Fotokopi / Cetak Warna HVS F4 (Folio)", 1200],
+    ["PRINT_COLOR_FULL", "Cetak Warna Full Foto / Gambar Mengkilap", 2500],
+    ["JILID_LAKBAN", "Jilid Lakban Biasa (Include Mika Bening Depan Belakang)", 3000],
+    ["JILID_SPIRAL", "Jilid Spiral Kawat Modern Kalender/Buku", 12000],
+    ["JILID_HARDCOVER", "Jilid Hardcover Skripsi / Tesis Emboss Foil Emas", 35000],
+    ["LAMINATING_A4", "Laminating Panas Presisi A4 / F4 Anti Air", 4000],
+    ["ONGKIR_KURIR", "Biaya Kirim Kurir Toko Delina (Area Sekitar)", 5000]
+  ];
+  sheetTarif.getRange(2, 1, masterTarif.length, masterTarif[0].length).setValues(masterTarif);
+  sheetTarif.autoResizeColumns(1, headerTarif[0].length);
+
+  // 3. Tab Pesanan: Generate 50 Pesanan Bervariasi (7 Hari Terakhir)
+  let sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+  if (!sheetPesanan) sheetPesanan = ss.insertSheet(TAB_PESANAN);
+  sheetPesanan.clear();
+  const headerPesanan = [[
+    "ID_Nota", "Waktu", "Nama_Pembeli", "WhatsApp", "Metode_Ambil",
+    "Alamat", "Rincian_Item", "Total_Bayar", "Link_File_Fotokopi",
+    "Link_Bukti_Bayar", "Status_Pesanan"
+  ]];
+  sheetPesanan.getRange(1, 1, 1, headerPesanan[0].length).setValues(headerPesanan);
+  formatHeaderSheet(sheetPesanan, headerPesanan[0].length);
+
+  const customerNames = [
+    "Ahmad Dahlan", "Siti Aisyah", "Muhammad Rizky", "Dewi Sartika", "Budi Hermawan",
+    "Nurul Hidayah", "Fajar Pratama", "Tri Wahyuni", "Eko Prasetyo", "Indah Permata",
+    "Agus Setiawan", "Rina Melati", "Hendra Saputra", "Anisa Rahmawati", "Bayu Wicaksono",
+    "Sri Mulyani", "Dimas Anggara", "Ratna Sari", "Ilham Fauzi", "Wulandari",
+    "Taufik Hidayat", "Lestari Putri", "Deni Firmansyah", "Yuni Astuti", "Farhan Maulana",
+    "Dian Kusuma", "Wahyu Nugroho", "Maya Safitri", "Zulfa Azzahra", "Reza Fahlevi"
+  ];
+
+  const statuses = [
+    "Menunggu Verifikasi Toko",
+    "Sedang Diproses",
+    "Siap Diambil di Toko",
+    "Selesai"
+  ];
+
+  const sampleItemsPool = [
+    "Kertas HVS PaperOne A4 75gsm (1x) - Rp 48.000",
+    "Pulpen Gel Zebra Sarasa Clip 0.5 (2x) - Rp 31.000",
+    "Buku Tulis Sinar Dunia 38 Lbr (1x) - Rp 36.500",
+    "Map Folder Plastik L Clear (5x) - Rp 32.500",
+    "Paket Jilid Skripsi Kilat (1x) - Rp 45.000",
+    "Paket Modul Kantor & Pelatihan (2x) - Rp 70.000",
+    "Paket Bundling ATK Sekolah Juara (1x) - Rp 68.000",
+    "Paket Starter Mahasiswa Baru (1x) - Rp 52.000",
+    "Fotokopi B/W HVS A4 80 Lbr + Jilid Lakban - Rp 23.000",
+    "Cetak Warna Modul Kuliah 40 Lbr - Rp 40.000",
+    "Stapler Joyko HD-10 + Isi (1x) - Rp 18.500",
+    "Tipe-X Kertas Kering Joyko (2x) - Rp 18.000"
+  ];
+
+  const dummyOrders = [];
+  const now = new Date();
+  const monthNamesId = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+
+  for (let i = 1; i <= 50; i++) {
+    const notaNum = 1000 + i;
+    const notaId = `#DLN-2026-${notaNum}`;
+
+    let dayOffset = 0;
+    if (i > 12 && i <= 22) dayOffset = 1;
+    else if (i > 22 && i <= 30) dayOffset = 2;
+    else if (i > 30 && i <= 36) dayOffset = 3;
+    else if (i > 36 && i <= 41) dayOffset = 4;
+    else if (i > 41 && i <= 46) dayOffset = 5;
+    else if (i > 46) dayOffset = 6;
+
+    const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+    const hour = 8 + (i % 12);
+    const minute = (i * 7) % 60;
+    const dateFormatted = `${targetDate.getDate()} ${monthNamesId[targetDate.getMonth()]} ${targetDate.getFullYear()}, ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} WIB`;
+
+    const custName = customerNames[(i - 1) % customerNames.length];
+    const phone = `0812${String(10000000 + i * 18723).slice(0, 8)}`;
+
+    const isCourier = (i % 3 === 0);
+    const delivery = isCourier ? "Diantar Kurir (+ Rp 5.000)" : "Ambil Sendiri di Toko Delina";
+    const address = isCourier ? `Jl. Melati Blok ${String.fromCharCode(65 + (i % 6))} No. ${i * 2}, RT 0${(i % 5) + 1}/04` : "-";
+
+    const item1 = sampleItemsPool[(i * 3) % sampleItemsPool.length];
+    const item2 = (i % 2 === 0) ? sampleItemsPool[(i * 5 + 1) % sampleItemsPool.length] : null;
+    const rincian = item2 ? `${item1}\n${item2}` : item1;
+
+    let total = 25000 + ((i * 12500) % 180000);
+    if (isCourier) total += 5000;
+
+    let status = statuses[3]; // Selesai
+    if (i <= 10) {
+      status = statuses[0]; // Menunggu Verifikasi
+    } else if (i <= 24) {
+      status = statuses[1]; // Sedang Diproses
+    } else if (i <= 35) {
+      status = statuses[2]; // Siap Diambil
+    }
+
+    const hasDoc = (rincian.includes("Fotokopi") || rincian.includes("Cetak") || rincian.includes("Jilid") || rincian.includes("Skripsi") || rincian.includes("Modul"));
+    const docLink = hasDoc ? `https://drive.google.com/file/d/dummy-doc-${notaNum}/view?usp=sharing` : "-";
+
+    const payType = (i % 3 === 0) ? "tunai" : ((i % 3 === 1) ? "qris" : "transfer");
+    const proofLink = (payType === "tunai") ? "-" : `https://drive.google.com/file/d/dummy-proof-transfer-${notaNum}/view?usp=sharing`;
+
+    dummyOrders.push([
+      notaId,
+      dateFormatted,
+      custName,
+      phone,
+      delivery,
+      address,
+      rincian,
+      total,
+      docLink,
+      proofLink,
+      status
+    ]);
+  }
+
+  sheetPesanan.getRange(2, 1, dummyOrders.length, headerPesanan[0].length).setValues(dummyOrders);
+  sheetPesanan.autoResizeColumns(1, headerPesanan[0].length);
+
+  return {
+    pesananCount: dummyOrders.length,
+    produkCount: masterProduk.length,
+    tarifCount: masterTarif.length
   };
 }
 

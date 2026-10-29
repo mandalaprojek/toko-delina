@@ -189,7 +189,7 @@ function renderProducts() {
       return `
       <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 card-shadow flex flex-col justify-between group">
         <!-- Foto Produk -->
-        <div class="relative bg-gray-50 aspect-square overflow-hidden cursor-pointer" onclick="quickViewProduct('${product.id}')">
+        <div class="relative bg-gray-50 aspect-square overflow-hidden cursor-pointer" onclick="openProductDetailModal('${product.id}')">
           <img 
             src="${product.image}" 
             alt="${product.name}" 
@@ -211,7 +211,7 @@ function renderProducts() {
             <span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-1.5">
               ${product.category}
             </span>
-            <h4 class="text-xs md:text-sm font-semibold text-gray-800 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors" title="${product.name}">
+            <h4 class="text-xs md:text-sm font-semibold text-gray-800 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors cursor-pointer" onclick="openProductDetailModal('${product.id}')" title="${product.name}">
               ${product.name}
             </h4>
           </div>
@@ -437,11 +437,173 @@ function selectCategory(categoryName) {
   renderProducts();
 }
 
-// 11. Quick View
+// 11. Modal Detail Produk Ala Tokopedia & Kontrol Pembelian
+let detailCurrentProduct = null;
+let detailCurrentQty = 1;
+
 function quickViewProduct(productId) {
-  const product = DUMMY_PRODUCTS.find(p => p.id === productId);
-  if (!product) return;
-  alert(`Detail Produk Delina:\n\nNama: ${product.name}\nHarga: ${formatRupiah(product.price)}\nKategori: ${product.category}\nSisa Stok: ${product.stock} ${product.unit}\n\nKlik tombol '+ Keranjang' untuk membeli.`);
+  openProductDetailModal(productId);
+}
+
+function openProductDetailModal(productId) {
+  // Cari di produk dummy atau produk dari backend jika ada
+  let product = DUMMY_PRODUCTS.find(p => p.id === productId);
+  if (!product && typeof window.LIVE_PRODUCTS !== "undefined" && Array.isArray(window.LIVE_PRODUCTS)) {
+    product = window.LIVE_PRODUCTS.find(p => p.id === productId);
+  }
+  if (!product) {
+    product = {
+      id: productId,
+      name: "Produk ATK Toko Delina",
+      category: "Perlengkapan Kantor",
+      price: 15000,
+      originalPrice: 18000,
+      rating: 4.9,
+      sold: 120,
+      stock: 50,
+      unit: "Pcs",
+      image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
+      badge: "Pilihan Terbaik"
+    };
+  }
+
+  detailCurrentProduct = product;
+  detailCurrentQty = 1;
+
+  // Set DOM
+  const modal = document.getElementById("productDetailModal");
+  const elCategory = document.getElementById("detailProductCategory");
+  const elImg = document.getElementById("detailProductImg");
+  const elBadge = document.getElementById("detailProductBadge");
+  const elName = document.getElementById("detailProductName");
+  const elRating = document.getElementById("detailProductRating");
+  const elSold = document.getElementById("detailProductSold");
+  const elStock = document.getElementById("detailProductStock");
+  const elUnit = document.getElementById("detailProductUnit");
+  const elPrice = document.getElementById("detailProductPrice");
+  const elOrigPrice = document.getElementById("detailProductOriginalPrice");
+  const elDiscount = document.getElementById("detailProductDiscount");
+  const elDesc = document.getElementById("detailProductDesc");
+  const elQtyInput = document.getElementById("detailQtyInput");
+
+  if (elCategory) elCategory.textContent = product.category || "ATK & Kantor";
+  if (elImg) elImg.src = product.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=60";
+  if (elBadge) elBadge.textContent = product.badge || "Kualitas Terjamin";
+  if (elName) elName.textContent = product.name;
+  if (elRating) elRating.textContent = (product.rating || 4.9).toFixed(1);
+  if (elSold) elSold.textContent = `${product.sold || 80}+ pcs`;
+  if (elStock) elStock.textContent = product.stock || 50;
+  if (elUnit) elUnit.textContent = product.unit || "Pcs";
+  if (elPrice) elPrice.textContent = formatRupiah(product.price);
+  
+  const origPrice = product.originalPrice || Math.round(product.price * 1.15);
+  if (elOrigPrice) elOrigPrice.textContent = formatRupiah(origPrice);
+  
+  if (elDiscount) {
+    const percent = Math.round(((origPrice - product.price) / origPrice) * 100);
+    if (percent > 0) {
+      elDiscount.textContent = `Hemat ${percent}%`;
+      elDiscount.classList.remove("hidden");
+    } else {
+      elDiscount.classList.add("hidden");
+    }
+  }
+
+  if (elDesc) {
+    elDesc.textContent = product.description || 
+      `${product.name} merupakan perlengkapan ATK berkualitas tinggi pilihan Toko Delina. Cocok untuk kebutuhan administrasi kantor, tugas kuliah, maupun sekolah. Dijamin 100% original, presisi, dan siap kirim instan Toko Delina.`;
+  }
+
+  if (elQtyInput) elQtyInput.value = 1;
+  updateDetailSubtotal();
+
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  }
+}
+
+function closeProductDetailModal() {
+  const modal = document.getElementById("productDetailModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+function changeDetailQty(delta) {
+  if (!detailCurrentProduct) return;
+  const maxStock = detailCurrentProduct.stock || 999;
+  const newQty = Math.max(1, Math.min(maxStock, detailCurrentQty + delta));
+  detailCurrentQty = newQty;
+  const elQtyInput = document.getElementById("detailQtyInput");
+  if (elQtyInput) elQtyInput.value = newQty;
+  updateDetailSubtotal();
+}
+
+function handleDetailQtyChange(val) {
+  if (!detailCurrentProduct) return;
+  let parsed = parseInt(val, 10);
+  if (isNaN(parsed) || parsed < 1) parsed = 1;
+  const maxStock = detailCurrentProduct.stock || 999;
+  parsed = Math.min(maxStock, parsed);
+  detailCurrentQty = parsed;
+  const elQtyInput = document.getElementById("detailQtyInput");
+  if (elQtyInput) elQtyInput.value = parsed;
+  updateDetailSubtotal();
+}
+
+function updateDetailSubtotal() {
+  if (!detailCurrentProduct) return;
+  const subtotal = detailCurrentProduct.price * detailCurrentQty;
+  const elSub = document.getElementById("detailProductSubtotal");
+  if (elSub) elSub.textContent = formatRupiah(subtotal);
+}
+
+function detailAddToCart() {
+  if (!detailCurrentProduct) return;
+  const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
+  if (existingIndex > -1) {
+    cart[existingIndex].qty += detailCurrentQty;
+  } else {
+    cart.push({
+      id: detailCurrentProduct.id,
+      name: detailCurrentProduct.name,
+      price: detailCurrentProduct.price,
+      image: detailCurrentProduct.image,
+      unit: detailCurrentProduct.unit || "Pcs",
+      qty: detailCurrentQty,
+      category: detailCurrentProduct.category
+    });
+  }
+  localStorage.setItem("delina_cart", JSON.stringify(cart));
+  updateCartBadge();
+  renderCartDrawer();
+  showToast(`✅ ${detailCurrentQty}x ${detailCurrentProduct.name} ditambahkan ke keranjang!`, "success");
+  closeProductDetailModal();
+}
+
+function detailBuyNow() {
+  if (!detailCurrentProduct) return;
+  const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
+  if (existingIndex > -1) {
+    cart[existingIndex].qty = Math.max(cart[existingIndex].qty, detailCurrentQty);
+  } else {
+    cart.push({
+      id: detailCurrentProduct.id,
+      name: detailCurrentProduct.name,
+      price: detailCurrentProduct.price,
+      image: detailCurrentProduct.image,
+      unit: detailCurrentProduct.unit || "Pcs",
+      qty: detailCurrentQty,
+      category: detailCurrentProduct.category
+    });
+  }
+  localStorage.setItem("delina_cart", JSON.stringify(cart));
+  updateCartBadge();
+  renderCartDrawer();
+  closeProductDetailModal();
+  openCheckoutModal();
 }
 
 // =========================================================================
@@ -931,6 +1093,148 @@ function clearPaymentProof() {
   if (previewContainer) previewContainer.classList.add("hidden");
 }
 
+// Fitur Simulasi Pembayaran Instan: Menggambar Struk Digital via Canvas Base64
+function useSimulatedReceipt() {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 420;
+    canvas.height = 540;
+    const ctx = canvas.getContext("2d");
+
+    // Latar Belakang Kertas Struk
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 420, 540);
+
+    // Bingkai Luar
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(10, 10, 400, 520);
+
+    // Header Toko Delina
+    ctx.fillStyle = "#065f46";
+    ctx.fillRect(10, 10, 400, 80);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("DELINA STORE & FOTOKOPI", 210, 44);
+
+    ctx.font = "11px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#a7f3d0";
+    ctx.fillText("BUKTI TRANSAKSI ELEKTRONIK (SIMULASI)", 210, 66);
+
+    // Garis Putus-putus Header
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(30, 110);
+    ctx.lineTo(390, 110);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Data Transaksi
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const randomRef = "SIM-QRIS-" + Math.floor(100000 + Math.random() * 900000);
+
+    ctx.textAlign = "left";
+    ctx.font = "12px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("Waktu Transaksi", 30, 138);
+    ctx.fillText("No. Referensi", 30, 166);
+    ctx.fillText("Kanal Pembayaran", 30, 194);
+    ctx.fillText("Status Bayar", 30, 222);
+
+    ctx.textAlign = "right";
+    ctx.font = "bold 12px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#1e293b";
+    ctx.fillText(`${dateStr}, ${timeStr} WIB`, 390, 138);
+    ctx.fillText(randomRef, 390, 166);
+    ctx.fillText("QRIS Shopee / BCA / Dana", 390, 194);
+    ctx.fillStyle = "#059669";
+    ctx.fillText("BERHASIL / LUNAS", 390, 222);
+
+    // Garis Pembatas
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(30, 245);
+    ctx.lineTo(390, 245);
+    ctx.stroke();
+
+    // Rincian Pembayaran
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#475569";
+    ctx.font = "12px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("Total Tagihan Transaksi", 30, 280);
+
+    let totalBayar = 50000;
+    if (cart && cart.length > 0) {
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const diskonGrosir = typeof hitungDiskonGrosirKeranjang === "function" ? hitungDiskonGrosirKeranjang() : 0;
+      totalBayar = Math.max(0, subtotal - diskonGrosir + (deliveryFee || 0));
+    }
+
+    ctx.textAlign = "right";
+    ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#065f46";
+    ctx.fillText(formatRupiah(totalBayar), 390, 282);
+
+    // Cap Stempel LUNAS Besar Miring
+    ctx.save();
+    ctx.translate(210, 385);
+    ctx.rotate(-12 * Math.PI / 180);
+    ctx.strokeStyle = "#059669";
+    ctx.lineWidth = 3.5;
+    ctx.strokeRect(-95, -34, 190, 68);
+    ctx.fillStyle = "rgba(5, 150, 105, 0.08)";
+    ctx.fillRect(-95, -34, 190, 68);
+    ctx.fillStyle = "#059669";
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("LUNAS", 0, -2);
+    ctx.font = "bold 9px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("VERIFIED BY SIMULATOR", 0, 18);
+    ctx.restore();
+
+    // Footer Struk
+    ctx.font = "10px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.textAlign = "center";
+    ctx.fillText("Terima kasih atas amanah berbelanja di Toko Delina.", 210, 485);
+    ctx.fillText("Simpan struk digital ini sebagai bukti sah transaksi.", 210, 502);
+
+    const base64Data = canvas.toDataURL("image/png");
+
+    uploadedPaymentProof = {
+      name: "struk-simulasi-lunas.png",
+      size: "42 KB (Simulasi Otomatis)",
+      type: "image/png",
+      base64: base64Data
+    };
+
+    // Tampilkan Pratinjau di Modal Checkout
+    const previewContainer = document.getElementById("paymentProofPreviewContainer");
+    const previewImg = document.getElementById("paymentProofPreviewImg");
+    const previewName = document.getElementById("paymentProofPreviewName");
+    const previewSize = document.getElementById("paymentProofPreviewSize");
+
+    if (previewContainer && previewImg) {
+      previewImg.src = base64Data;
+      if (previewName) previewName.textContent = "struk-simulasi-lunas.png";
+      if (previewSize) previewSize.textContent = "42 KB (Simulasi Otomatis)";
+      previewContainer.classList.remove("hidden");
+    }
+
+    showToast("🧪 Struk simulasi berhasil dibuat & bukti bayar terverifikasi!", "success");
+  } catch (err) {
+    console.error("Gagal generate struk simulasi:", err);
+    alert("Gagal membuat struk simulasi. Silakan unggah foto biasa.");
+  }
+}
+
 // Salin No Rekening
 function copyRekening(rekNumber) {
   navigator.clipboard.writeText(rekNumber).then(() => {
@@ -967,16 +1271,17 @@ function submitOrderCheckout() {
     return;
   }
 
+  // Wajib Unggah Bukti Bayar
   if (!uploadedPaymentProof) {
-    const confirmNoProof = confirm(
-      "Kak, bukti pembayaran QRIS/Transfer belum diunggah. Apakah ingin melanjutkan dan mengirim bukti bayar via WhatsApp nanti?"
-    );
-    if (!confirmNoProof) return;
+    alert("⚠️ Bukti pembayaran (struk transfer / QRIS) wajib diunggah sebelum pesanan diproses!\n\n💡 Tips: Anda dapat mengklik tombol '[🧪 Gunakan Struk Simulasi / Uji Coba]' di atas untuk mencoba proses checkout tanpa harus menyiapkan foto asli.");
+    return;
   }
 
   // Buat Nomor Nota Pesanan Otomatis (#DLN-2026-XXXX)
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   const orderId = `#DLN-2026-${randomSuffix}`;
+  localStorage.setItem("delina_last_order_id", orderId);
+
   const now = new Date();
   const orderTime = now.toLocaleDateString("id-ID", {
     day: "numeric",
@@ -1169,6 +1474,10 @@ function handleBottomNav(menu) {
       }
       break;
 
+    case "lacak":
+      openLacakPesananModal();
+      break;
+
     case "cart":
       toggleCartDrawer(true);
       break;
@@ -1176,6 +1485,191 @@ function handleBottomNav(menu) {
     case "kiko":
       toggleKikoChat();
       break;
+  }
+}
+
+// =========================================================================
+// MODAL LACAK PESANAN & PENGAMBILAN TANPA ANTRE (EXPRESS PICK-UP)
+// =========================================================================
+
+function openLacakPesananModal(presetNota) {
+  const modal = document.getElementById("lacakPesananModal");
+  if (!modal) return;
+
+  const input = document.getElementById("lacakInputNota");
+  const recentShortcut = document.getElementById("lacakRecentShortcut");
+  const btnRecent = document.getElementById("btnUseRecentNota");
+
+  // Periksa apakah ada nota terakhir di localStorage
+  const lastOrderId = localStorage.getItem("delina_last_order_id");
+  if (lastOrderId && recentShortcut && btnRecent) {
+    btnRecent.textContent = lastOrderId;
+    btnRecent.onclick = () => {
+      if (input) input.value = lastOrderId;
+      executeLacakPesanan(lastOrderId);
+    };
+    recentShortcut.classList.remove("hidden");
+  } else if (recentShortcut) {
+    recentShortcut.classList.add("hidden");
+  }
+
+  if (presetNota && input) {
+    input.value = presetNota;
+    executeLacakPesanan(presetNota);
+  } else if (lastOrderId && input && !input.value) {
+    input.value = lastOrderId;
+  }
+
+  modal.classList.remove("hidden");
+  document.body.classList.add("overflow-hidden");
+}
+
+function closeLacakPesananModal() {
+  const modal = document.getElementById("lacakPesananModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+async function executeLacakPesanan(customNota) {
+  const input = document.getElementById("lacakInputNota");
+  let notaQuery = (customNota || (input ? input.value : "")).trim().toUpperCase();
+
+  if (!notaQuery) {
+    alert("Mohon masukkan nomor nota Delina Anda (contoh: #DLN-2026-XXXX)");
+    if (input) input.focus();
+    return;
+  }
+
+  if (!notaQuery.startsWith("#")) {
+    notaQuery = "#" + notaQuery;
+    if (input) input.value = notaQuery;
+  }
+
+  const resultArea = document.getElementById("lacakResultArea");
+  const notFoundArea = document.getElementById("lacakNotFound");
+
+  // Coba cek lokal terlebih dahulu jika nota cocok dengan pesanan sesi ini
+  if (latestOrderData && (latestOrderData.orderId === notaQuery || latestOrderData.orderId.replace(/#/g, "") === notaQuery.replace(/#/g, ""))) {
+    displayLacakResult({
+      orderId: latestOrderData.orderId,
+      customerName: latestOrderData.customerName,
+      orderTime: latestOrderData.orderTime,
+      deliveryMethod: latestOrderData.deliveryMethod,
+      totalAkhir: latestOrderData.totalAkhir,
+      status: "Menunggu Verifikasi Toko"
+    });
+    return;
+  }
+
+  // Panggil endpoint backend GAS: ?action=trackOrder&nota=...
+  if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
+    try {
+      showToast("Sedang mencari data pesanan...", "info");
+      const res = await fetch(`${CONFIG.GAS_API_URL}?action=trackOrder&nota=${encodeURIComponent(notaQuery)}`);
+      const json = await res.json();
+      if (json.status === "success" && json.found && json.order) {
+        displayLacakResult({
+          orderId: json.order.orderId,
+          customerName: json.order.nama,
+          orderTime: json.order.timestamp,
+          deliveryMethod: json.order.deliveryMethod,
+          totalAkhir: typeof json.order.total === "number" ? formatRupiah(json.order.total) : String(json.order.total),
+          status: json.order.status || "Menunggu Verifikasi Toko"
+        });
+        return;
+      }
+    } catch (e) {
+      console.warn("Lacak pesanan online gagal:", e);
+    }
+  }
+
+  // Jika tidak ditemukan
+  if (resultArea) resultArea.classList.add("hidden");
+  if (notFoundArea) notFoundArea.classList.remove("hidden");
+}
+
+function displayLacakResult(order) {
+  const resultArea = document.getElementById("lacakResultArea");
+  const notFoundArea = document.getElementById("lacakNotFound");
+
+  if (notFoundArea) notFoundArea.classList.add("hidden");
+  if (resultArea) resultArea.classList.remove("hidden");
+
+  // Update Teks Informasi
+  const elCustomer = document.getElementById("lacakCustomerName");
+  const elTime = document.getElementById("lacakOrderTime");
+  const elDelivery = document.getElementById("lacakDeliveryMethod");
+  const elTotal = document.getElementById("lacakTotalAkhir");
+  const elNota = document.getElementById("lacakNotaText");
+  const elQr = document.getElementById("lacakQrImg");
+
+  if (elCustomer) elCustomer.textContent = order.customerName || "-";
+  if (elTime) elTime.textContent = order.orderTime || "-";
+  if (elDelivery) elDelivery.textContent = order.deliveryMethod || "Ambil Sendiri di Toko";
+  if (elTotal) elTotal.textContent = order.totalAkhir || "Rp 0";
+  if (elNota) elNota.textContent = order.orderId;
+
+  // QR Code Express Pick-up
+  if (elQr) {
+    elQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(order.orderId)}`;
+  }
+
+  // Update Stepper Progress 4 Tahap
+  updateLacakProgressSteps(order.status || "Menunggu Verifikasi Toko");
+}
+
+function updateLacakProgressSteps(status) {
+  const bar = document.getElementById("lacakProgressBar");
+  const icon1 = document.getElementById("lacakStepIcon1");
+  const icon2 = document.getElementById("lacakStepIcon2");
+  const icon3 = document.getElementById("lacakStepIcon3");
+  const icon4 = document.getElementById("lacakStepIcon4");
+  const badge = document.getElementById("lacakStatusBadge");
+
+  const activeClass = "w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm";
+  const inactiveClass = "w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold shadow-sm";
+
+  const lower = (status || "").toLowerCase();
+
+  let level = 1;
+  let badgeText = "Menunggu Verifikasi Toko";
+  let badgeColor = "bg-amber-100 text-amber-800 border-amber-200";
+
+  if (lower.includes("terverifikasi") || lower.includes("lunas")) {
+    level = 2;
+    badgeText = "Pembayaran Terverifikasi Toko";
+    badgeColor = "bg-blue-100 text-blue-800 border-blue-200";
+  } else if (lower.includes("proses") || lower.includes("cetak")) {
+    level = 3;
+    badgeText = "Sedang Diproses & Disiapkan";
+    badgeColor = "bg-indigo-100 text-indigo-800 border-indigo-200";
+  } else if (lower.includes("siap") || lower.includes("ambil")) {
+    level = 4;
+    badgeText = "⚡ Siap Diambil di Toko (Tanpa Antre)";
+    badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-300 font-black";
+  } else if (lower.includes("selesai")) {
+    level = 4;
+    badgeText = "Pesanan Selesai";
+    badgeColor = "bg-gray-100 text-gray-800 border-gray-300";
+  }
+
+  if (icon1) icon1.className = level >= 1 ? activeClass : inactiveClass;
+  if (icon2) icon2.className = level >= 2 ? activeClass : inactiveClass;
+  if (icon3) icon3.className = level >= 3 ? activeClass : inactiveClass;
+  if (icon4) icon4.className = level >= 4 ? activeClass : inactiveClass;
+
+  if (bar) {
+    if (level === 1) bar.style.width = "25%";
+    else if (level === 2) bar.style.width = "50%";
+    else if (level === 3) bar.style.width = "75%";
+    else if (level === 4) bar.style.width = "100%";
+  }
+
+  if (badge) {
+    badge.className = `inline-block px-3 py-1 rounded-full text-xs font-extrabold border ${badgeColor}`;
+    badge.textContent = badgeText;
   }
 }
 
@@ -2098,4 +2592,15 @@ if (typeof window !== "undefined") {
   window.closeQrisInfoModal = closeQrisInfoModal;
   window.copyModalRekening = copyModalRekening;
   window.initChidoriTooltip = initChidoriTooltip;
+  window.openProductDetailModal = openProductDetailModal;
+  window.closeProductDetailModal = closeProductDetailModal;
+  window.changeDetailQty = changeDetailQty;
+  window.handleDetailQtyChange = handleDetailQtyChange;
+  window.updateDetailSubtotal = updateDetailSubtotal;
+  window.detailAddToCart = detailAddToCart;
+  window.detailBuyNow = detailBuyNow;
+  window.useSimulatedReceipt = useSimulatedReceipt;
+  window.openLacakPesananModal = openLacakPesananModal;
+  window.closeLacakPesananModal = closeLacakPesananModal;
+  window.executeLacakPesanan = executeLacakPesanan;
 }

@@ -94,8 +94,18 @@
         </div>
       </div>
 
-      <!-- Aksi Pengguna: Keranjang & Bantuan Kiko -->
+      <!-- Aksi Pengguna: Lacak Pesanan, Keranjang & Bantuan Kiko -->
       <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <!-- Tombol Lacak Pesanan (Layanan Tanpa Antre) -->
+        <button 
+          onclick="openLacakPesananModal()"
+          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold transition-all active:scale-95 shadow-xs"
+          title="Lacak Pesanan & Pengambilan Tanpa Antre"
+        >
+          <i class="bi bi-qr-code text-delina-emerald text-sm sm:text-base"></i>
+          <span class="hidden sm:inline">Lacak Pesanan</span>
+        </button>
+
         <!-- Tombol Keranjang -->
         <button 
           onclick="toggleCartDrawer(true)"
@@ -738,11 +748,22 @@
             </div>
           </div>
 
-          <!-- 4. Unggah Bukti Bayar -->
+          <!-- 4. Unggah Bukti Bayar (Wajib) -->
           <div class="space-y-1.5">
-            <label class="block text-[11px] font-bold text-gray-700">
-              Unggah Bukti Bayar (Tangkapan Layar / Struk Transfer) <span class="text-red-500">*</span>
-            </label>
+            <div class="flex items-center justify-between flex-wrap gap-1">
+              <label class="block text-[11px] font-bold text-gray-700">
+                Unggah Bukti Bayar (Struk / QRIS) <span class="text-red-500 font-extrabold">* Wajib</span>
+              </label>
+              <button 
+                type="button" 
+                onclick="useSimulatedReceipt()" 
+                class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition-all cursor-pointer active:scale-95 shadow-xs"
+                title="Gunakan struk otomatis untuk uji coba checkout cepat"
+              >
+                <i class="bi bi-magic text-xs"></i>
+                <span>🧪 Gunakan Struk Simulasi / Uji Coba</span>
+              </button>
+            </div>
             <label for="paymentProofInput" class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-emerald-50/40 transition-all">
               <i class="bi bi-image text-2xl text-gray-400"></i>
               <span id="paymentProofNameText" class="text-xs font-bold text-gray-700 mt-1">Pilih Foto Bukti Transfer</span>
@@ -947,6 +968,306 @@
     </div>
   </div>
 
+  <!-- ================= MODAL DETAIL PRODUK GAYA TOKOPEDIA ================= -->
+  <div id="productDetailModal" onclick="if(event.target === this) closeProductDetailModal()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[92vh]">
+      <!-- Header Modal -->
+      <div class="p-3.5 sm:p-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/80 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-extrabold text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg flex items-center gap-1">
+            <i class="bi bi-shield-check text-emerald-600"></i> Produk Asli Delina
+          </span>
+          <span id="detailProductCategory" class="text-xs font-semibold text-gray-500">Kertas & Buku</span>
+        </div>
+        <button onclick="closeProductDetailModal()" class="w-8 h-8 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center text-sm transition-colors">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Konten Bento Grid: Kiri Foto, Kanan Info & Stepper -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Sisi Kiri: Foto Besar & Badge -->
+        <div class="space-y-3">
+          <div class="relative bg-slate-50 rounded-2xl overflow-hidden aspect-square border border-gray-200/80 shadow-xs flex items-center justify-center group">
+            <img 
+              id="detailProductImg" 
+              src="" 
+              alt="Detail Produk" 
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <span id="detailProductBadge" class="absolute top-3 left-3 bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+              Terlaris
+            </span>
+          </div>
+          <!-- Keunggulan Produk Pill -->
+          <div class="grid grid-cols-3 gap-2 text-center text-[10px] text-gray-600 font-medium">
+            <div class="p-2 rounded-xl bg-gray-50 border border-gray-100">
+              <i class="bi bi-truck text-emerald-600 text-sm block"></i> Siap Kirim
+            </div>
+            <div class="p-2 rounded-xl bg-gray-50 border border-gray-100">
+              <i class="bi bi-shield-lock text-emerald-600 text-sm block"></i> Original 100%
+            </div>
+            <div class="p-2 rounded-xl bg-gray-50 border border-gray-100">
+              <i class="bi bi-arrow-repeat text-emerald-600 text-sm block"></i> Bisa Tukar
+            </div>
+          </div>
+        </div>
+
+        <!-- Sisi Kanan: Judul, Harga, Grosir, Rating & Kontrol Beli -->
+        <div class="flex flex-col justify-between space-y-4">
+          <div>
+            <!-- Judul Barang -->
+            <h2 id="detailProductName" class="text-base sm:text-lg font-bold text-gray-800 leading-snug">
+              Nama Produk ATK
+            </h2>
+
+            <!-- Statistik: Rating & Terjual -->
+            <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+              <span class="flex items-center text-amber-500 font-bold">
+                <i class="bi bi-star-fill text-xs mr-1"></i> <span id="detailProductRating">4.9</span>
+              </span>
+              <span class="text-gray-300">•</span>
+              <span>Terjual <strong id="detailProductSold" class="text-gray-700">100+</strong></span>
+              <span class="text-gray-300">•</span>
+              <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">
+                Stok: <span id="detailProductStock">50</span> <span id="detailProductUnit">Pcs</span>
+              </span>
+            </div>
+
+            <!-- Harga & Diskon -->
+            <div class="mt-3.5 p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+              <div class="flex items-baseline gap-2">
+                <span id="detailProductPrice" class="text-xl sm:text-2xl font-black text-delina-emerald">
+                  Rp 0
+                </span>
+                <span id="detailProductOriginalPrice" class="text-xs text-gray-400 line-through">
+                  Rp 0
+                </span>
+                <span id="detailProductDiscount" class="text-[10px] font-black text-emerald-800 bg-emerald-200 px-1.5 py-0.5 rounded">
+                  Hemat 10%
+                </span>
+              </div>
+              <!-- Indikator Grosir -->
+              <div id="detailProductGrosirNotice" class="mt-2 text-[11px] text-emerald-800 font-semibold flex items-center gap-1.5">
+                <i class="bi bi-tags-fill text-delina-emerald"></i>
+                <span>Grosir: Beli min. 3 pcs dapat potongan khusus otomatis saat checkout!</span>
+              </div>
+            </div>
+
+            <!-- Deskripsi & Spesifikasi Singkat -->
+            <div class="mt-3.5 space-y-2">
+              <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Deskripsi Produk:</h4>
+              <p id="detailProductDesc" class="text-xs text-gray-600 leading-relaxed max-h-28 overflow-y-auto">
+                Deskripsi produk lengkap.
+              </p>
+            </div>
+          </div>
+
+          <!-- Bagian Bawah: Stepper & Subtotal & Tombol Aksi -->
+          <div class="pt-3 border-t border-gray-100 space-y-3">
+            <!-- Kontrol Kuantitas & Subtotal -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-700">Jumlah:</span>
+                <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-xs">
+                  <button type="button" onclick="changeDetailQty(-1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 active:scale-95 text-xs font-bold transition-all">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <input type="number" id="detailQtyInput" value="1" min="1" max="999" onchange="handleDetailQtyChange(this.value)" class="w-12 h-8 text-center text-xs font-extrabold text-gray-800 focus:outline-none" />
+                  <button type="button" onclick="changeDetailQty(1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 active:scale-95 text-xs font-bold transition-all">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Subtotal Instan -->
+              <div class="text-right">
+                <span class="text-[10px] text-gray-400 block font-medium">Subtotal</span>
+                <span id="detailProductSubtotal" class="text-sm sm:text-base font-extrabold text-emerald-800">
+                  Rp 0
+                </span>
+              </div>
+            </div>
+
+            <!-- Tombol Beli / Keranjang -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <button 
+                type="button" 
+                onclick="detailAddToCart()"
+                class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-delina-emerald font-extrabold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <i class="bi bi-cart-plus text-base"></i>
+                <span>+ Keranjang</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="detailBuyNow()"
+                class="py-2.5 px-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Beli Sekarang</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL LACAK PESANAN & LAYANAN TANPA ANTRE ================= -->
+  <div id="lacakPesananModal" onclick="if(event.target === this) closeLacakPesananModal()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[92vh]">
+      <!-- Header Modal -->
+      <div class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-4 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-lg">
+            <i class="bi bi-qr-code"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Lacak Pesanan & Tanpa Antre</h3>
+            <p class="text-[11px] text-emerald-100">Cek Status & Tunjukkan QR ke Kasir Toko</p>
+          </div>
+        </div>
+        <button onclick="closeLacakPesananModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm transition-colors">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Isi Modal -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4">
+        <!-- Input Pencarian Nota -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-gray-700">Nomor Nota Pesanan Delina:</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <i class="bi bi-receipt absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="lacakInputNota" 
+                placeholder="#DLN-2026-XXXX" 
+                class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-tokopedia-green uppercase"
+              />
+            </div>
+            <button 
+              type="button" 
+              onclick="executeLacakPesanan()" 
+              class="px-4 py-2 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white font-bold text-xs transition-all active:scale-95 shadow-sm flex items-center gap-1.5"
+            >
+              <i class="bi bi-search"></i>
+              <span>Cari</span>
+            </button>
+          </div>
+          <div id="lacakRecentShortcut" class="hidden text-[11px] text-gray-500">
+            <span>Nota Terakhir Anda: </span>
+            <button type="button" id="btnUseRecentNota" class="font-mono font-bold text-emerald-700 hover:underline">
+              #DLN-2026-XXXX
+            </button>
+          </div>
+        </div>
+
+        <!-- Kartu Hasil Pelacakan -->
+        <div id="lacakResultArea" class="space-y-4 hidden">
+          <!-- Indikator 4 Tahap Horizontal Ala Tokopedia -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+            <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">Status Progres Pesanan:</div>
+            
+            <div class="relative flex items-center justify-between">
+              <!-- Connecting Line -->
+              <div class="absolute left-6 right-6 top-4 h-1 bg-gray-200 -z-0">
+                <div id="lacakProgressBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 25%;"></div>
+              </div>
+
+              <!-- Step 1: Diterima -->
+              <div class="flex flex-col items-center text-center z-10 w-20">
+                <div id="lacakStepIcon1" class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <span class="text-[10px] font-bold text-gray-800 mt-1.5 leading-tight">Diterima</span>
+              </div>
+
+              <!-- Step 2: Bayar Terverifikasi -->
+              <div class="flex flex-col items-center text-center z-10 w-20">
+                <div id="lacakStepIcon2" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold shadow-sm">
+                  <i class="bi bi-credit-card"></i>
+                </div>
+                <span class="text-[10px] font-bold text-gray-600 mt-1.5 leading-tight">Terverifikasi</span>
+              </div>
+
+              <!-- Step 3: Sedang Diproses -->
+              <div class="flex flex-col items-center text-center z-10 w-20">
+                <div id="lacakStepIcon3" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold shadow-sm">
+                  <i class="bi bi-printer"></i>
+                </div>
+                <span class="text-[10px] font-bold text-gray-600 mt-1.5 leading-tight">Diproses</span>
+              </div>
+
+              <!-- Step 4: Siap Diambil -->
+              <div class="flex flex-col items-center text-center z-10 w-20">
+                <div id="lacakStepIcon4" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold shadow-sm">
+                  <i class="bi bi-bag-check"></i>
+                </div>
+                <span class="text-[10px] font-bold text-gray-600 mt-1.5 leading-tight">Siap Ambil</span>
+              </div>
+            </div>
+
+            <div class="mt-3.5 pt-2.5 border-t border-gray-200/80 text-center">
+              <span id="lacakStatusBadge" class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
+                Menunggu Verifikasi Toko
+              </span>
+            </div>
+          </div>
+
+          <!-- Layanan Tanpa Antre: QR Code Ambil Pesanan Cepat -->
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 text-center space-y-2">
+            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-800 bg-white px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <i class="bi bi-lightning-charge-fill text-amber-500"></i> Layanan Tanpa Antre (Express Pick-up)
+            </span>
+            <p class="text-xs text-gray-600 max-w-xs mx-auto">
+              Tunjukkan barcode/QR berikut langsung ke Kasir Toko Delina untuk pengambilan kilat tanpa perlu antre!
+            </p>
+            <div class="bg-white p-3 rounded-2xl border border-emerald-200 inline-block shadow-sm">
+              <img id="lacakQrImg" src="" alt="QR Code Nota" class="w-36 h-36 object-contain mx-auto" />
+              <span id="lacakNotaText" class="block font-mono font-black text-slate-800 text-xs mt-1">#DLN-2026-XXXX</span>
+            </div>
+          </div>
+
+          <!-- Detail Nota Singkat -->
+          <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 text-xs space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Pelanggan:</span>
+              <strong id="lacakCustomerName" class="text-gray-800">-</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Waktu Pesan:</span>
+              <span id="lacakOrderTime" class="text-gray-700 font-medium">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Pengambilan:</span>
+              <span id="lacakDeliveryMethod" class="text-gray-700 font-medium">-</span>
+            </div>
+            <div class="flex justify-between border-t border-gray-200 pt-1.5">
+              <span class="font-bold text-gray-700">Total Tagihan:</span>
+              <strong id="lacakTotalAkhir" class="font-black text-emerald-800">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pesan Kosong / Not Found -->
+        <div id="lacakNotFound" class="hidden py-8 text-center space-y-2">
+          <i class="bi bi-search text-3xl text-gray-300"></i>
+          <p class="text-xs text-gray-500">Nota pesanan belum ditemukan. Pastikan nomor nota yang Anda masukkan sudah sesuai.</p>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+        <button type="button" onclick="closeLacakPesananModal()" class="px-5 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs transition-all">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- NOTIFIKASI TOAST -->
   <div
     id="toastNotification" 
@@ -998,7 +1319,20 @@
           <span class="text-[10px] sm:text-xs font-bold text-delina-emerald mt-0.5">Fotokopi</span>
         </button>
 
-        <!-- 4. Keranjang (Sinkron Badge Otomatis) -->
+        <!-- 4. Lacak Pesanan (Layanan Tanpa Antre) -->
+        <button 
+          data-nav="lacak"
+          onclick="handleBottomNav('lacak')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
+          title="Lacak Nota & Ambil Tanpa Antre"
+        >
+          <div class="relative">
+            <i class="bi bi-qr-code text-lg sm:text-xl"></i>
+          </div>
+          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Lacak</span>
+        </button>
+
+        <!-- 5. Keranjang (Sinkron Badge Otomatis) -->
         <button 
           data-nav="cart"
           onclick="handleBottomNav('cart')" 
@@ -1012,20 +1346,6 @@
             </span>
           </div>
           <span class="text-[10px] sm:text-xs font-medium mt-0.5">Keranjang</span>
-        </button>
-
-        <!-- 5. Kiko AI -->
-        <button 
-          data-nav="kiko"
-          onclick="handleBottomNav('kiko')" 
-          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
-          title="Asisten Kiko AI"
-        >
-          <div class="relative">
-            <i class="bi bi-chat-quote-fill text-lg sm:text-xl"></i>
-            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white pulse-badge"></span>
-          </div>
-          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kiko AI</span>
         </button>
 
       </div>
