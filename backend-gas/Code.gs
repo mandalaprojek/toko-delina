@@ -176,6 +176,22 @@ function doGet(e) {
       });
     }
 
+    if (e && e.parameter && e.parameter.action === "getWebhookInfo") {
+      const props = PropertiesService.getScriptProperties();
+      const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
+      const url = `https://api.telegram.org/bot${botToken}/getWebhookInfo`;
+      const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      return createJsonResponse(JSON.parse(res.getContentText()));
+    }
+
+    if (e && e.parameter && e.parameter.action === "resetTelegramWebhook") {
+      const result = resetDanBersihkanWebhook();
+      return createJsonResponse({
+        status: "success",
+        result: result
+      });
+    }
+
     const ss = getDelinaSpreadsheet();
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
     const sheetTarif = ss.getSheetByName(TAB_TARIF);
@@ -451,6 +467,18 @@ function doPost(e) {
     // JALUR 1: PESAN MASUK DARI WEBHOOK TELEGRAM
     // =========================================================
     if (payload.message && payload.message.text && payload.message.chat) {
+      // 1. Anti-Spam / Deduplikasi Update Telegram (Cegah pesan berulang saat Telegram me-retry)
+      const updateId = payload.update_id;
+      if (updateId) {
+        const cache = CacheService.getScriptCache();
+        const cacheKey = "tg_upd_" + updateId;
+        if (cache.get(cacheKey)) {
+          Logger.log("Update ID " + updateId + " sudah pernah diproses. Lewati.");
+          return HtmlService.createHtmlOutput("OK");
+        }
+        cache.put(cacheKey, "1", 21600); // Kunci selama 6 jam
+      }
+
       const chatId = payload.message.chat.id;
       const userText = payload.message.text;
 
@@ -468,7 +496,8 @@ function doPost(e) {
         kirimPesanTelegram(chatId, jawabanAI);
       }
 
-      return createJsonResponse({ status: "ok" });
+      // Gunakan HtmlService agar Telegram mendapatkan response langsung tanpa redirect 302
+      return HtmlService.createHtmlOutput("OK");
     }
 
     // =========================================================
@@ -735,12 +764,32 @@ function setTelegramWebhook() {
 
   // URL Deployment Web App Toko Delina
   const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
-  const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}`;
+  const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true`;
 
   const res = UrlFetchApp.fetch(url);
   const resultText = res.getContentText();
   Logger.log("Hasil setWebhook: " + resultText);
   return "Webhook Telegram berhasil didaftarkan: " + resultText;
+}
+
+/**
+ * Reset Total & Bersihkan Antrean Update Tertunda Telegram
+ */
+function resetDanBersihkanWebhook() {
+  const props = PropertiesService.getScriptProperties();
+  const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
+  if (!botToken) return "Token bot belum ada.";
+
+  // 1. Hapus webhook lama dan bersihkan update yang macet
+  const delUrl = `https://api.telegram.org/bot${botToken}/deleteWebhook?drop_pending_updates=true`;
+  const delRes = UrlFetchApp.fetch(delUrl, { muteHttpExceptions: true }).getContentText();
+
+  // 2. Daftarkan ulang webhook baru
+  const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
+  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true`;
+  const setRes = UrlFetchApp.fetch(setUrl, { muteHttpExceptions: true }).getContentText();
+
+  return `Hapus: ${delRes} | Pasang Ulang: ${setRes}`;
 }
 
 /**
