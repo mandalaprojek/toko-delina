@@ -92,3 +92,56 @@ body {
 .animate-fadeIn {
   animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ==========================================================================
+   STYLING KHUSUS STRUK TERMAL POS (58mm & 80mm Bluetooth Printer)
+   ========================================================================== */
+.thermal-receipt {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #000000;
+  background: #ffffff;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+/* Badge Grosir & Kupon */
+.badge-grosir {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  animation: pulse-badge 2s infinite;
+}
+
+@media print {
+  /* Sembunyikan seluruh isi website */
+  body {
+    visibility: hidden;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Tampilkan HANYA area cetak struk termal */
+  #thermal-print-container,
+  #thermal-print-container * {
+    visibility: visible;
+  }
+
+  #thermal-print-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 58mm;
+    margin: 0;
+    padding: 2mm;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+}

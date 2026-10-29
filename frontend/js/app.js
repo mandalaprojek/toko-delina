@@ -607,6 +607,152 @@ function closeCheckoutModal() {
   }
 }
 
+// =========================================================================
+// ATURAN HARGA GROSIR BERTINGKAT & KUPON PROMO BERKAH (FITUR 4)
+// =========================================================================
+
+// Aturan Diskon Grosir Bertingkat Otomatis (Tanpa Perlu Kode)
+function hitungDiskonGrosirKeranjang() {
+  let totalDiskonGrosir = 0;
+  cart.forEach(item => {
+    const nameLower = (item.name || "").toLowerCase();
+    
+    // 1. Kertas HVS: Beli >= 5 Rim dapat potongan Rp 2.000 / rim
+    if (nameLower.includes("kertas hvs") && item.qty >= 5) {
+      const diskon = item.qty * 2000;
+      totalDiskonGrosir += diskon;
+      item.isGrosir = true;
+      item.grosirDesc = "Grosir -Rp 2.000/rim";
+    }
+    // 2. Buku Tulis: Beli >= 3 Pack dapat potongan Rp 1.500 / pack
+    else if (nameLower.includes("buku tulis") && item.qty >= 3) {
+      const diskon = item.qty * 1500;
+      totalDiskonGrosir += diskon;
+      item.isGrosir = true;
+      item.grosirDesc = "Grosir -Rp 1.500/pack";
+    }
+    // 3. Pulpen Standard: Beli >= 2 Lusin dapat potongan Rp 2.000 / lusin
+    else if (nameLower.includes("pulpen standard") && item.qty >= 2) {
+      const diskon = item.qty * 2000;
+      totalDiskonGrosir += diskon;
+      item.isGrosir = true;
+      item.grosirDesc = "Grosir -Rp 2.000/lusin";
+    }
+    // 4. Jasa Fotokopi: Cetak >= 100 lembar total dapat potongan Rp 50/lbr
+    else if (item.isFotokopi && item.specs) {
+      const totalLembar = (Number(item.specs.lembar) || 0) * (Number(item.specs.rangkap) || 1);
+      if (totalLembar >= 100) {
+        const diskon = totalLembar * 50;
+        totalDiskonGrosir += diskon;
+        item.isGrosir = true;
+        item.grosirDesc = "Grosir Cetak -Rp 50/lbr";
+      } else {
+        item.isGrosir = false;
+      }
+    } else {
+      item.isGrosir = false;
+    }
+  });
+
+  return totalDiskonGrosir;
+}
+
+// Daftar Kupon Promo Berkah
+const PROMO_COUPONS = {
+  "JUMATBERKAH": {
+    code: "JUMATBERKAH",
+    type: "fixed",
+    discount: 5000,
+    minSpend: 50000,
+    desc: "Diskon Berkah Rp 5.000 (Min. Belanja Rp 50.000)"
+  },
+  "DELINABAROKAH": {
+    code: "DELINABAROKAH",
+    type: "percent",
+    rate: 0.10,
+    maxDiscount: 15000,
+    minSpend: 30000,
+    desc: "Diskon 10% s.d Rp 15.000 (Min. Belanja Rp 30.000)"
+  },
+  "FOTOKOPILANCAR": {
+    code: "FOTOKOPILANCAR",
+    type: "fixed",
+    discount: 3000,
+    minSpend: 10000,
+    requiresFotokopi: true,
+    desc: "Potongan Rp 3.000 Jasa Fotokopi/Cetak"
+  },
+  "DISKON5K": {
+    code: "DISKON5K",
+    type: "fixed",
+    discount: 5000,
+    minSpend: 40000,
+    desc: "Potongan Langsung Rp 5.000 (Min. Belanja Rp 40.000)"
+  }
+};
+
+let appliedCoupon = null;
+
+function applyCouponCode() {
+  const input = document.getElementById("couponInput");
+  const msgElem = document.getElementById("couponMessage");
+  if (!input) return;
+
+  const rawCode = input.value.trim().toUpperCase();
+  if (!rawCode) {
+    if (msgElem) {
+      msgElem.textContent = "Silakan ketik kode kupon terlebih dahulu.";
+      msgElem.className = "text-[11px] mt-1.5 text-red-500 font-medium block";
+    }
+    return;
+  }
+
+  const coupon = PROMO_COUPONS[rawCode];
+  if (!coupon) {
+    if (msgElem) {
+      msgElem.textContent = `Kode "${rawCode}" tidak ditemukan atau sudah kadaluarsa.`;
+      msgElem.className = "text-[11px] mt-1.5 text-red-500 font-medium block";
+    }
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  if (subtotal < coupon.minSpend) {
+    if (msgElem) {
+      msgElem.textContent = `Kupon ini berlaku untuk minimal belanja ${formatRupiah(coupon.minSpend)}.`;
+      msgElem.className = "text-[11px] mt-1.5 text-amber-600 font-medium block";
+    }
+    return;
+  }
+
+  if (coupon.requiresFotokopi && !cart.some(item => item.isFotokopi)) {
+    if (msgElem) {
+      msgElem.textContent = "Kupon ini khusus untuk pesanan yang memuat Jasa Cetak/Fotokopi.";
+      msgElem.className = "text-[11px] mt-1.5 text-amber-600 font-medium block";
+    }
+    return;
+  }
+
+  appliedCoupon = coupon;
+  if (msgElem) {
+    msgElem.textContent = `Alhamdulillah! Kupon ${coupon.code} aktif (${coupon.desc}).`;
+    msgElem.className = "text-[11px] mt-1.5 text-emerald-600 font-bold block";
+  }
+
+  showToast(`Kupon ${coupon.code} berhasil diterapkan!`);
+  renderCheckoutSummary();
+}
+
+function removeCouponCode() {
+  appliedCoupon = null;
+  const input = document.getElementById("couponInput");
+  const msgElem = document.getElementById("couponMessage");
+  if (input) input.value = "";
+  if (msgElem) msgElem.classList.add("hidden");
+  showToast("Kupon promo telah dibatalkan.");
+  renderCheckoutSummary();
+}
+
 // Hitung Ulang & Render Rincian di Modal Checkout
 function renderCheckoutSummary() {
   const container = document.getElementById("checkoutItemsList");
@@ -615,11 +761,49 @@ function renderCheckoutSummary() {
   const ongkirElem = document.getElementById("checkoutOngkir");
   const grandTotalElem = document.getElementById("checkoutGrandTotal");
 
+  const rowGrosir = document.getElementById("rowDiskonGrosir");
+  const grosirElem = document.getElementById("checkoutDiskonGrosir");
+  const rowKupon = document.getElementById("rowDiskonKupon");
+  const kuponElem = document.getElementById("checkoutDiskonKupon");
+  const kuponLabel = document.getElementById("checkoutKuponLabel");
+
   if (!container) return;
 
   const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const grandTotal = subtotal + deliveryFee;
+
+  // 1. Diskon Grosir Bertingkat
+  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  if (rowGrosir && grosirElem) {
+    if (diskonGrosir > 0) {
+      rowGrosir.classList.remove("hidden");
+      grosirElem.textContent = `- ${formatRupiah(diskonGrosir)}`;
+    } else {
+      rowGrosir.classList.add("hidden");
+    }
+  }
+
+  // 2. Diskon Kupon Promo Berkah
+  let diskonKupon = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "fixed") {
+      diskonKupon = appliedCoupon.discount;
+    } else if (appliedCoupon.type === "percent") {
+      diskonKupon = Math.min(appliedCoupon.maxDiscount || 999999, Math.round(subtotal * appliedCoupon.rate));
+    }
+
+    if (rowKupon && kuponElem) {
+      rowKupon.classList.remove("hidden");
+      if (kuponLabel) kuponLabel.textContent = `🎟️ Kupon (${appliedCoupon.code}):`;
+      kuponElem.textContent = `- ${formatRupiah(diskonKupon)}`;
+    }
+  } else {
+    if (rowKupon) rowKupon.classList.add("hidden");
+  }
+
+  // 3. Grand Total Bersih
+  const totalPotongan = diskonGrosir + diskonKupon;
+  const grandTotal = Math.max(0, subtotal - totalPotongan + deliveryFee);
 
   if (countElem) countElem.textContent = `${totalItemsCount} Item`;
   if (subtotalElem) subtotalElem.textContent = formatRupiah(subtotal);
@@ -635,11 +819,17 @@ function renderCheckoutSummary() {
 
   container.innerHTML = cart
     .map(item => {
+      let badgeGrosirHtml = item.isGrosir
+        ? `<span class="inline-block bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded ml-1">🏷️ Grosir</span>`
+        : "";
       return `
-      <div class="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-none">
+      <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-100 last:border-none">
         <div class="flex-1 truncate pr-2">
-          <span class="font-semibold text-gray-800">${item.name}</span>
-          <span class="text-gray-400 block text-[10px]">Qty: ${item.qty} x ${formatRupiah(item.price)}</span>
+          <div class="font-semibold text-gray-800 truncate">${item.name}</div>
+          <div class="text-gray-400 text-[10px] flex items-center gap-1">
+            <span>Qty: ${item.qty} x ${formatRupiah(item.price)}</span>
+            ${badgeGrosirHtml}
+          </div>
         </div>
         <span class="font-bold text-gray-700 flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
       </div>
@@ -779,7 +969,17 @@ function submitOrderCheckout() {
   }) + ", " + now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB";
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const totalAkhir = subtotal + deliveryFee;
+  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  let diskonKupon = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "fixed") {
+      diskonKupon = appliedCoupon.discount;
+    } else if (appliedCoupon.type === "percent") {
+      diskonKupon = Math.min(appliedCoupon.maxDiscount || 999999, Math.round(subtotal * appliedCoupon.rate));
+    }
+  }
+  const totalPotongan = diskonGrosir + diskonKupon;
+  const totalAkhir = Math.max(0, subtotal - totalPotongan + deliveryFee);
 
   latestOrderData = {
     orderId,
@@ -793,7 +993,9 @@ function submitOrderCheckout() {
     orderTime,
     items: [...cart],
     hasPaymentProof: !!uploadedPaymentProof,
-    paymentProofName: uploadedPaymentProof ? uploadedPaymentProof.name : "Kirim via WhatsApp"
+    paymentProofName: uploadedPaymentProof ? uploadedPaymentProof.name : "Kirim via WhatsApp",
+    couponCode: appliedCoupon ? appliedCoupon.code : null,
+    discountAmount: totalPotongan
   };
 
   // Kirim data pesanan ke Google Apps Script Backend (Live Integration)
@@ -806,6 +1008,8 @@ function submitOrderCheckout() {
       deliveryMethod: selectedDeliveryMethod === 'courier' ? `Diantar Kurir (+ ${formatRupiah(5000)})` : 'Ambil Sendiri di Toko Delina',
       customerAddress: customerAddress || "-",
       totalAkhir: totalAkhir,
+      couponCode: appliedCoupon ? appliedCoupon.code : null,
+      discountAmount: totalPotongan,
       items: latestOrderData.items,
       fotokopiFile: (function() {
         const fotoItem = latestOrderData.items.find(i => i.isFotokopi && i.fileBase64);
@@ -844,8 +1048,9 @@ function submitOrderCheckout() {
   // Buka Modal Sukses
   openSuccessModal(latestOrderData);
 
-  // Kosongkan Keranjang Belanja
+  // Kosongkan Keranjang Belanja & Kupon
   cart = [];
+  appliedCoupon = null;
   saveCart();
   updateCartBadge();
   renderCartDrawer();
@@ -1158,6 +1363,456 @@ async function fetchProductsFromGAS() {
   } catch (e) {
     console.log("Memuat katalog lokal Toko Delina:", e.message);
   }
+}
+
+// =========================================================================
+// 15. FITUR 2 & 3: MODE KASIR TABLET (POS MINI), WA NOTIF & CETAK STRUK
+// =========================================================================
+
+let posOrders = [];
+let isPosAuthenticated = false;
+let currentPosFilter = "all";
+let currentPosSearch = "";
+let selectedOrderForPrint = null;
+
+function openPosModal() {
+  const modal = document.getElementById("posModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+
+  // Periksa apakah sudah ada sesi PIN tersimpan
+  const savedPin = sessionStorage.getItem("delina_pos_pin");
+  if (savedPin) {
+    isPosAuthenticated = true;
+    showPosDashboard();
+    loadPosOrders();
+  } else {
+    showPosPinScreen();
+  }
+}
+
+function closePosModal() {
+  const modal = document.getElementById("posModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function showPosPinScreen() {
+  const pinScreen = document.getElementById("posPinScreen");
+  const dashScreen = document.getElementById("posDashboardScreen");
+  const btnRefresh = document.getElementById("posBtnRefresh");
+  const btnLock = document.getElementById("posBtnLock");
+
+  if (pinScreen) pinScreen.classList.remove("hidden");
+  if (dashScreen) dashScreen.classList.add("hidden");
+  if (btnRefresh) btnRefresh.classList.add("hidden");
+  if (btnLock) btnLock.classList.add("hidden");
+
+  const pinInput = document.getElementById("posPinInput");
+  if (pinInput) {
+    pinInput.value = "";
+    setTimeout(() => pinInput.focus(), 200);
+  }
+}
+
+function showPosDashboard() {
+  const pinScreen = document.getElementById("posPinScreen");
+  const dashScreen = document.getElementById("posDashboardScreen");
+  const btnRefresh = document.getElementById("posBtnRefresh");
+  const btnLock = document.getElementById("posBtnLock");
+
+  if (pinScreen) pinScreen.classList.add("hidden");
+  if (dashScreen) dashScreen.classList.remove("hidden");
+  if (btnRefresh) btnRefresh.classList.remove("hidden");
+  if (btnLock) btnLock.classList.remove("hidden");
+}
+
+function lockPosSession() {
+  sessionStorage.removeItem("delina_pos_pin");
+  isPosAuthenticated = false;
+  showPosPinScreen();
+  showToast("Panel Kasir telah dikunci.");
+}
+
+async function handlePosPinSubmit(event) {
+  event.preventDefault();
+  const input = document.getElementById("posPinInput");
+  if (!input) return;
+
+  const enteredPin = input.value.trim();
+  if (!enteredPin) return;
+
+  sessionStorage.setItem("delina_pos_pin", enteredPin);
+  isPosAuthenticated = true;
+  showPosDashboard();
+  loadPosOrders();
+}
+
+async function loadPosOrders(forceRefresh = false) {
+  const container = document.getElementById("posOrdersContainer");
+  if (!container) return;
+
+  const pin = sessionStorage.getItem("delina_pos_pin") || "1234";
+
+  if (forceRefresh || posOrders.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-12 text-gray-500 space-y-2">
+        <div class="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="text-xs">Memuat pesanan real-time dari Google Sheets...</p>
+      </div>
+    `;
+  }
+
+  if (typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) {
+    container.innerHTML = `<p class="text-center text-xs text-red-500 py-8">CONFIG.GAS_API_URL belum tersedia.</p>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`${CONFIG.GAS_API_URL}?action=getOrders&pin=${encodeURIComponent(pin)}`);
+    const json = await res.json();
+
+    if (json.status === "error") {
+      alert("PIN Kasir tidak sesuai! Silakan periksa kembali PIN Anda.");
+      lockPosSession();
+      return;
+    }
+
+    if (json.status === "success" && Array.isArray(json.orders)) {
+      posOrders = json.orders;
+      renderPosOrders();
+      if (forceRefresh) showToast("Alhamdulillah, data pesanan berhasil disegarkan.");
+    } else {
+      container.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Belum ada data pesanan di Google Sheets.</p>`;
+    }
+  } catch (err) {
+    console.error("Gagal memuat pesanan POS:", err);
+    container.innerHTML = `
+      <div class="text-center py-8 text-gray-500 space-y-2">
+        <p class="text-xs text-red-500">Gagal terhubung ke Google Sheets: ${err.message}</p>
+        <button onclick="loadPosOrders(true)" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">Coba Lagi</button>
+      </div>
+    `;
+  }
+}
+
+function setPosFilter(filter) {
+  currentPosFilter = filter;
+  const btns = document.querySelectorAll(".pos-filter-btn");
+  btns.forEach(btn => {
+    if (btn.getAttribute("data-pos-filter") === filter) {
+      btn.className = "pos-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs font-bold text-xs";
+    } else {
+      btn.className = "pos-filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-emerald-300 font-bold text-xs";
+    }
+  });
+  renderPosOrders();
+}
+
+function handlePosSearch(val) {
+  currentPosSearch = (val || "").toLowerCase().trim();
+  renderPosOrders();
+}
+
+function renderPosOrders() {
+  const container = document.getElementById("posOrdersContainer");
+  if (!container) return;
+
+  let filtered = [...posOrders];
+
+  // 1. Filter Status
+  if (currentPosFilter !== "all") {
+    filtered = filtered.filter(o => (o.orderStatus || "").toLowerCase().includes(currentPosFilter.toLowerCase()));
+  }
+
+  // 2. Filter Search
+  if (currentPosSearch) {
+    filtered = filtered.filter(o => {
+      const q = currentPosSearch;
+      return (
+        (o.orderId || "").toLowerCase().includes(q) ||
+        (o.customerName || "").toLowerCase().includes(q) ||
+        (o.customerPhone || "").toLowerCase().includes(q) ||
+        (o.itemsText || "").toLowerCase().includes(q)
+      );
+    });
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-12 text-gray-400 space-y-2">
+        <i class="bi bi-inbox text-3xl"></i>
+        <p class="text-xs">Tidak ada pesanan yang sesuai filter.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+      ${filtered.map(order => renderSinglePosCard(order)).join("")}
+    </div>
+  `;
+}
+
+function renderSinglePosCard(order) {
+  const status = order.orderStatus || "Menunggu Verifikasi Toko";
+  let statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+  if (status.includes("Proses")) statusBadgeClass = "bg-blue-100 text-blue-800 border-blue-300";
+  if (status.includes("Siap Diambil")) statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+  if (status.includes("Selesai")) statusBadgeClass = "bg-gray-100 text-gray-700 border-gray-300";
+
+  const hasDokumen = order.fotokopiLink && order.fotokopiLink !== "-";
+  const hasBukti = order.paymentProofLink && order.paymentProofLink !== "-";
+
+  return `
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200/90 flex flex-col justify-between space-y-3 hover:shadow-md transition-shadow">
+      
+      <!-- Baris Atas: Nota ID, Waktu, & Status Badge -->
+      <div>
+        <div class="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-sm text-gray-900">${order.orderId}</span>
+              <span class="text-[10px] text-gray-400">• ${order.orderTime || "-"}</span>
+            </div>
+            <div class="font-bold text-xs text-delina-emerald mt-0.5 flex items-center gap-1">
+              <i class="bi bi-person-circle"></i>
+              <span>${order.customerName}</span>
+              <span class="text-gray-400 font-normal">(${order.customerPhone})</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border ${statusBadgeClass} whitespace-nowrap">
+            ${status}
+          </span>
+        </div>
+
+        <!-- Rincian Belanja -->
+        <div class="mt-2.5 space-y-1.5 text-xs text-gray-700">
+          <div class="text-[11px] text-gray-500 font-semibold flex items-center gap-1">
+            <i class="bi bi-truck"></i> ${order.deliveryMethod || "Ambil Sendiri"}
+            ${order.customerAddress && order.customerAddress !== "-" ? `• Alamat: ${order.customerAddress}` : ""}
+          </div>
+          <div class="bg-gray-50 rounded-xl p-2.5 border border-gray-100 text-[11px] font-mono leading-relaxed whitespace-pre-line text-gray-700 max-h-28 overflow-y-auto">
+            ${escapeHtml(order.itemsText || "-")}
+          </div>
+        </div>
+
+        <!-- Berkas Terlampir (Dokumen Fotokopi & Bukti Transfer) -->
+        ${(hasDokumen || hasBukti) ? `
+          <div class="mt-2 flex flex-wrap items-center gap-2 pt-1 border-t border-gray-100 text-[11px]">
+            ${hasDokumen ? `
+              <a href="${order.fotokopiLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-delina-emerald border border-emerald-200 font-bold hover:bg-emerald-100">
+                <i class="bi bi-file-earmark-pdf"></i> Dokumen Cetak
+              </a>
+            ` : ""}
+            ${hasBukti ? `
+              <a href="${order.paymentProofLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold hover:bg-blue-100">
+                <i class="bi bi-receipt"></i> Bukti Transfer
+              </a>
+            ` : ""}
+          </div>
+        ` : ""}
+      </div>
+
+      <!-- Baris Bawah: Total, Ganti Status, dan Tombol Aksi -->
+      <div class="pt-2 border-t border-gray-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500">Total Tagihan:</span>
+          <span class="text-base font-black text-delina-emerald">${formatRupiah(order.total || 0)}</span>
+        </div>
+
+        <!-- Selector Ganti Status -->
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-semibold text-gray-500 whitespace-nowrap">Ubah Status:</span>
+          <select 
+            onchange="changeOrderStatus('${order.orderId}', this.value)" 
+            class="flex-1 bg-gray-50 border border-gray-200 text-xs rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:border-tokopedia-green"
+          >
+            <option value="Menunggu Verifikasi Toko" ${status === "Menunggu Verifikasi Toko" ? "selected" : ""}>Menunggu Verifikasi</option>
+            <option value="Sedang Diproses" ${status === "Sedang Diproses" ? "selected" : ""}>Sedang Diproses</option>
+            <option value="Siap Diambil" ${status === "Siap Diambil" ? "selected" : ""}>Siap Diambil / Diantar</option>
+            <option value="Selesai" ${status === "Selesai" ? "selected" : ""}>Selesai</option>
+          </select>
+        </div>
+
+        <!-- Tombol Aksi Utama: WA Siap Ambil & Cetak Struk Termal -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <!-- Tombol WA Notifikasi (Fitur 3) -->
+          <button 
+            type="button" 
+            onclick="sendCustomerWhatsAppNotification('${order.orderId}')" 
+            class="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all"
+            title="Kirim pesan WhatsApp ke pelanggan bahwa pesanan sudah siap"
+          >
+            <i class="bi bi-whatsapp"></i>
+            <span class="truncate">WA Siap Ambil</span>
+          </button>
+
+          <!-- Tombol Cetak Struk Termal (Fitur 2) -->
+          <button 
+            type="button" 
+            onclick="openThermalReceiptModal('${order.orderId}')" 
+            class="py-2 px-2.5 rounded-xl bg-gray-900 hover:bg-black active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all"
+            title="Cetak struk nota belanja ke printer Bluetooth 58mm/80mm"
+          >
+            <i class="bi bi-printer text-amber-400"></i>
+            <span class="truncate">Cetak Struk</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+async function changeOrderStatus(orderId, newStatus) {
+  const pin = sessionStorage.getItem("delina_pos_pin") || "1234";
+
+  // Update tampilan lokal segera agar responsif
+  const target = posOrders.find(o => o.orderId === orderId);
+  if (target) {
+    target.orderStatus = newStatus;
+    renderPosOrders();
+  }
+
+  showToast(`Memperbarui status ${orderId}...`);
+
+  if (typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
+
+  try {
+    const res = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "updateOrderStatus",
+        pin: pin,
+        orderId: orderId,
+        newStatus: newStatus
+      })
+    });
+    const json = await res.json();
+    if (json.status === "success") {
+      showToast(`Alhamdulillah, status ${orderId} berhasil diubah.`);
+    } else {
+      alert(`Gagal ubah status: ${json.message}`);
+      loadPosOrders();
+    }
+  } catch (err) {
+    console.error("Gagal ubah status:", err);
+    showToast(`Status lokal disimpan (${err.message})`);
+  }
+}
+
+// =========================================================================
+// FITUR 3: NOTIFIKASI WHATSAPP KE PELANGGAN (1-KLIK)
+// =========================================================================
+function sendCustomerWhatsAppNotification(orderId) {
+  const order = posOrders.find(o => o.orderId === orderId);
+  if (!order) {
+    alert("Data pesanan tidak ditemukan.");
+    return;
+  }
+
+  let phone = String(order.customerPhone || "").trim().replace(/[^0-9]/g, "");
+  if (phone.startsWith("0")) {
+    phone = "62" + phone.substring(1);
+  } else if (!phone.startsWith("62")) {
+    phone = "62" + phone;
+  }
+
+  const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh kak ${order.customerName} 🙏
+
+Alhamdulillah, pesanan ATK & Fotokopi Anda di *Toko Delina* sudah *SELESAI* dan *SIAP DIAMBIL* di toko kami! 🌟
+
+📋 *No. Nota:* ${order.orderId}
+📅 *Waktu Pesan:* ${order.orderTime || "-"}
+🚚 *Metode:* ${order.deliveryMethod || "Ambil Sendiri di Toko"}
+💰 *Total Tagihan:* ${formatRupiah(order.total || 0)}
+
+📍 *Lokasi Toko:* Toko ATK & Fotokopi Delina
+Jam Buka: 07.30 - 21.00 WIB
+
+_Jazakumullah khairan katsiran atas kepercayaannya. Semoga berkah, awet, dan bermanfaat selalu nggih kak! Barakallahu fiik._ 🙏`;
+
+  const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+  window.open(waUrl, "_blank");
+}
+
+// =========================================================================
+// FITUR 2: CETAK STRUK TERMAL (58mm / 80mm PRINTER)
+// =========================================================================
+function openThermalReceiptModal(orderId) {
+  const order = posOrders.find(o => o.orderId === orderId);
+  if (!order) {
+    alert("Data pesanan tidak ditemukan.");
+    return;
+  }
+
+  selectedOrderForPrint = order;
+  const previewContainer = document.getElementById("thermalReceiptPreview");
+  const printContainer = document.getElementById("thermal-print-container");
+
+  const receiptHtml = generateThermalReceiptHtml(order);
+
+  if (previewContainer) previewContainer.innerHTML = receiptHtml;
+  if (printContainer) printContainer.innerHTML = receiptHtml;
+
+  const modal = document.getElementById("thermalReceiptModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeThermalReceiptModal() {
+  const modal = document.getElementById("thermalReceiptModal");
+  if (modal) modal.classList.add("hidden");
+  selectedOrderForPrint = null;
+}
+
+function executeThermalPrint() {
+  window.print();
+}
+
+function generateThermalReceiptHtml(order) {
+  const now = new Date();
+  const printTime = now.toLocaleDateString("id-ID") + " " + now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+
+  return `
+    <div style="font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; line-height: 1.35; max-width: 290px; margin: 0 auto; text-align: left;">
+      <div style="text-align: center; margin-bottom: 8px;">
+        <div style="font-size: 14px; font-weight: 900; letter-spacing: -0.5px;">TOKO ATK & FOTOKOPI DELINA</div>
+        <div style="font-size: 10px;">Lengkap, Murah & Berkah</div>
+        <div style="font-size: 9px; margin-top: 2px;">WA: 0812-3456-7890 • Buka 07.30 - 21.00</div>
+      </div>
+
+      <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 4px 0; margin-bottom: 6px; font-size: 10px;">
+        <div>No. Nota : <strong>${order.orderId}</strong></div>
+        <div>Waktu    : ${order.orderTime || printTime}</div>
+        <div>Pelanggan: ${escapeHtml(order.customerName)}</div>
+        <div>Metode   : ${escapeHtml(order.deliveryMethod || "Ambil di Toko")}</div>
+      </div>
+
+      <div style="margin-bottom: 6px;">
+        <div style="font-size: 10px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px;">RINCIAN PESANAN</div>
+        <div style="font-size: 10px; white-space: pre-line; line-height: 1.4;">
+${escapeHtml(order.itemsText || "-")}
+        </div>
+      </div>
+
+      <div style="border-top: 1px dashed #000; padding-top: 4px; margin-top: 4px; font-size: 11px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 13px; margin-top: 3px; border-top: 1px solid #000; padding-top: 3px;">
+          <span>TOTAL BAYAR:</span>
+          <span>${formatRupiah(order.total || 0)}</span>
+        </div>
+        <div style="font-size: 9px; margin-top: 2px; text-align: right;">Status: ${order.orderStatus || "Lunas / Transfer"}</div>
+      </div>
+
+      <div style="text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 6px; font-size: 9px;">
+        <div style="font-weight: bold;">Jazakumullah Khairan Katsiran</div>
+        <div>Terima kasih atas kunjungan Anda</div>
+        <div style="margin-top: 2px;">*** Barang yang sudah dibeli dapat ditukar jika cacat cetak ***</div>
+      </div>
+    </div>
+  `;
 }
 
 // Inisialisasi Saat Dokumen Dimuat

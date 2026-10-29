@@ -192,6 +192,52 @@ function doGet(e) {
       });
     }
 
+    // 3. API Kasir: Ambil Data Pesanan Masuk (Protected by PIN)
+    if (e && e.parameter && e.parameter.action === "getOrders") {
+      const pin = String(e.parameter.pin || "").trim();
+      const props = PropertiesService.getScriptProperties();
+      const savedPin = String(props.getProperty("ADMIN_PIN") || "1234").trim();
+
+      if (pin !== savedPin) {
+        return createJsonResponse({
+          status: "error",
+          message: "PIN Kasir tidak valid."
+        });
+      }
+
+      const ss = getDelinaSpreadsheet();
+      const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+      const orders = [];
+
+      if (sheetPesanan && sheetPesanan.getLastRow() > 1) {
+        const data = sheetPesanan.getDataRange().getValues();
+        // Ambil dari baris terakhir (terbaru) ke atas, maksimal 50 pesanan
+        for (let i = data.length - 1; i >= 1 && orders.length < 50; i--) {
+          const r = data[i];
+          if (r[0]) {
+            orders.push({
+              orderId: String(r[0]),
+              orderTime: String(r[1]),
+              customerName: String(r[2]),
+              customerPhone: String(r[3]),
+              deliveryMethod: String(r[4]),
+              customerAddress: String(r[5]),
+              itemsText: String(r[6]),
+              total: Number(r[7]) || 0,
+              fotokopiLink: String(r[8]),
+              paymentProofLink: String(r[9]),
+              orderStatus: String(r[10] || "Menunggu Verifikasi")
+            });
+          }
+        }
+      }
+
+      return createJsonResponse({
+        status: "success",
+        orders: orders
+      });
+    }
+
     const ss = getDelinaSpreadsheet();
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
     const sheetTarif = ss.getSheetByName(TAB_TARIF);
@@ -512,6 +558,55 @@ function doPost(e) {
     }
 
     // =========================================================
+    // JALUR 2.5: UPDATE STATUS PESANAN (KASIR / POS)
+    // =========================================================
+    if (payload.action === "updateOrderStatus") {
+      const pin = String(payload.pin || "").trim();
+      const props = PropertiesService.getScriptProperties();
+      const savedPin = String(props.getProperty("ADMIN_PIN") || "1234").trim();
+
+      if (pin !== savedPin) {
+        return createJsonResponse({
+          status: "error",
+          message: "PIN Kasir tidak valid."
+        });
+      }
+
+      const orderId = String(payload.orderId || "").trim();
+      const newStatus = String(payload.newStatus || "").trim();
+      const ss = getDelinaSpreadsheet();
+      const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+
+      if (!sheetPesanan) {
+        throw new Error("Tab Pesanan tidak ditemukan.");
+      }
+
+      const data = sheetPesanan.getDataRange().getValues();
+      let found = false;
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]).trim() === orderId) {
+          sheetPesanan.getRange(i + 1, 11).setValue(newStatus);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        return createJsonResponse({
+          status: "error",
+          message: `Nota ${orderId} tidak ditemukan di Google Sheets.`
+        });
+      }
+
+      return createJsonResponse({
+        status: "success",
+        message: `Status nota ${orderId} berhasil diubah menjadi "${newStatus}".`,
+        orderId: orderId,
+        newStatus: newStatus
+      });
+    }
+
+    // =========================================================
     // JALUR 3: CHECKOUT & PESANAN BARU DARI WEBSITE
     // =========================================================
     const ss = getDelinaSpreadsheet();
@@ -542,9 +637,14 @@ function doPost(e) {
       rincianText = payload.items
         .map((item, idx) => {
           let extra = item.notes ? ` (Catatan: ${item.notes})` : "";
-          return `${idx + 1}. ${item.name} [${item.qty}x @ Rp ${Number(item.price).toLocaleString("id-ID")}]${extra}`;
+          let grosirInfo = item.isGrosir ? ` [🏷️ Grosir]` : "";
+          return `${idx + 1}. ${item.name} [${item.qty}x @ Rp ${Number(item.price).toLocaleString("id-ID")}]${grosirInfo}${extra}`;
         })
         .join("\n");
+    }
+
+    if (payload.couponCode) {
+      rincianText += `\n[🎟️ Diskon Kupon: ${payload.couponCode} (-Rp ${Number(payload.discountAmount || 0).toLocaleString("id-ID")})]`;
     }
 
     // 4. Kurangi Stok Produk di Tab Produk secara Aman
@@ -657,6 +757,8 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
     itemsList = payload.items.map((it, idx) => `  ${idx + 1}. ${it.name} (${it.qty}x)`).join("\n");
   }
 
+  let couponText = payload.couponCode ? `\n🎟️ *Kupon Diskon:* \`${payload.couponCode}\` (-Rp ${Number(payload.discountAmount || 0).toLocaleString("id-ID")})` : "";
+
   const notifMsg = `🔔 *BISMILLAH, ADA PESANAN BARU MASUK!*
 ====================================
 📋 *No. Nota:* \`${payload.orderId}\`
@@ -664,7 +766,7 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
 📱 *WhatsApp:* \`${payload.customerPhone}\`
 🚚 *Metode:* ${payload.deliveryMethod}
 📍 *Alamat:* ${payload.customerAddress || "-"}
-💰 *Total Tagihan:* *Rp ${Number(payload.totalAkhir).toLocaleString("id-ID")}*
+💰 *Total Tagihan:* *Rp ${Number(payload.totalAkhir).toLocaleString("id-ID")}*${couponText}
 
 📦 *Rincian Belanja:*
 ${itemsList}
@@ -672,7 +774,7 @@ ${itemsList}
 📄 *Dokumen Fotokopi:* ${linkDokumen !== "-" ? linkDokumen : "Tidak ada berkas"}
 💳 *Bukti Transfer:* ${linkBukti !== "-" ? linkBukti : "Belum diunggah"}
 
-_Silakan cek Google Sheets & Drive Toko Delina untuk memproses pesanan ini. Barakallahu fiik._`;
+_Silakan cek Mode Kasir atau Google Sheets Toko Delina. Barakallahu fiik._`;
 
   kirimPesanTelegram(adminChatId, notifMsg);
 }
