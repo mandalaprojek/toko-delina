@@ -1,0 +1,15 @@
+# Antigravity & Scratch Logs
+*.log
+scratch/
+
+# Clasp local auth (jika ada)
+.clasprc.json
+
+# OS Temporary Files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Node modules (jika ada instalasi npm lokal)
+node_modules/
+
