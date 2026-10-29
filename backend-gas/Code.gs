@@ -440,12 +440,24 @@ function doPost(e) {
       const cbData = String(cb.data || "").trim();
       const fromChatId = cb.message ? cb.message.chat.id : (cb.from ? cb.from.id : null);
       const messageId = cb.message ? cb.message.message_id : null;
+      const settings = getPengaturanData(ss);
+      const webAppStoreUrl = "https://mandalaprojek.github.io/toko-delina/";
+      const mapsUrl = settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK";
 
       // 1. Menu Cek Status Nota
       if (cbData === "menu_cek_nota") {
-        answerCallbackQuery(cb.id, "Ketik /cek [No_Nota]");
-        const infoMsg = `📦 *Cara Cek Status Pesanan Toko Delina:*\n\nSilakan ketik */cek [Nomor_Nota]* atau kirim langsung nomor nota kakak.\n\nContoh:\n\`/cek #DLN-2026-9429\``;
-        kirimPesanTelegram(fromChatId, infoMsg);
+        answerCallbackQuery(cb.id, "Ketik nomor nota kakak");
+        const pesanCek = `📦 *LACAK STATUS PESANAN DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Untuk mengecek pesanan, silakan ketik atau salin *Nomor Nota* kakak langsung di chat ini.
+
+Contoh format:
+👉 \`#DLN-2026-9429\`
+👉 \`/cek #DLN-2026-9429\`
+
+💡 *Petunjuk:*
+Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau WhatsApp konfirmasi pesanan.`;
+        kirimPesanTelegram(fromChatId, pesanCek, getTelegramPersistentKeyboard());
         return HtmlService.createHtmlOutput("OK");
       }
 
@@ -453,12 +465,26 @@ function doPost(e) {
       if (cbData === "menu_tarif") {
         answerCallbackQuery(cb.id, "Memuat daftar tarif...");
         const rates = ambilDaftarTarif(ss);
-        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA:*\n====================================\n`;
+        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 *Cetak & Fotokopi Dokumen:*
+`;
         for (const k in rates) {
-          tarifMsg += `• ${rates[k].nama} : *Rp ${Number(rates[k].harga).toLocaleString("id-ID")}*\n`;
+          tarifMsg += `• *${rates[k].nama}:* Rp ${Number(rates[k].harga).toLocaleString("id-ID")}\n`;
         }
-        tarifMsg += `\n_Kakak bisa langsung unggah file PDF/Word di website kami tanpa antre! Barakallahu fiik._`;
-        kirimPesanTelegram(fromChatId, tarifMsg);
+        tarifMsg += `━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 *Keunggulan di Toko Delina:*
+Kakak tidak perlu membuang waktu mengantre di toko! Cukup unggah dokumen di website, dan ambil saat pesanan sudah selesai.
+
+_InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
+
+        kirimPesanTelegram(fromChatId, tarifMsg, {
+          inline_keyboard: [
+            [
+              { text: "🖨️ Unggah Dokumen di Website", url: webAppStoreUrl }
+            ]
+          ]
+        });
         return HtmlService.createHtmlOutput("OK");
       }
 
@@ -468,7 +494,7 @@ function doPost(e) {
         const updated = updateOrderStatusDiSheet(ss, orderId, "Sedang Diproses (Lunas)");
         if (updated) {
           answerCallbackQuery(cb.id, `Nota ${orderId} diverifikasi Lunas!`);
-          kirimPesanTelegram(fromChatId, `✅ *Alhamdulillah!* Nota *${orderId}* telah diverifikasi *Lunas & Sedang Diproses* oleh Admin.`);
+          kirimPesanTelegram(fromChatId, `✅ *Alhamdulillah!* Nota \`${orderId}\` telah diverifikasi *Lunas & Sedang Diproses* oleh Admin Toko.`);
         } else {
           answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
         }
@@ -481,7 +507,7 @@ function doPost(e) {
         const updated = updateOrderStatusDiSheet(ss, orderId, "Siap Diambil di Toko");
         if (updated) {
           answerCallbackQuery(cb.id, `Nota ${orderId} diubah ke Siap Diambil!`);
-          kirimPesanTelegram(fromChatId, `📦 *Alhamdulillah!* Nota *${orderId}* telah diubah statusnya menjadi *Siap Diambil di Toko*.`);
+          kirimPesanTelegram(fromChatId, `📦 *Alhamdulillah!* Nota \`${orderId}\` telah diubah statusnya menjadi *Siap Diambil di Toko*.`);
         } else {
           answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
         }
@@ -510,39 +536,137 @@ function doPost(e) {
       const chatId = payload.message.chat.id;
       const userText = String(payload.message.text || "").trim();
       const settings = getPengaturanData(ss);
+      const webAppStoreUrl = "https://mandalaprojek.github.io/toko-delina/";
+      const mapsUrl = settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK";
+      const cleanWa = String(settings.NO_WA_TOKO || "081234567890").replace(/\D/g, "");
+      const waUrl = `https://wa.me/${cleanWa.startsWith("0") ? "62" + cleanWa.slice(1) : cleanWa}`;
 
-      // A. Perintah /start atau Salam Pembuka: Menu Interaktif Inline Keyboard
-      const isStart = userText === "/start";
-      const isGreeting = (userText.toLowerCase().startsWith("assalamu") && userText.length < 35);
+      const lower = userText.toLowerCase().trim();
 
-      if (isStart || isGreeting) {
-        const welcomeText = `Assalamu'alaikum Warahmatullahi Wabarakatuh! 🌟\n\nSelamat datang di Bot Resmi *Toko ATK dan Fotokopi Delina*.\nSaya *Kiko*, asisten virtual toko yang siap melayani kakak 24 jam.\n\nSilakan pilih menu layanan di bawah ini atau tanyakan langsung kebutuhan ATK kakak:`;
+      // A. Aksi Menu: Buka Toko
+      if (lower.includes("buka toko") || lower === "toko" || lower === "/toko" || lower === "belanja" || lower === "katalog") {
+        const pesanToko = `🏪 *TOKO ONLINE DELINA ATK & FOTOKOPI*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *Bismillah!* Selamat datang di etalase digital Toko Delina.
 
-        const webAppStoreUrl = "https://mandalaprojek.github.io/toko-delina/";
-        const mapsUrl = settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK";
+🛍️ *Katalog ATK Lengkap:* Kertas HVS, buku tulis, pulpen gel, map arsip, binder, dan perlengkapan kantor.
+🖨️ *Jasa Fotokopi Online:* Langsung unggah dokumen PDF/Word untuk cetak tanpa antre.
+💳 *Pembayaran Mudah:* Mendukung QRIS Bebas Biaya & Transfer Bank.
 
-        const inlineMenu = {
+👇 *Klik tombol di bawah untuk membuka toko:*`;
+        kirimPesanTelegram(chatId, pesanToko, {
           inline_keyboard: [
             [
-              { text: "🛍️ Buka Toko Delina (Web)", url: webAppStoreUrl }
-            ],
-            [
-              { text: "📦 Cek Status Nota", callback_data: "menu_cek_nota" },
-              { text: "🖨️ Info Tarif Fotokopi", callback_data: "menu_tarif" }
-            ],
-            [
-              { text: "📍 Lokasi Toko di Google Maps", url: mapsUrl }
+              { text: "🚀 Masuk ke Web Toko Delina", url: webAppStoreUrl }
             ]
           ]
-        };
-
-        kirimPesanTelegram(chatId, welcomeText, inlineMenu);
+        });
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // B. Perintah Cek Status / Resi Pesanan (/cek [Nota] atau format #DLN-...)
+      // B. Aksi Menu: Cek Status Nota Langsung
+      if (lower === "📦 cek status nota" || lower === "cek nota" || lower === "lacak nota" || lower === "cek status" || lower === "lacak pesanan") {
+        const pesanCek = `📦 *LACAK STATUS PESANAN DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Untuk mengecek pesanan, silakan ketik atau salin *Nomor Nota* kakak langsung di chat ini.
+
+Contoh format:
+👉 \`#DLN-2026-9429\`
+👉 \`/cek #DLN-2026-9429\`
+
+💡 *Petunjuk:*
+Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau WhatsApp konfirmasi pesanan.`;
+        kirimPesanTelegram(chatId, pesanCek, getTelegramPersistentKeyboard());
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // C. Aksi Menu: Info Tarif Fotokopi & Jilid
+      if (lower.includes("tarif") || lower.includes("harga fotokopi") || lower.includes("biaya fotokopi") || lower.includes("ongkos cetak") || lower.includes("jilid")) {
+        const rates = ambilDaftarTarif(ss);
+        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 *Cetak & Fotokopi Dokumen:*
+`;
+        for (const k in rates) {
+          tarifMsg += `• *${rates[k].nama}:* Rp ${Number(rates[k].harga).toLocaleString("id-ID")}\n`;
+        }
+        tarifMsg += `━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 *Keunggulan di Toko Delina:*
+Kakak tidak perlu membuang waktu mengantre di toko! Cukup unggah dokumen di website, dan ambil saat pesanan sudah selesai.
+
+_InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
+
+        kirimPesanTelegram(chatId, tarifMsg, {
+          inline_keyboard: [
+            [
+              { text: "🖨️ Unggah Dokumen di Website", url: webAppStoreUrl }
+            ]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // D. Aksi Menu: Lokasi Google Maps
+      if (lower.includes("lokasi") || lower.includes("alamat") || lower.includes("maps") || lower.includes("peta") || lower.includes("posisi")) {
+        const pesanLokasi = `📍 *LOKASI TOKO FISIK DELINA ATK*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏢 *Alamat:* ${settings.ALAMAT_TOKO || "Jl. Raya Delina No. 12, Samping Masjid"}
+⏰ *Jam Buka:* 07.30 - 21.00 WIB (Buka Setiap Hari)
+📞 *WhatsApp:* \`${settings.NO_WA_TOKO || "081234567890"}\`
+
+🗺️ *Akses & Parkir:*
+Tepat berada di samping masjid dengan area parkir yang luas dan nyaman untuk motor maupun mobil.
+
+👇 *Klik tombol di bawah untuk panduan rute:*`;
+        kirimPesanTelegram(chatId, pesanLokasi, {
+          inline_keyboard: [
+            [
+              { text: "🗺️ Buka Rute Google Maps", url: mapsUrl }
+            ]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // E. Aksi Menu: WhatsApp Pemilik Toko
+      if (lower.includes("whatsapp") || lower.includes("wa toko") || lower.includes("hubungi") || lower.includes("kontak") || lower.includes("owner") || lower.includes("admin")) {
+        const pesanWa = `📞 *CUSTOMER SERVICE & PEMESANAN KHUSUS*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Butuh konsultasi tender kantor, pengadaan perlengkapan sekolah, pembuatan nota resmi berstempel, atau negosiasi grosir?
+
+Admin pemilik toko siap melayani kakak secara langsung melalui WhatsApp.
+
+👇 *Klik tombol di bawah untuk chat WhatsApp:*`;
+        kirimPesanTelegram(chatId, pesanWa, {
+          inline_keyboard: [
+            [
+              { text: "💬 Chat WhatsApp Pemilik Toko", url: waUrl }
+            ]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // F. Aksi Menu: Tanya Kiko AI
+      if (lower.includes("tanya kiko") || lower.includes("konsultasi") || lower === "bantuan" || lower === "help") {
+        const pesanTanya = `🤖 *KONSULTASI STOK & REKOMENDASI ATK*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assalamu'alaikum kak! Saya *Kiko*, asisten cerdas Toko Delina.
+
+Kakak bisa langsung menanyakan ketersediaan produk apa saja, contoh:
+• *"Ada kertas HVS PaperOne A4 75gsm?"*
+• *"Buku tulis SiDu isi 10 pack berapa harganya?"*
+• *"Rekomendasi pulpen gel hitam yang enak buat ujian"*
+• *"Bisa jilid spiral untuk makalah 50 lembar?"*
+
+Silakan ketik pertanyaan kakak langsung di sini, InsyaAllah Kiko jawab dengan ramah dan akurat! 😊`;
+        kirimPesanTelegram(chatId, pesanTanya, getTelegramPersistentKeyboard());
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // G. Pola Nota / Cek Resi (/cek [Nota] atau format #DLN-...)
       const matchNota = userText.match(/#?DLN-[\w-]+/i);
-      const isCekCommand = userText.toLowerCase().startsWith("/cek");
+      const isCekCommand = lower.startsWith("/cek");
 
       if (isCekCommand || matchNota) {
         let queryNota = "";
@@ -553,13 +677,12 @@ function doPost(e) {
         }
 
         if (!queryNota) {
-          kirimPesanTelegram(chatId, "📦 Silakan cantumkan nomor nota kakak. Contoh: `/cek #DLN-2026-9429`");
+          kirimPesanTelegram(chatId, "📦 Silakan cantumkan nomor nota kakak. Contoh: `/cek #DLN-2026-9429`", getTelegramPersistentKeyboard());
           return HtmlService.createHtmlOutput("OK");
         }
 
         const order = cariPesananDiSheet(ss, queryNota);
         if (order) {
-          // Tentukan Badge Pembayaran yang Kontras
           let badgePembayaran = "[📱 QRIS]";
           const rincianUpper = (order.itemsText || "").toUpperCase();
           const deliveryUpper = (order.deliveryMethod || "").toUpperCase();
@@ -573,11 +696,11 @@ function doPost(e) {
           }
 
           const statusMsg = `🧾 *RINCIAN STATUS PESANAN DELINA*
-====================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 *No. Nota:* \`${order.orderId}\`
-👤 *Nama Pelanggan:* ${order.customerName}
+👤 *Nama Pelanggan:* *${order.customerName}*
 📅 *Waktu Pesanan:* ${order.orderTime}
-🚚 *Pengambilan:* ${order.deliveryMethod}
+🚚 *Pengiriman:* *${order.deliveryMethod}*
 📍 *Alamat:* ${order.customerAddress || "-"}
 
 💳 *Metode Bayar:* *${badgePembayaran}*
@@ -587,29 +710,67 @@ function doPost(e) {
 ${order.itemsText}
 
 💰 *Total Tagihan:* *Rp ${Number(order.total).toLocaleString("id-ID")}*
-====================================
-_Jazakumullah Khairan Katsiran atas amanah dan kepercayaannya di Toko Delina. Barakallahu fiik._`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+ℹ️ *Informasi Toko:*
+Pesanan kakak sedang kami siapkan dengan amanah. Jika sudah siap diambil, kami akan mengabari melalui pesan WhatsApp atau Telegram.
 
-          kirimPesanTelegram(chatId, statusMsg);
+_Jazakumullah Khairan Katsiran atas kepercayaannya di Toko Delina._ 🤲✨`;
+
+          kirimPesanTelegram(chatId, statusMsg, getTelegramPersistentKeyboard());
         } else {
-          kirimPesanTelegram(chatId, `Afwan kak, pesanan dengan nota *${queryNota}* belum kami temukan di sistem database Google Sheets Toko Delina.\n\nPastikan nomor nota sudah tepat (contoh: \`#DLN-2026-9429\`) nggih kak. Barakallahu fiik.`);
+          kirimPesanTelegram(chatId, `Afwan kak, pesanan dengan nota *${queryNota}* belum kami temukan di sistem database Google Sheets Toko Delina.\n\nPastikan nomor nota sudah tepat (contoh: \`#DLN-2026-9429\`) nggih kak. Barakallahu fiik.`, getTelegramPersistentKeyboard());
         }
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // C. Perintah Cek Status Kunci / Backend
-      if (userText === "/status") {
+      // H. Perintah Cek Status Server / Backend
+      if (lower === "/status") {
         const props = PropertiesService.getScriptProperties();
         const geminiKey = props.getProperty("GEMINI_API_KEY");
         const statusAI = geminiKey ? "✅ Terpasang (Google Gemini API)" : "ℹ️ Fallback Cerdas (Database Google Sheets)";
-        const statusMsg = `📊 *Status Asisten Kiko Toko Delina*:\n- Koneksi AI: ${statusAI}\n- Chat ID Telegram: \`${chatId}\`\n- Layanan: Cek Stok ATK, Tarif Fotokopi, dan Info Toko.\n\nSilakan ajukan pertanyaan kakak nggih! _Barakallahu fiik._`;
-        kirimPesanTelegram(chatId, statusMsg);
+        const statusMsg = `📊 *STATUS ASISTEN KIKO TOKO DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🧠 *Koneksi AI:* ${statusAI}
+• 🆔 *Chat ID Anda:* \`${chatId}\`
+• ⚡ *Layanan Aktif:* Katalog ATK, Tarif Fotokopi, dan Lacak Nota.
+
+Silakan pilih menu di bawah atau tanyakan kebutuhan kakak nggih! _Barakallahu fiik._ 🤲`;
+        kirimPesanTelegram(chatId, statusMsg, getTelegramPersistentKeyboard());
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // D. Percakapan AI Kiko
+      // I. Salam Pembuka, Sapaan Awal, atau Kata Singkat (Assalamu, Halo, Hai, P, Menu, Start)
+      const isStart = lower === "/start" || lower === "start";
+      const isGreeting = (lower.startsWith("assalamu") && lower.length < 35);
+      const isShortIntro = ["p", "halo", "hai", "hay", "hei", "menu", "info", "tes", "test", "ping", "pagi", "siang", "sore", "malam"].includes(lower) || lower.startsWith("selamat");
+
+      if (isStart || isGreeting || isShortIntro) {
+        const welcomeText = `✨ *BISMILLAHIRRAHMANIRRAHIM* ✨
+🏪 *LAYANAN VIRTUAL TOKO DELINA ATK*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assalamu'alaikum Warahmatullahi Wabarakatuh! 👋
+
+Selamat datang di *Toko ATK & Jasa Fotokopi Delina*.
+Saya *Kiko*, asisten AI virtual yang siap melayani kebutuhan perlengkapan sekolah, kantor, cetak dokumen, dan jilid kakak 24/7 secara amanah.
+
+📌 *Pilihan Layanan Cepat:*
+🛍️ *Katalog ATK:* Belanja eceran & grosir sekolah
+🖨️ *Jasa Fotokopi:* Cetak tugas & jilid tanpa antre
+📦 *Lacak Nota:* Pantau status pesanan real-time
+📍 *Toko Fisik:* Kunjungi lokasi kami di Google Maps
+
+💡 *Kemudahan Interaksi:*
+Kakak tidak perlu mengetik perintah rumit! Silakan tekan tombol menu di bawah layar atau langsung tanyakan barang yang dicari.
+
+_InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
+
+        kirimPesanTelegram(chatId, welcomeText, getTelegramPersistentKeyboard());
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // J. Pertanyaan Produk / Konsultasi ATK ke AI Kiko
       const jawabanAI = tanyaKikoAI(userText, "Telegram");
-      kirimPesanTelegram(chatId, jawabanAI);
+      kirimPesanTelegram(chatId, jawabanAI, getTelegramPersistentKeyboard());
       return HtmlService.createHtmlOutput("OK");
     }
 
@@ -1232,25 +1393,32 @@ function tanyaKikoAI(pesanUser, sumber) {
     const contextKatalog = daftarStok.join("\n");
     const contextTarif = daftarTarif.join("\n");
 
-    const systemPrompt = `Kamu adalah "Kiko", asisten AI virtual resmi Toko Online ATK dan Fotokopi Delina.
-Sifatmu: Sangat santun, ramah, beradab Islami, amanah, dan jujur.
+    const systemPrompt = `Kamu adalah "Kiko", asisten AI virtual resmi Toko Online ATK dan Jasa Fotokopi Delina.
+Sifatmu: Sangat ramah, santun, beradab Islami, amanah, jujur, solutif, dan profesional.
 
-Pedoman Menjawab:
-1. Awali atau balas salam pelanggan dengan penuh kehangatan ("Assalamu'alaikum Warahmatullahi Wabarakatuh" atau "Wa'alaikumsalam Warahmatullahi Wabarakatuh").
-2. Gunakan panggilan santun seperti "kak", "bapak/ibu".
-3. Berikan informasi ketersediaan stok & harga SECARA JUJUR dan HANYA berdasarkan Data Katalog Toko Delina di bawah. JANGAN PERNAH mengarang harga atau stok yang tidak tercantum!
-4. Jika stok barang tersedia, sebutkan nama, harga, dan sisa stoknya.
-5. Jika barang tidak ada atau stoknya 0, sampaikan permohonan maaf dengan santun ("Afwan kak, saat ini barang tersebut belum tersedia...") dan tawarkan produk sejenis jika ada.
-6. Untuk layanan fotokopi, jelaskan bahwa toko melayani cetak Hitam-Putih, Berwarna, Jilid Lakban, dan Jilid Spiral, serta bisa langsung upload file dokumen di website tanpa perlu antre.
-7. Akhiri jawaban dengan doa keberkahan (misalnya: "Semoga berkah dan lancar selalu urusannya nggih kak", "Barakallahu fiik").
+Format Gaya Balasan yang WAJIB Kamu Gunakan:
+1. Awali balasan dengan salam hangat Islami: "Assalamu'alaikum Warahmatullahi Wabarakatuh kak! 😊" atau "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋".
+2. Gunakan garis pemisah visual yang rapi: "━━━━━━━━━━━━━━━━━━━━━━━━━━" untuk membatasi judul/salam dengan rincian produk.
+3. Berikan informasi ketersediaan barang dengan format rapi dan BOLD pada nama produk dan harga:
+   Contoh jika barang ada di katalog:
+   📦 *Nama Produk:* *[Nama Lengkap]*
+   💰 *Harga:* *Rp [Harga]*
+   📊 *Sisa Stok:* *[Jumlah] [Satuan]*
+   🏷️ *Kategori:* [Kategori]
+4. Gunakan bullet points (•) dan emoticon tematik yang serasi (📄, ✏️, 📦, 💡, 🏷️).
+5. Berikan rekomendasi produk alternatif jika stok kosong atau tawarkan promo terkait.
+6. Berikan petunjuk belanja: "Barang ini bisa langsung dipesan lewat website resmi Toko Delina nggih kak."
+7. Jangan pernah mengarang harga atau stok di luar data katalog yang diberikan!
+8. Akhiri balasan dengan doa keberkahan khas Delina:
+   "Semoga Allah memberkahi segala urusan dan aktivitas kakak hari ini. Barakallahu fiik. 🤲✨"
 
-DATA KATALOG ATK TOKO DELINA REAL-TIME:
+DATA KATALOG ATK REAL-TIME TOKO DELINA:
 ${contextKatalog}
 
 DATA TARIF JASA FOTOKOPI & CETAK:
 ${contextTarif}
 
-Saluran pelanggan saat ini: ${sumber || "Web"}. Jawablah secara ringkas, padat, dan nyaman dibaca di layar HP.`;
+Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elegan, dan sangat nyaman dibaca di layar HP.`;
 
     if (!geminiApiKey) {
       return fallbackKikoLocal(pesanUser, daftarStok);
@@ -1290,7 +1458,7 @@ Saluran pelanggan saat ini: ${sumber || "Web"}. Jawablah secara ringkas, padat, 
     return fallbackKikoLocal(pesanUser, daftarStok);
   } catch (error) {
     Logger.log("Error tanyaKikoAI: " + error.toString());
-    return "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak. Kiko siap melayani kebutuhan ATK dan fotokopi di Toko Delina. Boleh disebutkan barang yang sedang kakak butuhkan? Barakallahu fiik.";
+    return `✨ *ASISTEN KIKO • TOKO DELINA* ✨\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nWa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋\n\nKiko siap melayani kebutuhan ATK dan fotokopi di Toko Delina. Boleh disebutkan barang yang sedang kakak butuhkan? _Barakallahu fiik._ 🤲`;
   }
 }
 
@@ -1304,10 +1472,16 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
     .filter(w => w.length >= 2 && !stopWords.includes(w));
 
   if (cleanWords.length === 0) {
-    if (q.includes("assalamu") || q.includes("halo") || q.includes("hai") || q.includes("pagi") || q.includes("siang") || q.includes("sore") || q.includes("malam")) {
-      return "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! Selamat datang di Toko ATK & Fotokopi Delina. Saya Kiko, asisten toko yang siap melayani kakak.\n\nAda kebutuhan ATK (kertas HVS, buku, pulpen, map) atau jasa fotokopi/jilid yang bisa Kiko bantu cekkan ketersediaannya hari ini? Barakallahu fiik.";
-    }
-    return "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! Kiko siap membantu cek stok perlengkapan ATK dan hitung estimasi biaya fotokopi di Toko Delina.\n\nBoleh disebutkan nama barang yang kakak cari? InsyaAllah Kiko bantu cekkan.";
+    return `✨ *ASISTEN KIKO • TOKO DELINA* ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋
+
+Ada yang bisa Kiko bantu cekkan hari ini?
+• 📦 *Ketersediaan Stok:* Kertas HVS, buku, pulpen, map, dll.
+• 📄 *Tarif Fotokopi:* Cetak hitam-putih, cetak warna, jilid skripsi
+• 🚚 *Pemesanan Cepat:* Ambil di toko atau diantar kurir
+
+Silakan sebutkan nama barang atau pilih menu di bawah nggih. _Barakallahu fiik._ 🤲`;
   }
 
   let hasilCocok = [];
@@ -1326,12 +1500,32 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
   hasilCocok.sort((a, b) => b.score - a.score);
 
   if (hasilCocok.length > 0) {
-    const daftarItemTampil = hasilCocok.slice(0, 3).map(h => h.itemStr).join("\n");
-    return `Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! Alhamdulillah untuk produk yang kakak tanyakan tersedia di Toko Delina:\n\n${daftarItemTampil}\n\nSemua barang siap diorder langsung melalui website kami. Ada yang ingin ditambahkan lagi kak? Barakallahu fiik.`;
+    const daftarItemTampil = hasilCocok.slice(0, 3).map(h => `• *${h.itemStr.replace(/^-\s*/, '')}*`).join("\n");
+    return `✨ *KETERSEDIAAN STOK TOKO DELINA* ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 😊
+
+Alhamdulillah, produk yang kakak cari *tersedia* di etalase kami:
+
+${daftarItemTampil}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 *Cara Belanja:*
+Barang di atas siap diorder langsung melalui website resmi Toko Delina dengan metode bayar QRIS atau COD di toko.
+
+Ada kebutuhan perlengkapan lainnya yang ingin ditambahkan kak? _Barakallahu fiik._ 🤲`;
   }
 
   const kataKunci = cleanWords.join(" ");
-  return `Wa'alaikumsalam Warahmatullahi Wabarakatuh kak. Afwan, untuk "${kataKunci}" saat ini belum Kiko temukan di etalase toko Delina.\n\nApakah ada kebutuhan ATK lainnya atau jasa fotokopi yang bisa Kiko bantu cekkan nggih? Barakallahu fiik.`;
+  return `✨ *INFORMASI STOK PRODUK* ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Wa'alaikumsalam Warahmatullahi Wabarakatuh kak.
+
+Afwan, untuk kata kunci *"${kataKunci}"* saat ini belum kami temukan di katalog etalase Toko Delina.
+
+💡 *Saran Kiko:*
+Coba gunakan nama umum barang (misal: *kertas*, *buku*, *pulpen*, *map*, *stapler*), atau kakak bisa hubungi langsung Admin Pemilik Toko untuk konfirmasi stok di gudang.
+
+_Semoga berkah selalu urusannya nggih kak._ 🤲✨`;
 }
 
 /**
@@ -1339,16 +1533,71 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
  * 6. INTEGRASI TELEGRAM BOT, INLINE KEYBOARD & NOTIFIKASI
  * =========================================================================
  */
+function getTelegramPersistentKeyboard() {
+  return {
+    keyboard: [
+      [
+        { text: "🛍️ Buka Toko Delina" },
+        { text: "📦 Cek Status Nota" }
+      ],
+      [
+        { text: "🖨️ Info Tarif Fotokopi" },
+        { text: "📍 Lokasi Google Maps" }
+      ],
+      [
+        { text: "💬 Tanya Kiko AI" },
+        { text: "📞 WhatsApp Toko" }
+      ]
+    ],
+    resize_keyboard: true,
+    is_persistent: true
+  };
+}
+
+function setTelegramMenuButton() {
+  const props = PropertiesService.getScriptProperties();
+  const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
+  if (!botToken) return "Bot token belum diset.";
+
+  const url = `https://api.telegram.org/bot${botToken}/setChatMenuButton`;
+  const webAppUrl = "https://mandalaprojek.github.io/toko-delina/";
+  const payload = {
+    menu_button: {
+      type: "web_app",
+      text: "🛍️ Buka Toko",
+      web_app: {
+        url: webAppUrl
+      }
+    }
+  };
+
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    Logger.log("setTelegramMenuButton: " + res.getContentText());
+    return res.getContentText();
+  } catch (e) {
+    Logger.log("Notice setTelegramMenuButton: " + e.toString());
+    return e.toString();
+  }
+}
+
 function kirimPesanTelegram(chatId, pesan, replyMarkup) {
   const props = PropertiesService.getScriptProperties();
   const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
   if (!botToken || !chatId) return;
 
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-  const payload = { chat_id: chatId, text: pesan, parse_mode: "Markdown" };
-  if (replyMarkup) {
-    payload.reply_markup = replyMarkup;
-  }
+  const payload = { 
+    chat_id: chatId, 
+    text: pesan, 
+    parse_mode: "Markdown",
+    reply_markup: replyMarkup || getTelegramPersistentKeyboard()
+  };
 
   try {
     UrlFetchApp.fetch(url, {
@@ -1420,12 +1669,12 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
     badgePayment = "[📱 QRIS]";
   }
 
-  const notifMsg = `🔔 *BISMILLAH, ADA PESANAN BARU MASUK!*
-====================================
+  const notifMsg = `🔔 *BISMILLAH, PESANAN BARU MASUK!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 *No. Nota:* \`${payload.orderId}\`
-👤 *Nama:* ${payload.customerName}
+👤 *Nama Pelanggan:* *${payload.customerName}*
 📱 *WhatsApp:* \`${payload.customerPhone}\`
-🚚 *Metode:* ${payload.deliveryMethod}
+🚚 *Metode:* *${payload.deliveryMethod}*
 📍 *Alamat:* ${payload.customerAddress || "-"}
 
 💳 *Metode Pembayaran:* *${badgePayment}*
@@ -1434,10 +1683,10 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
 📦 *Rincian Belanja:*
 ${itemsList}
 
-📄 *Dokumen Fotokopi:* ${linkDokumen !== "-" ? linkDokumen : "Tidak ada berkas"}
-💳 *Bukti Transfer:* ${linkBukti !== "-" ? linkBukti : "Belum diunggah"}
-====================================
-_Silakan klik tombol di bawah untuk proses cepat dari Telegram:_`;
+📄 *Dokumen Cetak:* ${linkDokumen !== "-" ? linkDokumen : "Tidak ada dokumen"}
+💳 *Bukti Bayar:* ${linkBukti !== "-" ? linkBukti : "Belum diunggah"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Silakan klik tombol di bawah untuk verifikasi cepat:_`;
 
   // Inline Keyboard Verifikasi & Siap Ambil Cepat untuk Pemilik Toko
   const adminInlineMarkup = {
@@ -1488,6 +1737,10 @@ function setTelegramWebhook() {
   const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
   const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
   const res = UrlFetchApp.fetch(url);
+
+  // Set Menu Button WebApp agar langsung interaktif di chat bar
+  setTelegramMenuButton();
+
   return "Webhook Telegram berhasil didaftarkan: " + res.getContentText();
 }
 
@@ -1502,6 +1755,8 @@ function resetDanBersihkanWebhook() {
   const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
   const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
   const setRes = UrlFetchApp.fetch(setUrl, { muteHttpExceptions: true }).getContentText();
+
+  setTelegramMenuButton();
 
   return `Hapus: ${delRes} | Pasang Ulang: ${setRes}`;
 }
