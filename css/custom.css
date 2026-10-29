@@ -1,0 +1,147 @@
+/* custom.css - Penyesuaian Gaya Khusus Toko Delina */
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Font Family */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tokopedia-like smooth shadows */
+.card-shadow {
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease-in-out;
+}
+
+.card-shadow:hover {
+  box-shadow: 0 6px 16px 0 rgba(3, 172, 14, 0.16);
+  transform: translateY(-3px);
+}
+
+/* Custom scrollbar horizontal for category pills & banners */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Pulse animation for Kiko AI online badge */
+@keyframes pulse-emerald {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.15);
+  }
+}
+
+.pulse-badge {
+  animation: pulse-emerald 2s infinite ease-in-out;
+}
+
+/* Floating cart bar for mobile / tablet bottom */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Mobile & Tablet Bottom Navigation Bar */
+.mobile-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.bottom-nav-btn.active {
+  color: #03AC0E;
+}
+
+.bottom-nav-btn.active i {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.bottom-nav-btn.active span {
+  font-weight: 800;
+  color: #03AC0E;
+}
+
+/* Fade in animation for modals */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================================================
+   STYLING KHUSUS STRUK TERMAL POS (58mm & 80mm Bluetooth Printer)
+   ========================================================================== */
+.thermal-receipt {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #000000;
+  background: #ffffff;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+/* Badge Grosir & Kupon */
+.badge-grosir {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  animation: pulse-badge 2s infinite;
+}
+
+@media print {
+  /* Sembunyikan seluruh isi website */
+  body {
+    visibility: hidden;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Tampilkan HANYA area cetak struk termal */
+  #thermal-print-container,
+  #thermal-print-container * {
+    visibility: visible;
+  }
+
+  #thermal-print-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 58mm;
+    margin: 0;
+    padding: 2mm;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+}

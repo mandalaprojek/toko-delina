@@ -1830,4 +1830,58 @@ document.addEventListener("DOMContentLoaded", () => {
       renderProducts();
     });
   }
+
+  // Pasang listener eksplisit tombol Kasir POS
+  const posButtons = document.querySelectorAll('[data-pos-trigger], #btnHeaderKasirPos, button[onclick*="openPosModal"]');
+  posButtons.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openPosModal();
+    });
+  });
 });
+
+// Ekspos fungsi interaktif secara eksplisit ke window agar dapat dipanggil dari atribut onclick
+if (typeof window !== "undefined") {
+  window.openPosModal = openPosModal;
+  window.closePosModal = closePosModal;
+  window.showPosPinScreen = showPosPinScreen;
+  window.showPosDashboard = showPosDashboard;
+  window.lockPosSession = lockPosSession;
+  window.handlePosPinSubmit = handlePosPinSubmit;
+  window.loadPosOrders = loadPosOrders;
+  window.setPosFilter = setPosFilter;
+  window.handlePosSearch = handlePosSearch;
+  window.renderPosOrders = renderPosOrders;
+  window.updateOrderStatusKasir = updateOrderStatusKasir;
+  window.sendCustomerWhatsAppNotification = sendCustomerWhatsAppNotification;
+  window.openThermalReceiptModal = openThermalReceiptModal;
+  window.closeThermalReceiptModal = closeThermalReceiptModal;
+  window.executeThermalPrint = executeThermalPrint;
+  window.applyCouponCode = applyCouponCode;
+  window.removeCouponCode = removeCouponCode;
+  window.toggleCartDrawer = toggleCartDrawer;
+  window.openCheckoutModal = openCheckoutModal;
+  window.closeCheckoutModal = closeCheckoutModal;
+  window.submitOrderCheckout = submitOrderCheckout;
+  window.openKikoChat = openKikoChat;
+  window.closeKikoChat = closeKikoChat;
+  window.toggleKikoChat = toggleKikoChat;
+  window.sendQuickKikoQuestion = sendQuickKikoQuestion;
+  window.addToCart = addToCart;
+  window.updateCartQty = updateCartQty;
+  window.calculateFotokopi = calculateFotokopi;
+  window.addFotokopiToCart = addFotokopiToCart;
+  window.clearFotokopiFile = clearFotokopiFile;
+  window.selectCategory = selectCategory;
+  window.quickViewProduct = quickViewProduct;
+  window.handleDeliveryChange = handleDeliveryChange;
+  window.clearPaymentProof = clearPaymentProof;
+  window.copyRekening = copyRekening;
+  window.openSuccessModal = openSuccessModal;
+  window.closeSuccessModal = closeSuccessModal;
+  window.copyOrderId = copyOrderId;
+  window.sendConfirmationWhatsApp = sendConfirmationWhatsApp;
+  window.handleBottomNav = handleBottomNav;
+  window.showToast = showToast;
+}

@@ -7,17 +7,13 @@ Marketplace perlengkapan alat tulis kantor (ATK) dan jasa fotokopi modern terper
 ## 🌐 Cara Akses Website Toko
 
 ### 1. Akses Live di GitHub Pages
-Setelah repositori ini di-push ke GitHub dan fitur GitHub Pages diaktifkan:
-- **URL Utama:** `https://<username-github>.github.io/<nama-repo>/`
-- **URL Alternatif:** `https://<username-github>.github.io/<nama-repo>/frontend/`
-
-> *Sistem sudah dilengkapi pengarah otomatis (auto-redirect) dari halaman utama repositori langsung ke antarmuka toko.*
+- **URL Resmi Langsung:** `https://mandalaprojek.github.io/toko-delina/`
+- Halaman utama toko sekarang disajikan langsung dari root repositori tanpa redirect URL tambahan.
 
 ### 2. Akses Secara Lokal di Komputer / Tablet
 1. Buka folder proyek ini di komputer atau tablet.
-2. Masuk ke folder `frontend/`.
-3. Buka berkas `index.html` langsung menggunakan peramban web (Google Chrome, Microsoft Edge, Firefox, atau Safari).
-4. Website langsung siap digunakan dan terhubung secara live ke database Google Sheets Toko Delina.
+2. Buka berkas `index.html` langsung menggunakan peramban web (Google Chrome, Microsoft Edge, Firefox, atau Safari).
+3. Website langsung siap digunakan dan terhubung secara live ke database Google Sheets Toko Delina.
 
 ---
 
@@ -28,7 +24,17 @@ Setelah repositori ini di-push ke GitHub dan fitur GitHub Pages diaktifkan:
    - Responsif sempurna di layar HP pintar maupun tablet Samsung Galaxy Tab A9+ (portrait 800px dan landscape 1280px).
    - Bottom Navigation Bar 5 menu untuk kemudahan navigasi mobile.
 
-2. **Kalkulator Jasa Fotokopi & Cetak Kilat:**
+2. **Mode Kasir Tablet (POS) & Cetak Struk Termal:**
+   - Panel khusus kasir toko berproteksi PIN keamanan (default: 1234) untuk memantau pesanan real-time dari Google Sheets.
+   - Ubah status pesanan menjadi Diproses, Siap Diambil, atau Selesai secara instan.
+   - Cetak struk belanja fisik standar printer termal 58mm / 80mm via tombol cetak atau Bluetooth printer.
+   - Kirim notifikasi WhatsApp otomatis ke pembeli saat pesanan "Siap Diambil".
+
+3. **Sistem Diskon Grosir & Kupon Promo Otomatis:**
+   - Diskon kuantiti otomatis (Beli 5+ diskon 5%, Beli 10+ diskon 8%, Beli 20+ diskon 12%).
+   - Dukungan kode kupon promo berkah: `JUMATBERKAH`, `DELINABAROKAH`, `FOTOKOPILANCAR`, dan `DISKON5K`.
+
+4. **Kalkulator Jasa Fotokopi & Cetak Kilat:**
    - Hitung estimasi biaya cetak hitam-putih, berwarna, dan jilid (lakban/spiral) secara otomatis.
    - Unggah file dokumen langsung (PDF, Word, Gambar) hingga 10 MB yang otomatis tersimpan rapi di Google Drive toko.
 
