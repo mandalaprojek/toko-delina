@@ -177,11 +177,11 @@ class BluetoothThermalPrinter {
     push(0x1B, 0x61, 0x01); // Center
     push(0x1B, 0x45, 0x01); // Bold ON
     push(0x1D, 0x21, 0x11); // Double height & width
-    pushLine(orderData.storeName || "TOKO DELINA ATK");
+    pushLine(orderData.storeName || "DELINA.STORE");
 
     push(0x1D, 0x21, 0x00); // Normal size
     push(0x1B, 0x45, 0x00); // Bold OFF
-    pushLine(orderData.storeSlogan || "Lengkap, Murah & Berkah");
+    pushLine(orderData.storeSlogan || "ATK, Kosmetik dan Kelontongan");
     pushLine(orderData.storeAddress || "Jl. Tanjung Raya Delina No. 12");
     if (orderData.storePhone) {
       pushLine("WA: " + orderData.storePhone);
@@ -243,6 +243,15 @@ class BluetoothThermalPrinter {
 
     pushLine(this.formatRow("Metode Bayar:", orderData.paymentMethod || "QRIS / LUNAS", this.paperWidth));
     pushLine(this.formatRow("Status Nota:", "LUNAS", this.paperWidth));
+
+    if (orderData.memberPhone) {
+      pushLine("-".repeat(this.paperWidth));
+      pushLine(this.formatRow("Member VIP:", orderData.memberPhone, this.paperWidth));
+      pushLine(this.formatRow("Stempel Hadiah:", "+1 Poin Ditambahkan", this.paperWidth));
+      if (orderData.memberPoints !== undefined) {
+        pushLine(this.formatRow("Total Stempel:", `${orderData.memberPoints}/30 Hadiah`, this.paperWidth));
+      }
+    }
 
     pushLine("-".repeat(this.paperWidth));
 

@@ -13,6 +13,9 @@ const TAB_PESANAN = "Pesanan";
 const TAB_TARIF = "Tarif_Fotokopi";
 const TAB_PENGATURAN = "Pengaturan";
 const TAB_KUPON = "Kupon";
+const TAB_MEMBER = "Member";
+const TAB_HADIAH = "Hadiah_Royalty";
+const TAB_KLAIM = "Klaim_Hadiah";
 
 // Konstanta Nama Folder Google Drive Penyimpanan
 const FOLDER_UTAMA = "Toko Delina - Berkas Pelanggan";
@@ -59,12 +62,13 @@ function getPengaturanData(ss) {
   }
 
   const defaultSettings = {
-    NAMA_TOKO: "Toko ATK & Fotokopi Delina",
-    SLOGAN_TOKO: "Lengkap, Murah & Berkah",
+    NAMA_TOKO: "Delina.store",
+    SLOGAN_TOKO: "ATK, Kosmetik dan Kelontongan",
     NO_WA_TOKO: "081234567890",
     ALAMAT_TOKO: "Jl. Raya Delina No. 12, Samping Masjid",
     URL_TELEGRAM_BOT: "https://t.me/KikoDelinaBot",
-    URL_GOOGLE_MAPS: "https://maps.google.com/?q=Toko+Delina+ATK",
+    URL_GOOGLE_MAPS: "https://maps.google.com/?q=Delina+Store",
+    TAGLINE_TOKO: "ATK, Kosmetik dan Kelontongan",
     URL_LOGO: "",
     URL_QRIS: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD",
     NOMOR_REKENING: "BCA 1234567890 a.n Delina Shop",
@@ -219,6 +223,27 @@ function setupDatabaseOtomatis() {
     setupTabKupon(sheetKupon);
   }
 
+  // --- E1. Tab Member Loyalitas ---
+  let sheetMember = ss.getSheetByName(TAB_MEMBER);
+  if (!sheetMember) {
+    sheetMember = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheetMember);
+  }
+
+  // --- E2. Tab Hadiah Royalty (10 Pilihan Hadiah) ---
+  let sheetHadiah = ss.getSheetByName(TAB_HADIAH);
+  if (!sheetHadiah) {
+    sheetHadiah = ss.insertSheet(TAB_HADIAH);
+    setupTabHadiah(sheetHadiah);
+  }
+
+  // --- E3. Tab Klaim Hadiah ---
+  let sheetKlaim = ss.getSheetByName(TAB_KLAIM);
+  if (!sheetKlaim) {
+    sheetKlaim = ss.insertSheet(TAB_KLAIM);
+    setupTabKlaim(sheetKlaim);
+  }
+
   // --- F. Folder Google Drive ---
   getOrCreateFolder(FOLDER_UTAMA);
 
@@ -237,8 +262,8 @@ function setupTabPengaturan(sheet) {
   formatHeaderSheet(sheet, header[0].length);
 
   const rows = [
-    ["NAMA_TOKO", "Toko ATK & Fotokopi Delina", "Nama resmi toko di header & struk"],
-    ["SLOGAN_TOKO", "Lengkap, Murah & Berkah", "Slogan toko"],
+    ["NAMA_TOKO", "Delina.store", "Nama resmi toko di header & struk"],
+    ["SLOGAN_TOKO", "ATK, Kosmetik dan Kelontongan", "Slogan toko"],
     ["NO_WA_TOKO", "081234567890", "Nomor WhatsApp customer service toko"],
     ["ALAMAT_TOKO", "Jl. Raya Delina No. 12, Samping Masjid", "Alamat fisik toko"],
     ["URL_TELEGRAM_BOT", "https://t.me/KikoDelinaBot", "Tautan atau username Bot Telegram Kiko"],
@@ -369,6 +394,28 @@ function doGet(e) {
       }
     }
 
+    // 3a-2. Seeder Database Baru (100 Produk Preserved + Member + 10 Hadiah)
+    if (action === "seedDatabaseBaru") {
+      const res = seed100ProdukPreserveExisting(ss);
+      return createJsonResponse({
+        status: "success",
+        message: "Alhamdulillah! Database Delina.store berhasil disinkronkan ke 100 produk, 10 hadiah royalty, dan tab member.",
+        result: res
+      });
+    }
+
+    // 3a-3. API Daftar Hadiah Publik
+    if (action === "getRewards") {
+      const rewards = ambilDaftarHadiah(ss);
+      return createJsonResponse({ status: "success", rewards: rewards });
+    }
+
+    // 3a-4. API Data Profil Member Publik / Cek Poin
+    if (action === "getMemberData") {
+      const phone = String((e && e.parameter && (e.parameter.phone || e.parameter.hp || "")) || "").trim();
+      return createJsonResponse(prosesGetMemberData(phone, ss));
+    }
+
     // 3d. API Auto-Lookup Barcode Produk (Open Food Facts + Gemini AI Fallback)
     if (action === "lookupBarcode") {
       const barcode = (e && e.parameter && (e.parameter.barcode || e.parameter.code || "")).trim();
@@ -419,6 +466,9 @@ function doGet(e) {
       const products = ambilDaftarProduk(ss);
       const rates = ambilDaftarTarif(ss);
       const coupons = getKuponData(ss);
+      const members = ambilDaftarMember(ss);
+      const rewards = ambilDaftarHadiah(ss);
+      const claims = ambilDaftarKlaim(ss);
 
       // Hitung ringkasan hari ini
       const summary = hitungRingkasanDashboard(orders, products);
@@ -438,6 +488,9 @@ function doGet(e) {
         products: products,
         rates: rates,
         coupons: coupons,
+        members: members,
+        rewards: rewards,
+        claims: claims,
         settings: safeSettings
       });
     }
@@ -448,6 +501,7 @@ function doGet(e) {
     const rates = ambilDaftarTarif(ss);
     const allCoupons = getKuponData(ss);
     const activeCoupons = allCoupons.filter(c => c.status === "AKTIF");
+    const rewards = ambilDaftarHadiah(ss);
 
     return createJsonResponse({
       status: "success",
@@ -458,14 +512,15 @@ function doGet(e) {
         wa: settings.NO_WA_TOKO,
         alamat: settings.ALAMAT_TOKO,
         telegram_bot: settings.URL_TELEGRAM_BOT || "https://t.me/KikoDelinaBot",
-        maps: settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
+        maps: settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Delina+Store",
         logo: settings.URL_LOGO,
         qris: settings.URL_QRIS,
         rekening: settings.NOMOR_REKENING
       },
       products: products,
       rates: rates,
-      coupons: activeCoupons
+      coupons: activeCoupons,
+      rewards: rewards
     });
 
   } catch (error) {
@@ -643,7 +698,7 @@ Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau Wh
       }
 
       // C. Aksi Menu: Info Tarif Fotokopi & Jilid
-      if (lower.includes("tarif") || lower.includes("harga fotokopi") || lower.includes("biaya fotokopi") || lower.includes("ongkos cetak") || lower.includes("jilid")) {
+      if (lower.includes("member") || lower.includes("hadiah") || lower.includes("royalty") || lower.includes("poin") || lower.includes("stempel")) {
         const rates = ambilDaftarTarif(ss);
         let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -844,6 +899,70 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       return createJsonResponse({
         status: "success",
         reply: jawabanAI
+      });
+    }
+
+    // =========================================================
+    // JALUR 3.5: API MEMBER & ROYALTY (PELANGGAN DELINA.STORE)
+    // =========================================================
+
+    // A. Daftar Member Baru
+    if (action === "registerMember") {
+      const res = prosesRegisterMember(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // B. Login Member
+    if (action === "loginMember") {
+      const res = prosesLoginMember(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // C. Ambil Data Member & Riwayat Klaim
+    if (action === "getMemberData") {
+      const res = prosesGetMemberData(payload.phone || payload.hp, ss);
+      return createJsonResponse(res);
+    }
+
+    // D. Klaim 1 Hadiah Gratis (Dipotong 30 Poin Belanja)
+    if (action === "claimReward") {
+      const res = prosesClaimReward(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // E. Transaksi Kasir POS (Potong Stok + Tambah Poin Member)
+    if (action === "createPosOrder") {
+      const res = prosesCreatePosOrder(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // F. Kelola Hadiah Royalty (Admin)
+    if (action === "saveReward") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid || auth.role !== "admin") {
+        return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak mengelola hadiah royalty." });
+      }
+      const res = prosesSaveReward(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // G. Verifikasi Penyerahan Hadiah (Kasir & Admin)
+    if (action === "verifyClaim") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid) {
+        return createJsonResponse({ status: "error", message: "PIN Keamanan tidak sesuai." });
+      }
+      const res = prosesVerifyClaim(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // H. Trigger Seeder Database 100 Produk
+    if (action === "seedDatabaseBaru") {
+      const res = seed100ProdukPreserveExisting(ss);
+      return createJsonResponse({
+        status: "success",
+        message: "Alhamdulillah! Database berhasil disinkronkan ke 100 produk dan 10 hadiah.",
+        result: res
       });
     }
 
@@ -1228,6 +1347,16 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
     if (sheetProduk && Array.isArray(payload.items)) {
       kurangiStokProduk(sheetProduk, payload.items);
+    }
+
+    // Tambah +1 Poin Belanja ke Member jika No HP Terdaftar
+    const memberPhoneInput = String(payload.memberPhone || payload.customerPhone || "").trim();
+    if (memberPhoneInput) {
+      try {
+        tambahPoinBelanjaMember(ss, memberPhoneInput, 1, payload.customerName);
+      } catch (errMember) {
+        Logger.log("Notice tambah poin member: " + errMember.toString());
+      }
     }
 
     // Catat Baris Baru ke Tab Pesanan
@@ -1689,7 +1818,7 @@ function tanyaKikoAI(pesanUser, sumber) {
     const contextKatalog = daftarStok.join("\n");
     const contextTarif = daftarTarif.join("\n");
 
-    const systemPrompt = `Kamu adalah "Kiko", asisten AI virtual resmi Toko Online ATK dan Jasa Fotokopi Delina.
+    const systemPrompt = `Kamu adalah "Kiko", asisten AI virtual resmi Toko Online Delina.store (ATK, Kosmetik dan Kelontongan).
 Sifatmu: Sangat ramah, santun, beradab Islami, amanah, jujur, solutif, dan profesional.
 
 Format Gaya Balasan yang WAJIB Kamu Gunakan:
@@ -1837,7 +1966,7 @@ function getTelegramPersistentKeyboard() {
         { text: "📦 Cek Status Nota" }
       ],
       [
-        { text: "🖨️ Info Tarif Fotokopi" },
+        { text: "🎁 Program Member & Hadiah" },
         { text: "📍 Lokasi Google Maps" }
       ],
       [
@@ -2360,19 +2489,16 @@ function prosesLookupBarcode(barcode, ss) {
 
 function mapKategoriProduk(rawCategory) {
   const cat = String(rawCategory || "").toLowerCase();
-  if (cat.includes("buku") || cat.includes("kertas") || cat.includes("paper") || cat.includes("book") || cat.includes("binder") || cat.includes("notes") || cat.includes("hvs") || cat.includes("folio")) {
-    return "Kertas & Buku";
+  if (cat.includes("kosmetik") || cat.includes("skincare") || cat.includes("facial") || cat.includes("wash") || cat.includes("sunscreen") || cat.includes("lotion") || cat.includes("shampoo") || cat.includes("shampo") || cat.includes("sabun") || cat.includes("soap") || cat.includes("pasta gigi") || cat.includes("pepsodent") || cat.includes("deodorant") || cat.includes("parfum") || cat.includes("lip") || cat.includes("bedak") || cat.includes("kapas") || cat.includes("minyak kayu putih") || cat.includes("telon")) {
+    return "Kosmetik & Perawatan Diri";
   }
-  if (cat.includes("pulpen") || cat.includes("pen") || cat.includes("pencil") || cat.includes("pensil") || cat.includes("spidol") || cat.includes("marker") || cat.includes("crayon") || cat.includes("stabilo") || cat.includes("eraser") || cat.includes("penghapus") || cat.includes("tipp-ex")) {
-    return "Alat Tulis & Pulpen";
+  if (cat.includes("sembako") || cat.includes("beras") || cat.includes("minyak") || cat.includes("gula") || cat.includes("terigu") || cat.includes("tepung") || cat.includes("garam") || cat.includes("kecap") || cat.includes("sambal") || cat.includes("santan") || cat.includes("bumbu") || cat.includes("masako") || cat.includes("royco") || cat.includes("rinso") || cat.includes("deterjen") || cat.includes("sunlight") || cat.includes("downy") || cat.includes("soklin") || cat.includes("baygon") || cat.includes("tissue") || cat.includes("tisu") || cat.includes("baterai") || cat.includes("lampu") || cat.includes("sapu") || cat.includes("pel")) {
+    return "Sembako & Kelontongan";
   }
-  if (cat.includes("map") || cat.includes("folder") || cat.includes("stapler") || cat.includes("kantor") || cat.includes("office") || cat.includes("gunting") || cat.includes("cutter") || cat.includes("lem") || cat.includes("glue") || cat.includes("lakban") || cat.includes("tape") || cat.includes("penggaris")) {
-    return "Peralatan Kantor & Map";
+  if (cat.includes("snack") || cat.includes("makanan") || cat.includes("minuman") || cat.includes("food") || cat.includes("beverage") || cat.includes("mie") || cat.includes("noodle") || cat.includes("indomie") || cat.includes("sedaap") || cat.includes("kopi") || cat.includes("teh") || cat.includes("susu") || cat.includes("biskuit") || cat.includes("wafer") || cat.includes("cokelat") || cat.includes("candy") || cat.includes("permen") || cat.includes("air mineral") || cat.includes("aqua") || cat.includes("chitato") || cat.includes("qtela") || cat.includes("kacang")) {
+    return "Makanan & Minuman";
   }
-  if (cat.includes("snack") || cat.includes("makanan") || cat.includes("minuman") || cat.includes("food") || cat.includes("beverage") || cat.includes("noodle") || cat.includes("nouilles") || cat.includes("indomie") || cat.includes("biskuit") || cat.includes("kopi") || cat.includes("teh") || cat.includes("candy") || cat.includes("permen") || cat.includes("cokelat") || cat.includes("wafer")) {
-    return "Snack & Minuman";
-  }
-  return "Alat Tulis & Pulpen";
+  return "ATK & Perlengkapan Kantor";
 }
 
 function getDefaultPhotoForCategory(kategori, nama) {
@@ -2390,4 +2516,823 @@ function getDefaultPhotoForCategory(kategori, nama) {
     return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
   }
   return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+}
+
+
+/**
+ * =========================================================================
+ * 10. SISTEM MEMBER VIP & ROYALTY (30x BELANJA = 1 HADIAH GRATIS)
+ * =========================================================================
+ */
+
+function setupTabMember(sheet) {
+  sheet.clear();
+  const header = [["No_HP", "Password_Hash", "Nama_Member", "Jumlah_Belanja", "Total_Hadiah_Diklaim", "Tanggal_Daftar"]];
+  sheet.getRange(1, 1, 1, header[0].length).setValues(header);
+  formatHeaderSheet(sheet, header[0].length);
+
+  // Data Awal Contoh Member (Memudahkan Pengujian Langsung)
+  const sampleMembers = [
+    ["'081298765432", "1234", "Ahmad Fauzi (VIP Hampir Klaim)", 29, 0, "15/10/2026 10:00"],
+    ["'085712345678", "1234", "Siti Rahmawati (Member Aktif)", 12, 0, "20/10/2026 14:30"],
+    ["'087812340000", "1234", "Budi Santoso (Siap Klaim)", 31, 1, "01/10/2026 09:15"]
+  ];
+  sheet.getRange(2, 1, sampleMembers.length, 1).setNumberFormat("@");
+  sheet.getRange(2, 1, sampleMembers.length, sampleMembers[0].length).setValues(sampleMembers);
+  sheet.autoResizeColumns(1, header[0].length);
+}
+
+function setupTabHadiah(sheet) {
+  sheet.clear();
+  const header = [["ID_Hadiah", "Nama_Hadiah", "URL_Foto", "Stok", "Deskripsi", "Status_Aktif"]];
+  sheet.getRange(1, 1, 1, header[0].length).setValues(header);
+  formatHeaderSheet(sheet, header[0].length);
+
+  const sampleHadiah = [
+    [
+      "HDH-01",
+      "Tumbler Stainless Steel Delina Exclusive (500ml Tahan Panas/Dingin)",
+      "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80",
+      25,
+      "Tumbler premium tahan panas dingin 12 jam dengan logo Delina.store eksklusif.",
+      "AKTIF"
+    ],
+    [
+      "HDH-02",
+      "Pouch Kosmetik & Skincare Velvet Cantik Elegan",
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80",
+      30,
+      "Pouch bahan beludru premium lembut muat banyak kosmetik dan skincare harian.",
+      "AKTIF"
+    ],
+    [
+      "HDH-03",
+      "Minyak Goreng Sania / Tropical Pouch 1 Liter Murni",
+      "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80",
+      50,
+      "Minyak goreng kelapa sawit 2x penyaringan bening higienis untuk keluarga.",
+      "AKTIF"
+    ],
+    [
+      "HDH-04",
+      "Paket Alat Tulis Eksekutif (Notebook Hardcover + Pulpen Metal Parker-Look)",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
+      20,
+      "Buku catatan jilid tebal eksklusif berpadu pulpen logam tinta hitam pekat mewah.",
+      "AKTIF"
+    ],
+    [
+      "HDH-05",
+      "Paket Skincare Glow Essentials (Micellar Water + Facial Wash)",
+      "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80",
+      35,
+      "Duo pembersih wajah mencerahkan dan menyegarkan kulit bebas kusam.",
+      "AKTIF"
+    ],
+    [
+      "HDH-06",
+      "Beras Premium Ramos Wangi Pulen 2.5 Kg",
+      "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+      40,
+      "Beras super kepala putih alami tanpa pemutih wangi pulen lezat saat matang.",
+      "AKTIF"
+    ],
+    [
+      "HDH-07",
+      "Payung Lipat Delina Anti-UV Rangka Baja Otomatis",
+      "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+      30,
+      "Payung lipat praktis buka otomatis tahan terik matahari dan angin kencang.",
+      "AKTIF"
+    ],
+    [
+      "HDH-08",
+      "Gula Pasir Gulaku Murni 1 Kg + Teh Celup Kotak Nusantara",
+      "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80",
+      45,
+      "Paket manis gula tebu murni 1 kg dan sekotak teh celup melati nikmat hangat.",
+      "AKTIF"
+    ],
+    [
+      "HDH-09",
+      "Lip Cream Matte Velvet Shade Best Seller Tahan 12 Jam",
+      "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&auto=format&fit=crop&q=80",
+      25,
+      "Lip cream lembut matte pigmen tinggi tidak membuat bibir kering pecah.",
+      "AKTIF"
+    ],
+    [
+      "HDH-10",
+      "Voucher Belanja Delina.store Senilai Rp 35.000",
+      "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&auto=format&fit=crop&q=80",
+      100,
+      "Voucher potongan belanja instan tanpa minimum pembelian di Delina.store.",
+      "AKTIF"
+    ]
+  ];
+  sheet.getRange(2, 1, sampleHadiah.length, sampleHadiah[0].length).setValues(sampleHadiah);
+  sheet.autoResizeColumns(1, header[0].length);
+}
+
+function setupTabKlaim(sheet) {
+  sheet.clear();
+  const header = [["ID_Klaim", "Waktu", "No_HP", "Nama_Member", "ID_Hadiah", "Nama_Hadiah", "Status_Ambil"]];
+  sheet.getRange(1, 1, 1, header[0].length).setValues(header);
+  formatHeaderSheet(sheet, header[0].length);
+
+  const sampleKlaim = [
+    ["KLM-2026-001", "28/10/2026 11:20", "087812340000", "Budi Santoso", "HDH-01", "Tumbler Stainless Steel Delina Exclusive", "Sudah Diserahkan"]
+  ];
+  sheet.getRange(2, 1, sampleKlaim.length, sampleKlaim[0].length).setValues(sampleKlaim);
+  sheet.autoResizeColumns(1, header[0].length);
+}
+
+function ambilDaftarMember(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_MEMBER);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheet);
+  }
+
+  const members = [];
+  if (sheet.getLastRow() <= 1) return members;
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    if (r[0]) {
+      members.push({
+        phone: normalizePhoneNumber(r[0]),
+        name: String(r[2] || "Member"),
+        belanjaCount: Number(r[3]) || 0,
+        totalClaimed: Number(r[4]) || 0,
+        registeredAt: String(r[5] || "-")
+      });
+    }
+  }
+  return members;
+}
+
+function ambilDaftarHadiah(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_HADIAH);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_HADIAH);
+    setupTabHadiah(sheet);
+  }
+
+  const rewards = [];
+  if (sheet.getLastRow() <= 1) return rewards;
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    if (r[0]) {
+      rewards.push({
+        id: String(r[0]).trim(),
+        name: String(r[1] || ""),
+        imageUrl: String(r[2] || ""),
+        stock: Number(r[3]) || 0,
+        description: String(r[4] || ""),
+        status: String(r[5] || "AKTIF").toUpperCase()
+      });
+    }
+  }
+  return rewards;
+}
+
+function ambilDaftarKlaim(ss, phoneFilter) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_KLAIM);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_KLAIM);
+    setupTabKlaim(sheet);
+  }
+
+  const claims = [];
+  if (sheet.getLastRow() <= 1) return claims;
+
+  const cleanPhone = phoneFilter ? normalizePhoneNumber(phoneFilter) : null;
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = data.length - 1; i >= 1; i--) {
+    const r = data[i];
+    if (r[0]) {
+      const rowPhone = normalizePhoneNumber(String(r[2] || ""));
+      if (!cleanPhone || rowPhone === cleanPhone) {
+        claims.push({
+          claimId: String(r[0]),
+          time: String(r[1] || ""),
+          phone: String(r[2] || ""),
+          memberName: String(r[3] || ""),
+          rewardId: String(r[4] || ""),
+          rewardName: String(r[5] || ""),
+          status: String(r[6] || "Menunggu Pengambilan di Toko")
+        });
+      }
+    }
+  }
+  return claims;
+}
+
+function normalizePhoneNumber(raw) {
+  let num = String(raw || "").trim().replace(/\D/g, "");
+  if (num.startsWith("62")) {
+    num = "0" + num.substring(2);
+  } else if (num.startsWith("8")) {
+    num = "0" + num;
+  }
+  return num;
+}
+
+function prosesRegisterMember(payload, ss) {
+  const rawPhone = String(payload.phone || payload.hp || "").trim();
+  const rawName = String(payload.name || payload.nama || "Pelanggan Delina").trim();
+  const rawPassword = String(payload.password || payload.pin || "1234").trim();
+
+  const cleanPhone = normalizePhoneNumber(rawPhone);
+  if (!cleanPhone || cleanPhone.length < 8) {
+    return { status: "error", message: "Nomor WhatsApp/HP tidak valid (minimal 8 digit)." };
+  }
+
+  if (!rawPassword) {
+    return { status: "error", message: "Password / PIN wajib diisi untuk keamanan akun." };
+  }
+
+  let sheet = ss.getSheetByName(TAB_MEMBER);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheet);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const p = normalizePhoneNumber(data[i][0]);
+    if (p === cleanPhone) {
+      return {
+        status: "error",
+        message: "Nomor HP ini sudah terdaftar sebagai Member Delina! Silakan pilih menu Masuk (Login)."
+      };
+    }
+  }
+
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+  sheet.appendRow(["'" + cleanPhone, rawPassword, rawName, 0, 0, nowStr]);
+
+  return {
+    status: "success",
+    message: "Alhamdulillah! Pendaftaran Member VIP Delina.store berhasil.",
+    member: {
+      phone: cleanPhone,
+      name: rawName,
+      belanjaCount: 0,
+      totalClaimed: 0,
+      registeredAt: nowStr
+    },
+    claims: []
+  };
+}
+
+function prosesLoginMember(payload, ss) {
+  const rawPhone = String(payload.phone || payload.hp || "").trim();
+  const rawPassword = String(payload.password || payload.pin || "").trim();
+
+  const cleanPhone = normalizePhoneNumber(rawPhone);
+  if (!cleanPhone) {
+    return { status: "error", message: "Silakan masukkan nomor HP member Anda." };
+  }
+
+  let sheet = ss.getSheetByName(TAB_MEMBER);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheet);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  let found = null;
+
+  for (let i = 1; i < data.length; i++) {
+    const p = normalizePhoneNumber(data[i][0]);
+    if (p === cleanPhone) {
+      const savedPass = String(data[i][1] || "").trim();
+      if (rawPassword && savedPass && savedPass !== rawPassword) {
+        return { status: "error", message: "Password / PIN yang Anda masukkan salah." };
+      }
+      found = {
+        phone: cleanPhone,
+        name: String(data[i][2] || "Member Delina"),
+        belanjaCount: Number(data[i][3]) || 0,
+        totalClaimed: Number(data[i][4]) || 0,
+        registeredAt: String(data[i][5] || "-")
+      };
+      break;
+    }
+  }
+
+  if (!found) {
+    return {
+      status: "error",
+      message: "Nomor HP ini belum terdaftar sebagai Member. Silakan klik tab 'Daftar Baru' terlebih dahulu."
+    };
+  }
+
+  const claims = ambilDaftarKlaim(ss, cleanPhone);
+  return {
+    status: "success",
+    message: "Alhamdulillah, selamat datang kembali " + found.name + "!",
+    member: found,
+    claims: claims
+  };
+}
+
+function prosesGetMemberData(phone, ss) {
+  const cleanPhone = normalizePhoneNumber(phone);
+  if (!cleanPhone) {
+    return { status: "error", message: "Nomor HP diperlukan." };
+  }
+
+  let sheet = ss.getSheetByName(TAB_MEMBER);
+  if (!sheet) return { status: "error", message: "Database member belum aktif." };
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (normalizePhoneNumber(data[i][0]) === cleanPhone) {
+      const member = {
+        phone: cleanPhone,
+        name: String(data[i][2] || "Member Delina"),
+        belanjaCount: Number(data[i][3]) || 0,
+        totalClaimed: Number(data[i][4]) || 0,
+        registeredAt: String(data[i][5] || "-")
+      };
+      const claims = ambilDaftarKlaim(ss, cleanPhone);
+      return { status: "success", member: member, claims: claims };
+    }
+  }
+
+  return { status: "error", message: "Member dengan nomor " + cleanPhone + " tidak ditemukan." };
+}
+
+function prosesClaimReward(payload, ss) {
+  const cleanPhone = normalizePhoneNumber(payload.phone || payload.hp);
+  const password = String(payload.password || payload.pin || "").trim();
+  const rewardId = String(payload.idHadiah || payload.rewardId || "").trim();
+
+  if (!cleanPhone || !rewardId) {
+    return { status: "error", message: "Parameter klaim tidak lengkap." };
+  }
+
+  let sheetMember = ss.getSheetByName(TAB_MEMBER);
+  let sheetHadiah = ss.getSheetByName(TAB_HADIAH);
+  let sheetKlaim = ss.getSheetByName(TAB_KLAIM);
+
+  if (!sheetMember || !sheetHadiah || !sheetKlaim) {
+    throw new Error("Tabel Member / Hadiah / Klaim belum lengkap di spreadsheet.");
+  }
+
+  // 1. Verifikasi Member & Poin Belanja >= 30
+  const dataMember = sheetMember.getDataRange().getValues();
+  let memberRowIdx = -1;
+  let memberName = "";
+  let currentBelanja = 0;
+  let totalClaimed = 0;
+
+  for (let i = 1; i < dataMember.length; i++) {
+    if (normalizePhoneNumber(dataMember[i][0]) === cleanPhone) {
+      const savedPass = String(dataMember[i][1] || "").trim();
+      if (password && savedPass && savedPass !== password) {
+        return { status: "error", message: "Password konfirmasi klaim salah." };
+      }
+      memberRowIdx = i + 1;
+      memberName = String(dataMember[i][2] || "Member Delina");
+      currentBelanja = Number(dataMember[i][3]) || 0;
+      totalClaimed = Number(dataMember[i][4]) || 0;
+      break;
+    }
+  }
+
+  if (memberRowIdx === -1) {
+    return { status: "error", message: "Akun Member tidak ditemukan." };
+  }
+
+  if (currentBelanja < 30) {
+    return {
+      status: "error",
+      message: `Afwan, stempel belanja Anda saat ini (${currentBelanja}/30) belum mencukupi. Diperlukan 30x belanja untuk membuka 1 hadiah gratis.`
+    };
+  }
+
+  // 2. Verifikasi Ketersediaan Hadiah di Tab Hadiah_Royalty
+  const dataHadiah = sheetHadiah.getDataRange().getValues();
+  let hadiahRowIdx = -1;
+  let namaHadiah = "";
+  let currentStock = 0;
+
+  for (let j = 1; j < dataHadiah.length; j++) {
+    if (String(dataHadiah[j][0]).trim() === rewardId) {
+      hadiahRowIdx = j + 1;
+      namaHadiah = String(dataHadiah[j][1] || "Hadiah Delina");
+      currentStock = Number(dataHadiah[j][3]) || 0;
+      break;
+    }
+  }
+
+  if (hadiahRowIdx === -1) {
+    return { status: "error", message: "Pilihan hadiah tidak ditemukan." };
+  }
+
+  if (currentStock <= 0) {
+    return { status: "error", message: `Mohon maaf, stok hadiah "${namaHadiah}" saat ini sedang kosong. Silakan pilih hadiah lainnya.` };
+  }
+
+  // 3. Potong 30 Poin Belanja & Tambah Total Hadiah Diklaim
+  const newBelanja = currentBelanja - 30;
+  const newTotalClaimed = totalClaimed + 1;
+  sheetMember.getRange(memberRowIdx, 4).setValue(newBelanja);
+  sheetMember.getRange(memberRowIdx, 5).setValue(newTotalClaimed);
+
+  // 4. Kurangi Stok Hadiah (-1)
+  sheetHadiah.getRange(hadiahRowIdx, 4).setValue(Math.max(0, currentStock - 1));
+
+  // 5. Catat ke Tab Klaim_Hadiah
+  const claimCode = "KLM-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd") + "-" + Math.floor(1000 + Math.random() * 9000);
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+
+  sheetKlaim.appendRow([
+    claimCode,
+    nowStr,
+    "'" + cleanPhone,
+    memberName,
+    rewardId,
+    namaHadiah,
+    "Menunggu Pengambilan di Toko"
+  ]);
+
+  // 6. Notifikasi Telegram ke Pemilik Toko
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const adminChatId = props.getProperty("TELEGRAM_ADMIN_CHAT_ID");
+    if (adminChatId) {
+      const notifKlaim = `🎁 *KLAIM HADIAH MEMBER DELINA.STORE!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎉 *Alhamdulillah! Ada Member Berhasil Mencapai 30x Belanja!*
+
+👤 *Nama Member:* *${memberName}*
+📱 *WhatsApp/HP:* \`${cleanPhone}\`
+🎁 *Hadiah Dipilih:* *${namaHadiah}*
+📋 *Kode Klaim:* \`${claimCode}\`
+⏰ *Waktu Klaim:* ${nowStr}
+📊 *Sisa Stempel Belanja:* ${newBelanja}/30
+
+💡 *Petunjuk Toko:*
+Tunjukkan nomor nota atau kode klaim di atas saat member mengambil hadiah di meja kasir Delina.store.`;
+      kirimPesanTelegram(adminChatId, notifKlaim);
+    }
+  } catch (errNotif) {
+    Logger.log("Notice notif klaim: " + errNotif.toString());
+  }
+
+  return {
+    status: "success",
+    message: "Alhamdulillah! Klaim hadiah berhasil. Tunjukkan Kode Klaim ke kasir toko saat mengambil.",
+    claimId: claimCode,
+    rewardName: namaHadiah,
+    newBelanjaCount: newBelanja,
+    totalClaimed: newTotalClaimed
+  };
+}
+
+function tambahPoinBelanjaMember(ss, rawPhone, pointsToAdd = 1, optionalName = "") {
+  const cleanPhone = normalizePhoneNumber(rawPhone);
+  if (!cleanPhone || cleanPhone.length < 8) return null;
+
+  let sheet = ss.getSheetByName(TAB_MEMBER);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheet);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (normalizePhoneNumber(data[i][0]) === cleanPhone) {
+      const current = Number(data[i][3]) || 0;
+      const updated = current + pointsToAdd;
+      sheet.getRange(i + 1, 4).setValue(updated);
+      return {
+        phone: cleanPhone,
+        name: String(data[i][2] || "Member"),
+        belanjaCount: updated,
+        isNew: false
+      };
+    }
+  }
+
+  // Jika belum terdaftar, otomatis daftarkan sebagai member baru dengan poin awal
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+  const memberName = optionalName || "Member " + cleanPhone.slice(-4);
+  sheet.appendRow(["'" + cleanPhone, "1234", memberName, pointsToAdd, 0, nowStr]);
+
+  return {
+    phone: cleanPhone,
+    name: memberName,
+    belanjaCount: pointsToAdd,
+    isNew: true
+  };
+}
+
+function prosesCreatePosOrder(payload, ss) {
+  const auth = validatePin(payload.pin, ss);
+  if (!auth.valid) {
+    return { status: "error", message: "PIN Keamanan Kasir tidak valid." };
+  }
+
+  const orderId = payload.orderId || "#POS-" + Date.now().toString().slice(-6);
+  const orderTimeNow = payload.orderTime || Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  const totalPrice = Number(payload.total) || 0;
+  const payMethod = payload.paymentMethod || "Tunai Kasir";
+  const memberPhoneInput = String(payload.memberPhone || payload.phone || "").trim();
+
+  // 1. Kurangi Stok Produk di Sheet Produk
+  const sheetProduk = ss.getSheetByName(TAB_PRODUK);
+  if (sheetProduk && items.length > 0) {
+    kurangiStokProduk(sheetProduk, items);
+  }
+
+  // 2. Tambah Poin Belanja Member jika No HP diisi
+  let memberResult = null;
+  if (memberPhoneInput) {
+    try {
+      memberResult = tambahPoinBelanjaMember(ss, memberPhoneInput, 1, payload.customerName);
+    } catch (e) {
+      Logger.log("Err member pos: " + e.toString());
+    }
+  }
+
+  // 3. Catat ke Tab Pesanan sebagai Transaksi Selesai
+  const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+  if (sheetPesanan) {
+    let rincianText = items.map((i, idx) => `${idx + 1}. ${i.name} [${i.qty}x @ Rp ${Number(i.price).toLocaleString("id-ID")}]`).join("\n");
+    if (memberPhoneInput && memberResult) {
+      rincianText += `\n[🎁 Member: ${memberResult.name} (${memberResult.phone}) | Total Belanja: ${memberResult.belanjaCount}/30]`;
+    }
+
+    sheetPesanan.appendRow([
+      orderId,
+      orderTimeNow,
+      memberResult ? memberResult.name : "Pelanggan Kasir Toko",
+      memberPhoneInput || "-",
+      "Langsung di Toko",
+      "-",
+      rincianText,
+      totalPrice,
+      "-",
+      "-",
+      "Selesai (Kasir Toko)"
+    ]);
+  }
+
+  return {
+    status: "success",
+    message: "Alhamdulillah! Transaksi kasir berhasil disimpan.",
+    orderId: orderId,
+    member: memberResult
+  };
+}
+
+function prosesSaveReward(payload, ss) {
+  let sheetHadiah = ss.getSheetByName(TAB_HADIAH);
+  if (!sheetHadiah) {
+    sheetHadiah = ss.insertSheet(TAB_HADIAH);
+    setupTabHadiah(sheetHadiah);
+  }
+
+  const rewardId = String(payload.id || payload.idHadiah || "").trim();
+  const data = sheetHadiah.getDataRange().getValues();
+  let rowIdx = -1;
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === rewardId) {
+      rowIdx = i + 1;
+      break;
+    }
+  }
+
+  if (rowIdx > 0) {
+    if (payload.name) sheetHadiah.getRange(rowIdx, 2).setValue(payload.name);
+    if (payload.imageUrl) sheetHadiah.getRange(rowIdx, 3).setValue(payload.imageUrl);
+    if (payload.stock !== undefined) sheetHadiah.getRange(rowIdx, 4).setValue(Number(payload.stock) || 0);
+    if (payload.description) sheetHadiah.getRange(rowIdx, 5).setValue(payload.description);
+    if (payload.status) sheetHadiah.getRange(rowIdx, 6).setValue(String(payload.status).toUpperCase());
+
+    return { status: "success", message: "Hadiah " + rewardId + " berhasil diperbarui." };
+  } else {
+    sheetHadiah.appendRow([
+      rewardId || "HDH-" + String(data.length).padStart(2, "0"),
+      payload.name || "Hadiah Baru",
+      payload.imageUrl || "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500",
+      Number(payload.stock) || 10,
+      payload.description || "",
+      String(payload.status || "AKTIF").toUpperCase()
+    ]);
+    return { status: "success", message: "Hadiah baru berhasil ditambahkan." };
+  }
+}
+
+function prosesVerifyClaim(payload, ss) {
+  let sheetKlaim = ss.getSheetByName(TAB_KLAIM);
+  if (!sheetKlaim) throw new Error("Tab Klaim belum tersedia.");
+
+  const claimId = String(payload.claimId || "").trim().toUpperCase();
+  const newStatus = payload.status || "Sudah Diserahkan";
+
+  const data = sheetKlaim.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim().toUpperCase() === claimId) {
+      sheetKlaim.getRange(i + 1, 7).setValue(newStatus);
+      return { status: "success", message: "Status klaim " + claimId + " berhasil diubah menjadi: " + newStatus };
+    }
+  }
+
+  return { status: "error", message: "Kode klaim " + claimId + " tidak ditemukan." };
+}
+
+/**
+ * SEEDER 100 PRODUK LENGKAP DENGAN MENJAGA PRODUK YANG SUDAH ADA
+ * Melestarikan 19 produk yang sudah ada di tab Produk (termasuk hasil scan kemarin)
+ * Mengisi hingga 100 produk terbagi di 4 kategori:
+ * 1. ATK & Perlengkapan Kantor
+ * 2. Kosmetik & Perawatan Diri
+ * 3. Sembako & Kelontongan
+ * 4. Makanan & Minuman
+ */
+function seed100ProdukPreserveExisting(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+
+  // Pastikan Tab Setup Lengkap
+  let sheetProduk = ss.getSheetByName(TAB_PRODUK);
+  if (!sheetProduk) {
+    sheetProduk = ss.insertSheet(TAB_PRODUK);
+    const headerProduk = [["ID", "Nama", "Kategori", "Harga", "Stok", "Satuan", "URL_Foto", "Deskripsi"]];
+    sheetProduk.getRange(1, 1, 1, headerProduk[0].length).setValues(headerProduk);
+    formatHeaderSheet(sheetProduk, headerProduk[0].length);
+  }
+
+  let sheetMember = ss.getSheetByName(TAB_MEMBER);
+  if (!sheetMember) {
+    sheetMember = ss.insertSheet(TAB_MEMBER);
+    setupTabMember(sheetMember);
+  }
+
+  let sheetHadiah = ss.getSheetByName(TAB_HADIAH);
+  if (!sheetHadiah) {
+    sheetHadiah = ss.insertSheet(TAB_HADIAH);
+    setupTabHadiah(sheetHadiah);
+  } else if (sheetHadiah.getLastRow() <= 1) {
+    setupTabHadiah(sheetHadiah);
+  }
+
+  let sheetKlaim = ss.getSheetByName(TAB_KLAIM);
+  if (!sheetKlaim) {
+    sheetKlaim = ss.insertSheet(TAB_KLAIM);
+    setupTabKlaim(sheetKlaim);
+  }
+
+  // Update profil toko ke Delina.store
+  let sheetPengaturan = ss.getSheetByName(TAB_PENGATURAN);
+  if (sheetPengaturan && sheetPengaturan.getLastRow() > 1) {
+    const dataPeng = sheetPengaturan.getDataRange().getValues();
+    for (let p = 1; p < dataPeng.length; p++) {
+      const key = String(dataPeng[p][0] || "").trim();
+      if (key === "NAMA_TOKO") sheetPengaturan.getRange(p + 1, 2).setValue("Delina.store");
+      if (key === "SLOGAN_TOKO") sheetPengaturan.getRange(p + 1, 2).setValue("ATK, Kosmetik dan Kelontongan");
+    }
+  }
+
+  // Baca produk yang sudah ada di sheet
+  const existingData = sheetProduk.getDataRange().getValues();
+  const existingIds = new Set();
+
+  for (let i = 1; i < existingData.length; i++) {
+    const id = String(existingData[i][0] || "").trim();
+    if (id) existingIds.add(id);
+
+    // Sesuaikan kategori produk lama agar masuk ke 4 kategori resmi
+    const oldCat = String(existingData[i][2] || "").trim();
+    if (["Kertas & Buku", "Alat Tulis & Pulpen", "Peralatan Kantor & Map", "Paket Hemat", "Jasa Cetak & Fotokopi", "Buku"].includes(oldCat)) {
+      sheetProduk.getRange(i + 1, 3).setValue("ATK & Perlengkapan Kantor");
+    }
+  }
+
+  // Daftar 81 Produk Tambahan Berkualitas Tinggi
+  const itemsToAdd = [
+    // ATK & Perlengkapan Kantor (Tambahan ATK-020 s/d ATK-025)
+    ["ATK-020", "Binder Bantex B5 Pastel Ring Metal 26 Ring Exclusive", "ATK & Perlengkapan Kantor", 38000, 45, "Pcs", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Binder cover kulit sintesis warna pastel elegan dengan ring besi tahan karat dan slot kartu nama."],
+    ["ATK-021", "Kertas Loose Leaf B5 Bergaris Merk Joyko (1 Pack Isi 100 Lembar)", "ATK & Perlengkapan Kantor", 12500, 80, "Pack", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Refill binder B5 kertas tebal 80 gsm putih bersih dan tidak tembus tinta pulpen gel."],
+    ["ATK-022", "Lakban Bening Daimaru 2 Inch (Lebar 48mm x Panjang 90 Yard)", "ATK & Perlengkapan Kantor", 14000, 60, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Lakban perekat packing kualitas nomor 1 kuat, tidak mudah putus saat ditarik kencang."],
+    ["ATK-023", "Kalkulator Meja 12 Digit Citizen SDC-868L Layar Besar", "ATK & Perlengkapan Kantor", 65000, 25, "Pcs", "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop&q=80", "Kalkulator kasir meja 12 digit dual power tenaga surya dan baterai awet tahan lama."],
+    ["ATK-024", "Spidol Permanen Snowman Jumbo 500 Hitam Anti Air Tahan Lama", "ATK & Perlengkapan Kantor", 11000, 90, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol marker serbaguna permanen cepat kering cocok untuk menulis di kardus dan karung."],
+    ["ATK-025", "Cutter Joyko L-500 Besar + 1 Tube Isi Ulang Pisau Baja", "ATK & Perlengkapan Kantor", 16500, 40, "Set", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Pisau cutter besar berbobot dengan sistem autolock dan mata pisau tajam anti macet."],
+
+    // Kosmetik & Perawatan Diri (ATK-026 s/d ATK-050)
+    ["ATK-026", "Wardah Lightening Micellar Gentle Wash 100ml Non-SLS", "Kosmetik & Perawatan Diri", 29500, 35, "Tub", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Sabun cuci muka pencerah dengan busa lembut dan niacinamide murni ramah kulit sensitif."],
+    ["ATK-027", "Wardah UV Shield Essential Sunscreen Gel SPF 35 PA+++ 40ml", "Kosmetik & Perawatan Diri", 34000, 40, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen ringan bebas alkohol tanpa white-cast lindungi wajah dari sinar matahari terik."],
+    ["ATK-028", "Emina Bright Stuff Moisturizing Cream 20ml Pelembap Cerah Alami", "Kosmetik & Perawatan Diri", 23500, 50, "Tub", "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=80", "Krim pelembap remaja dengan ekstrak plum musim panas dan vitamin E bikin wajah glowing."],
+    ["ATK-029", "Kahf Oil and Acne Care Face Wash Men 100ml Sabun Muka Pria", "Kosmetik & Perawatan Diri", 36000, 30, "Tub", "https://images.unsplash.com/photo-1608248597359-59751a0d3e5e?w=600&auto=format&fit=crop&q=80", "Pembersih wajah pria dengan ekstrak kopi dan formula HydroBalance cegah jerawat berlebih."],
+    ["ATK-030", "Garnier Micellar Cleansing Water Pink All-in-1 Pembersih Make Up 125ml", "Kosmetik & Perawatan Diri", 32500, 45, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Pembersih wajah sekali usap tanpa bilas, mengangkat debu dan sisa make up hingga bersih."],
+    ["ATK-031", "Nivea Extra White Body Serum Care and Protect SPF 15 PA 180ml", "Kosmetik & Perawatan Diri", 38500, 35, "Tub", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Lotion serum pencerah tubuh dengan 95% kemurnian vitamin C dan perlindungan triple filter UV."],
+    ["ATK-032", "Vaseline Repairing Jelly Original 50ml Petroleum Murni Multi-Khasiat", "Kosmetik & Perawatan Diri", 25000, 60, "Pot", "https://images.unsplash.com/photo-1556228722-d0b5ed0cd015?w=600&auto=format&fit=crop&q=80", "Gel pelembap serbaguna mengatasi bibir pecah-pecah, tumit kering, dan kulit iritasi ringan."],
+    ["ATK-033", "Ponds Bright Beauty Triple Glow Serum Mencerahkan Wajah 30ml", "Kosmetik & Perawatan Diri", 75000, 20, "Btl", "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&auto=format&fit=crop&q=80", "Serum konsentrat pencerah dengan Gluta-Boost-C dan hyaluronic acid menyamarkan noda hitam."],
+    ["ATK-034", "Biore UV Aqua Rich Watery Essence SPF 50+ PA++++ 50g Sunscreen Dingin", "Kosmetik & Perawatan Diri", 98000, 25, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen viral sensasi dingin menyegarkan dengan micro-defense kapsul air tahan keringat."],
+    ["ATK-035", "Hada Labo Gokujyun Ultimate Moisturizing Lotion Strip Hijau / Orange 100ml", "Kosmetik & Perawatan Diri", 47000, 30, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Hydrating toner Jepang dengan 3 jenis Hyaluronic Acid menjaga elastisitas kelembapan kulit."],
+    ["ATK-036", "Implora Urban Lip Matte Cream Best Shade 01 Dusky Nude Tahan 12 Jam", "Kosmetik & Perawatan Diri", 22000, 75, "Pcs", "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&auto=format&fit=crop&q=80", "Lip cream matte ringan tekstur lembut wangi vanilla tidak membuat bibir kering pecah."],
+    ["ATK-037", "Madame Gie Sweet Cheek Blushed On Baked Natural Glow 01", "Kosmetik & Perawatan Diri", 18500, 50, "Pcs", "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&auto=format&fit=crop&q=80", "Perona pipi bubuk padat pigmen halus tahan lama memberi rona segar cerah alami."],
+    ["ATK-038", "Viva Air Mawar Ekstrak Mawar Asli 100ml Penyegar Kulit & Campuran Masker", "Kosmetik & Perawatan Diri", 7000, 120, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Air mawar legendaris aroma wangi menenangkan melembutkan kulit wajah setelah beraktivitas."],
+    ["ATK-039", "Kapas Kecantikan Selection Facial Cotton Tebal Lembut Isi 100 Lembar", "Kosmetik & Perawatan Diri", 13000, 85, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Kapas bulat persegi 100% kapas murni higienis tanpa pemutih bebas debu serabut."],
+    ["ATK-040", "Sunsilk Hijab Refresh and Anti-Dandruff Shampoo Botol 160ml", "Kosmetik & Perawatan Diri", 24000, 40, "Btl", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600&auto=format&fit=crop&q=80", "Shampo khusus wanita berhijab dengan buah tin dan jeruk nipis bikin rambut sejuk bebas ketombe."],
+    ["ATK-041", "Lifebuoy Total 10 Antibacterial Body Wash Pouch Refill 450ml", "Kosmetik & Perawatan Diri", 25500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Sabun mandi cair antibakterial perlindungan kuman keluarga dengan formula activ silver+."],
+    ["ATK-042", "Dettol Sabun Mandi Batang Antiseptik Original 100g (Pack Isi 3 Batang)", "Kosmetik & Perawatan Diri", 23000, 45, "Pack", "https://images.unsplash.com/photo-1607006314330-80278148b577?w=600&auto=format&fit=crop&q=80", "Sabun batang antiseptik pembunuh kuman nomor satu harum bersih menyegarkan sepanjang hari."],
+    ["ATK-043", "Pepsodent Pencegah Gigi Berlubang Pasta Gigi Herbal Alami 190g", "Kosmetik & Perawatan Diri", 16500, 70, "Tub", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Pasta gigi formula mikro kalsium aktif dan fluoride melindungi email gigi dari asam makanan."],
+    ["ATK-044", "Sikat Gigi Formula Sparkling White Bulu Halus Extra Soft (Pack 3 Pcs)", "Kosmetik & Perawatan Diri", 15000, 60, "Pack", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Sikat gigi bulu lembut 0.01mm menjangkau sela gigi sempit tanpa melukai gusi."],
+    ["ATK-045", "Rexona Women Deodorant Roll On Advanced Whitening Glowing 45ml", "Kosmetik & Perawatan Diri", 19500, 50, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Deodorant pencerah ketiak tahan keringat dan bau badan hingga 48 jam wangi segar."],
+    ["ATK-046", "Rexona Men Ice Cool Roll On Deodorant Sensasi Es Dingin 45ml", "Kosmetik & Perawatan Diri", 19500, 45, "Btl", "https://images.unsplash.com/photo-1608248597359-59751a0d3e5e?w=600&auto=format&fit=crop&q=80", "Deodorant pria dengan sensasi es dingin segar bebas bau keringat cocok untuk yang aktif olahraga."],
+    ["ATK-047", "Parfum Pria Casablanca Body Mist Cologne Sport Blue 100ml Botol Kaca", "Kosmetik & Perawatan Diri", 24500, 35, "Btl", "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&auto=format&fit=crop&q=80", "Cologne pria maskulin sporty elegan aroma segar woody mewah tahan semerbak."],
+    ["ATK-048", "Marina Hand Body Lotion Natural Rich Moisturizing Avocado 475ml Pump", "Kosmetik & Perawatan Diri", 17000, 40, "Btl", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Body lotion alpukat dan minyak zaitun melembapkan kulit kering seharian wangi lembut manis."],
+    ["ATK-049", "Minyak Kayu Putih Cap Lang 60ml Hangat Alami Anti Masuk Angin", "Kosmetik & Perawatan Diri", 23500, 65, "Btl", "https://images.unsplash.com/photo-1608248597359-59751a0d3e5e?w=600&auto=format&fit=crop&q=80", "Minyak kayu putih asli Ambon aromaterapi melegakan pernapasan dan menghangatkan perut kembung."],
+    ["ATK-050", "Minyak Telon My Baby Plus Minyak Sereh Eucalyptus Anti Nyamuk 90ml", "Kosmetik & Perawatan Diri", 22000, 55, "Btl", "https://images.unsplash.com/photo-1608248597359-59751a0d3e5e?w=600&auto=format&fit=crop&q=80", "Minyak telon bayi melindungi dari gigitan nyamuk hingga 8 jam wangi khas bayi menenangkan."],
+
+    // Sembako & Kelontongan (ATK-051 s/d ATK-075)
+    ["ATK-051", "Beras Premium Sania Pulen Bersih Alami Kemasan 5 Kg", "Sembako & Kelontongan", 74500, 30, "Sak", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80", "Beras berkualitas kepala super putih alami tanpa pemutih wangi pulen lezat saat dimasak."],
+    ["ATK-052", "Minyak Goreng Bimoli Klasik Pouch Refill 2 Liter 2x Penyaringan", "Sembako & Kelontongan", 37500, 45, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng kelapa sawit murni bening tahan panas tinggi hasil gorengan renyah matang merata."],
+    ["ATK-053", "Minyak Goreng Tropical Botol 1 Liter Non-Kolesterol", "Sembako & Kelontongan", 19500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng bermutu tinggi dengan kandungan vitamin E dan asam lemak tak jenuh."],
+    ["ATK-054", "Gula Pasir Gulaku Kuning Premium Tebu Alami Kemasan 1 Kg", "Sembako & Kelontongan", 17500, 80, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Gula pasir dari tebu murni pilihan warna kuning alami rasa manis legit gurih tanpa bahan kimia."],
+    ["ATK-055", "Tepung Terigu Segitiga Biru Bogasari Protein Sedang Kemasan 1 Kg", "Sembako & Kelontongan", 13500, 70, "Pack", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80", "Tepung serbaguna cocok untuk gorengan renyah, kue basah, donat, dan martabak manis."],
+    ["ATK-056", "Garam Meja Beryodium Cap Daun Bawang / Dolpin 250g Garam Halus", "Sembako & Kelontongan", 3500, 100, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Garam meja halus beryodium tinggi mencegah penyakit gondok dan menyedapkan masakan rumah."],
+    ["ATK-057", "Kecap Manis Bango Pouch Refill Kemasan Besar 520ml Dari Kedelai Hitam Mallika", "Sembako & Kelontongan", 22500, 60, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Kecap manis kental gurih dari kedelai hitam alami asli warisan nusantara rasa mantap."],
+    ["ATK-058", "Saus Sambal ABC Asli Botol Kaca 335ml Pedas Segar Alami", "Sembako & Kelontongan", 15500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Saus sambal pedas nikmat perpaduan cabai segar pilihan dan bawang putih gurih mantap."],
+    ["ATK-059", "Margarin Blue Band Serbaguna Sachet Foil 200g Wangi Gurih", "Sembako & Kelontongan", 10500, 65, "Pack", "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80", "Margarin kaya nutrisi omega 3 & 6 cocok untuk olesan roti, memasak nasi goreng, dan bikin kue."],
+    ["ATK-060", "Santan Kelapa Instan Kara Segitiga UHT 65ml (Pack Isi 5 Pcs)", "Sembako & Kelontongan", 16000, 45, "Pack", "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80", "Santan kelapa murni siap pakai praktis kental gurih untuk opor, lodeh, dan kolak pisang."],
+    ["ATK-061", "Bumbu Masak Racik Indofood Sayur Asem / Ayam Goreng (Pack Isi 10 Sachet)", "Sembako & Kelontongan", 18000, 50, "Pack", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Bumbu racik rempah asli tanpa bahan pengawet bikin masakan selezat masakan restoran."],
+    ["ATK-062", "Masako Kaldu Ayam / Sapi Penyedap Rasa Gurih Kemasan Renteng Isi 12 Sachet", "Sembako & Kelontongan", 6500, 90, "Renteng", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Kaldu daging asli dan bumbu rempah pilihan penyedap wajib sup, tumisan, dan gorengan."],
+    ["ATK-063", "Sabun Cuci Piring Sunlight Jeruk Nipis 100 Pouch Refill Besar 700ml", "Sembako & Kelontongan", 14500, 75, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pencuci piring ekstrak jeruk nipis asli hilangkan lemak membandel 5x lebih cepat."],
+    ["ATK-064", "Deterjen Bubuk Rinso Molto Anti Noda Classic Fresh Kemasan 770g", "Sembako & Kelontongan", 23500, 45, "Pack", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Deterjen formula busa cerdas hilangkan noda dalam 1x kucek wangi tahan harum 21 hari."],
+    ["ATK-065", "Pewangi dan Pelembut Pakaian Downy Mystique Pouch 650ml Aroma Parfum Mewah", "Sembako & Kelontongan", 29000, 40, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Pelembut konsentrat wangi parfum elegan tahan lama di serat pakaian cegah bau apek."],
+    ["ATK-066", "Pembersih Lantai SoKlin Pembersih Lantai Apel Wangi Segar Pouch 780ml", "Sembako & Kelontongan", 11500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pembersih lantai bunuh kuman 99% kilau bersih bebas lengket wangi segar semerbak."],
+    ["ATK-067", "Obat Nyamuk Semprot Baygon Aerosol Fresh Citrus Anti Nyamuk & Lalat 600ml", "Sembako & Kelontongan", 39500, 30, "Klg", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Aerosol semprot anti nyamuk demam berdarah dan serangga aroma jeruk segar tidak menyengat."],
+    ["ATK-068", "Tissue Wajah Paseo Smart Facial Tissue 250 Sheets 2 Ply Halus Kuat", "Sembako & Kelontongan", 14000, 90, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Tisu wajah higienis 100% serat alami virgin pulp lembut nyaman di kulit tanpa iritasi."],
+    ["ATK-069", "Lampu LED Hannochs Sonic 9 Watt Cahaya Putih Terang Hemat Listrik", "Sembako & Kelontongan", 21000, 40, "Pcs", "https://images.unsplash.com/photo-1550524514-9b552d438965?w=600&auto=format&fit=crop&q=80", "Bohlam lampu LED 9W setara lampu pijar 80W tahan hingga 10.000 jam garansi resmi."],
+    ["ATK-070", "Baterai ABC Alkaline AA / A2 (Pack Isi 4 Baterai) Daya Tahan 6x Lebih Kuat", "Sembako & Kelontongan", 18500, 60, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai alkaline anti bocor daya stabil untuk jam dinding, mouse wireless, dan remote TV."],
+    ["ATK-071", "Baterai ABC Alkaline AAA / A3 Kecil (Pack Isi 4 Baterai) Untuk Remote AC", "Sembako & Kelontongan", 18500, 55, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai mikro alkaline daya tinggi tahan lama untuk remote AC, timbangan, dan mainan anak."],
+    ["ATK-072", "Korek Gas Tokai Pemantik Api Rumah Tangga Original (Pack 3 Pcs)", "Sembako & Kelontongan", 12000, 80, "Pack", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Korek api gas standar SNI api stabil aman dan awet untuk menyalakan kompor gas."],
+    ["ATK-073", "Kantong Plastik Sampah Roll Hitam Tebal 50x60cm (Isi 30 Lembar)", "Sembako & Kelontongan", 14500, 70, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Trash bag roll plastik elastis kuat tidak mudah bocor menjaga kebersihan rumah dan kantor."],
+    ["ATK-074", "Sapu Ijuk Kayu Mahoni Halus Tradisional Awet Tidak Rontok", "Sembako & Kelontongan", 25000, 25, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Sapu lantai ijuk hitam murni gagang kayu kokoh sapu bersih debu lantai tanpa gores keramik."],
+    ["ATK-075", "Pel Lantai Benang Katun Gagang Besi Anti Karat Delina Home", "Sembako & Kelontongan", 28000, 20, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Alat pel lantai benang katun tebal daya serap air tinggi lantai cepat kering mengilap."],
+
+    // Makanan & Minuman (ATK-076 s/d ATK-100)
+    ["ATK-076", "Indomie Mi Instan Goreng Spesial 85g Bumbu Gurih Bawang Goreng Renyah", "Makanan & Minuman", 3500, 200, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie instan goreng terfavorit di dunia dengan aroma bawang khas dan kecap manis nikmat mantap."],
+    ["ATK-077", "Indomie Mi Kuah Rasa Soto Mie 70g Gurih Jeruk Nipis Hangat", "Makanan & Minuman", 3500, 180, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Kuah soto bumbu rempah asli segar gurih perpaduan jeruk nipis hangat cocok di musim hujan."],
+    ["ATK-078", "Mie Sedaap Goreng Kriuk-Kriuk Bawang Gurih Renyah 90g", "Makanan & Minuman", 3500, 150, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie kenyal gurih dengan taburan bawang kriuk renyah sensasi makan mie goreng paling mantap."],
+    ["ATK-079", "Kopi Kapal Api Special Mix Kopi Plus Gula Mantap (Pack Isi 10 Sachet x 24g)", "Makanan & Minuman", 16500, 80, "Pack", "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80", "Kopi hitam bubuk asli perpaduan biji kopi pilihan dan gula murni aroma semerbak harum."],
+    ["ATK-080", "Luwak White Koffie Original Rendah Asam Aman di Lambung (Pack Isi 10 Sachet)", "Makanan & Minuman", 15000, 75, "Pack", "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80", "Kopi putih lembut nikmat bebas kembung proses pembekuan mutakhir aman diminum setiap hari."],
+    ["ATK-081", "Teh Celup SariWangi Teh Asli Nusantara (Kotak Isi 30 Kantong Celup)", "Makanan & Minuman", 8500, 90, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Teh hitam pilihan aroma wangi menyegarkan cocok untuk minum teh hangat bersama keluarga."],
+    ["ATK-082", "Susu UHT Ultra Milk Cokelat / Full Cream Botol Karton 250ml", "Makanan & Minuman", 7000, 110, "Kotak", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi segar alami kaya kalsium dan vitamin D membantu pertumbuhan tulang dan energi aktif."],
+    ["ATK-083", "Susu Beruang Bear Brand Steril 189ml Murni Kemurnian Terjaga", "Makanan & Minuman", 10500, 85, "Klg", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi steril 100% murni tanpa pengawet baik diminum saat pemulihan tubuh dan jaga imun."],
+    ["ATK-084", "Air Mineral Aqua Botol Sedang 600ml Segar Dari Sumber Pegunungan", "Makanan & Minuman", 3500, 180, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral murni terlindungi alami dari mata air pegunungan vulkanik sejuk menyegarkan."],
+    ["ATK-085", "Le Minerale Air Mineral Botol 600ml Ada Manis-Manisnya", "Makanan & Minuman", 3500, 160, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral kaya mineral alami bikarbonat dan kalsium kesegaran murni terlindungi tutup bersegel."],
+    ["ATK-086", "Teh Botol Sosro Kotak Tetra Pak 250ml Segar Manis Alami Melati", "Makanan & Minuman", 4000, 120, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Minuman teh melati asli siap minum pelepas dahaga nomor 1 dinikmati dingin lebih nikmat."],
+    ["ATK-087", "Pocari Sweat Botol Pet 500ml Pengganti Ion Tubuh Cepat", "Makanan & Minuman", 8000, 70, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Minuman isotonik kemposisi mirip cairan tubuh kembalikan kesegaran setelah lelah beraktivitas."],
+    ["ATK-088", "Floridina Pulpy Orange Jus Jeruk Segar Bulir Asli 350ml", "Makanan & Minuman", 3500, 130, "Btl", "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80", "Jus jeruk Florida segar dengan bulir jeruk asli kaya vitamin C diminum dingin sangat segar."],
+    ["ATK-089", "Biskuit Roma Kelapa Biskuit Renyah Gurih Kemasan Besar 300g", "Makanan & Minuman", 12500, 65, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit kelapa asli gurih renyah diperkaya vitamin B1, B2, B6 dan kalsium pas dicelup teh hangat."],
+    ["ATK-090", "Wafer Nabati Richeese Keju Kaleng / Pouch Kemasan 130g", "Makanan & Minuman", 8500, 85, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Wafer renyah krim keju asli kaya vitamin A, B1, B2, B6, B12 rasa gurih manis lumer di mulut."],
+    ["ATK-091", "Biskuit Oreo Krim Vanilla Kemasan Roll 119.6g Diputar Dijilat Dicelupin", "Makanan & Minuman", 9500, 90, "Roll", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit sandwich cokelat renyah dengan krim vanila tebal manis kesukaan semua generasi."],
+    ["ATK-092", "Cokelat SilverQueen Cashew Susu Cokelat Mede Gurih 58g", "Makanan & Minuman", 16500, 60, "Batang", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Cokelat susu nikmat berpadu dengan kacang mete renyah gurih pelepas stres dan cemilan manis."],
+    ["ATK-093", "Beng-Beng Cokelat Wafer Karamel Crispy 4 Kelezatan (Pack Isi 20 Pcs)", "Makanan & Minuman", 35000, 45, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Kombinasi 4 kelezatan wafer renyah, krim susu, karamel legit, dan crispy balut cokelat tebal."],
+    ["ATK-094", "Chitato Keripik Kentang Sapi Panggang Beef Barbeque 68g Bergelombang", "Makanan & Minuman", 11500, 70, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik kentang asli potongan bergelombang bumbu rasa sapi panggang barbeque renyah mantap."],
+    ["ATK-095", "Qtela Keripik Singkong Barbeque / Balado 60g Gurih Renyah Khas", "Makanan & Minuman", 7500, 80, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik singkong tradisional renyah dengan bumbu khas rempah balado gurih nagih."],
+    ["ATK-096", "Kacang Garuda Rosta Bawang Panggang Renyah 95g Tanpa Kolesterol", "Makanan & Minuman", 11000, 65, "Pack", "https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=600&auto=format&fit=crop&q=80", "Kacang bersalut rasa bawang gurih dipanggang oven bukan digoreng renyah garing sehat."],
+    ["ATK-097", "Permen Kopiko Coffee Candy Ekstrak Kopi Asli (Bag Isi 50 Butir)", "Makanan & Minuman", 9500, 95, "Bag", "https://images.unsplash.com/photo-1582293041079-7814c2f12063?w=600&auto=format&fit=crop&q=80", "Permen kopi nomor satu dari ekstrak biji kopi asli ampuh hilangkan kantuk saat bekerja."],
+    ["ATK-098", "Choki Choki Pasta Cokelat Cashew Stik (Pack Isi 20 Stik)", "Makanan & Minuman", 18000, 70, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Pasta cokelat lembut manis dengan kacang mede cemilan stik manis favorit anak-anak."],
+    ["ATK-099", "Biskuit Khong Guan Red Assorted Biscuit Kaleng Kotak Klasik 650g", "Makanan & Minuman", 58000, 25, "Klg", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Kaleng biskuit aneka rasa legendaris cocok untuk suguhan tamu dan oleh-oleh keluarga."],
+    ["ATK-100", "Energen Sereal dan Susu Cokelat / Vanila Bergizi (Renceng Isi 10 Sachet)", "Makanan & Minuman", 21500, 75, "Renceng", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Minuman sereal gandum bergizi dengan susu dan telur sarapan sehat penambah tenaga aktif."]
+  ];
+
+  let addedCount = 0;
+  for (let k = 0; k < itemsToAdd.length; k++) {
+    const item = itemsToAdd[k];
+    if (!existingIds.has(item[0])) {
+      sheetProduk.appendRow(item);
+      existingIds.add(item[0]);
+      addedCount++;
+    }
+  }
+
+  const finalTotal = sheetProduk.getLastRow() - 1;
+  Logger.log(`Seeder selesai: Total produk saat ini ${finalTotal} (Tambahan baru: ${addedCount})`);
+
+  return {
+    totalProducts: finalTotal,
+    addedNew: addedCount,
+    totalRewards: sheetHadiah.getLastRow() - 1,
+    totalMembers: sheetMember.getLastRow() - 1
+  };
 }

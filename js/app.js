@@ -114,10 +114,10 @@ const DUMMY_PRODUCTS = [
 // 2. Data Kategori
 const CATEGORIES = [
   { id: "all", name: "Semua Produk", icon: "bi-grid-fill" },
-  { id: "kertas", name: "Kertas & Buku", icon: "bi-book" },
-  { id: "tulis", name: "Alat Tulis & Pulpen", icon: "bi-pen" },
-  { id: "kantor", name: "Peralatan Kantor & Map", icon: "bi-briefcase" },
-  { id: "fotokopi", name: "Jasa Cetak & Fotokopi", icon: "bi-printer" }
+  { id: "atk", name: "ATK & Perlengkapan Kantor", icon: "bi-pencil-square" },
+  { id: "kosmetik", name: "Kosmetik & Perawatan Diri", icon: "bi-heart-pulse" },
+  { id: "sembako", name: "Sembako & Kelontongan", icon: "bi-shop" },
+  { id: "fnb", name: "Makanan & Minuman", icon: "bi-cup-straw" }
 ];
 
 // 3. State Aplikasi
@@ -1467,11 +1467,8 @@ function handleBottomNav(menu) {
       }
       break;
 
-    case "fotokopi":
-      const fotokopiSection = document.getElementById("fotokopiCalculatorSection");
-      if (fotokopiSection) {
-        fotokopiSection.scrollIntoView({ behavior: "smooth" });
-      }
+    case "member":
+      openMemberModal();
       break;
 
     case "lacak":

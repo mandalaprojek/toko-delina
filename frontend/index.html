@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Toko ATK & Fotokopi Delina - Belanja Lengkap & Berkah</title>
+  <title>Delina.store - ATK, Kosmetik dan Kelontongan</title>
   
   <!-- Font Google: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -76,7 +76,7 @@
             DELINA<span class="text-tokopedia-green">.store</span>
           </span>
           <span class="text-[10px] text-gray-400 font-medium tracking-wider uppercase block">
-            ATK & Fotokopi
+            ATK, Kosmetik dan Kelontongan
           </span>
         </div>
       </a>
@@ -87,7 +87,7 @@
           <input 
             type="text" 
             id="searchInput"
-            placeholder="Cari buku, pulpen, kertas, map, atau layanan fotokopi..."
+            placeholder="Cari ATK, kosmetik, sembako, makanan, minuman..."
             class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm rounded-xl pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white focus:ring-2 focus:ring-emerald-100 transition-all placeholder:text-gray-400 text-gray-700"
           />
           <i class="bi bi-search absolute left-3 sm:left-3.5 text-gray-400 text-xs sm:text-sm"></i>
@@ -96,6 +96,18 @@
 
       <!-- Aksi Pengguna: Lacak Pesanan, Keranjang & Bantuan Kiko -->
       <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <!-- Tombol Pintas Member VIP / Hadiah -->
+        <button 
+          type="button" 
+          onclick="openMemberModal()"
+          id="headerMemberBtn"
+          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-xs font-extrabold transition-all active:scale-95 shadow-xs cursor-pointer"
+          title="Member & Hadiah Royalty (30x Belanja)"
+        >
+          <i class="bi bi-gift-fill text-amber-500 text-sm"></i>
+          <span id="headerMemberText" class="hidden sm:inline">Member / Hadiah</span>
+        </button>
+
         <!-- Tombol Lacak Pesanan (Layanan Tanpa Antre) -->
         <button 
           onclick="openLacakPesananModal()"
@@ -139,30 +151,30 @@
     <!-- 1. HERO BANNER PROMOSI (Grid Responsif) -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
       
-      <!-- Banner Utama: Jasa Fotokopi & Cetak Kilat -->
-      <div class="md:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-r from-delina-emerald via-emerald-800 to-tokopedia-dark text-white p-5 sm:p-7 shadow-sm flex flex-col justify-between min-h-[170px] sm:min-h-[200px]">
+      <!-- Banner Utama: Program Loyalitas Member VIP (30x Belanja = 1 Hadiah) -->
+      <div class="md:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-800 to-slate-900 text-white p-5 sm:p-7 shadow-md flex flex-col justify-between min-h-[170px] sm:min-h-[200px] border border-emerald-700/50">
         <div class="relative z-10 max-w-md">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold text-amber-300 mb-2.5">
-            <i class="bi bi-lightning-charge-fill"></i> Layanan Prioritas Kilat
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 backdrop-blur-sm text-[11px] font-black text-amber-300 mb-2.5 border border-amber-400/30">
+            <i class="bi bi-gift-fill text-amber-400"></i> 30x Belanja = 1 Hadiah Gratis!
           </div>
-          <h2 class="text-lg sm:text-2xl font-extrabold tracking-tight leading-snug">
-            Fotokopi & Cetak Dokumen Praktis dari Rumah
+          <h2 class="text-lg sm:text-2xl font-black tracking-tight leading-snug">
+            Program Member & Royalty Delina.store
           </h2>
           <p class="text-xs sm:text-sm text-emerald-100 mt-1.5 leading-relaxed">
-            Hitung biaya otomatis, upload file dokumen dari HP/Tablet, langsung kami proses tanpa perlu antre di toko.
+            Kumpulkan stempel belanja Anda di website maupun kasir toko. Cukup sebutkan No HP, kumpulkan 30 stempel dan pilih 1 dari 10 hadiah istimewa!
           </p>
         </div>
-        <div class="relative z-10 mt-4 flex items-center gap-3">
-          <a href="#fotokopiCalculatorSection" class="inline-flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md transition-all">
-            <i class="bi bi-calculator"></i> Hitung Biaya Cetak
-          </a>
-          <span class="text-[11px] text-emerald-200 hidden sm:inline">
-            <i class="bi bi-shield-check text-amber-300"></i> File dijaga aman & amanah
+        <div class="relative z-10 mt-4 flex items-center gap-3 flex-wrap">
+          <button type="button" onclick="openMemberModal()" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-900 font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer">
+            <i class="bi bi-person-badge-fill"></i> Buka Kartu Member & Stempel
+          </button>
+          <span class="text-[11px] text-amber-200 hidden sm:inline">
+            <i class="bi bi-check-circle-fill text-amber-300"></i> Gratis & Langsung Aktif
           </span>
         </div>
         <!-- Ornamen Latar -->
-        <div class="absolute -right-8 -bottom-10 text-emerald-600/30 text-9xl pointer-events-none">
-          <i class="bi bi-printer"></i>
+        <div class="absolute -right-8 -bottom-10 text-white/5 text-9xl pointer-events-none">
+          <i class="bi bi-gift-fill"></i>
         </div>
       </div>
 
@@ -205,7 +217,7 @@
         <span class="text-xs text-gray-400">Pilih untuk menyaring barang</span>
       </div>
 
-      <!-- Kategori Pills -->
+      <!-- Kategori Pills Resmi Delina.store -->
       <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
         <button 
           data-category="Semua Produk"
@@ -215,32 +227,32 @@
           <i class="bi bi-grid-fill"></i> Semua Produk
         </button>
         <button 
-          data-category="Kertas & Buku"
-          onclick="selectCategory('Kertas & Buku')" 
+          data-category="ATK & Perlengkapan Kantor"
+          onclick="selectCategory('ATK & Perlengkapan Kantor')" 
           class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
         >
-          <i class="bi bi-book"></i> Kertas & Buku
+          <i class="bi bi-pencil-square"></i> ATK & Kantor
         </button>
         <button 
-          data-category="Alat Tulis & Pulpen"
-          onclick="selectCategory('Alat Tulis & Pulpen')" 
+          data-category="Kosmetik & Perawatan Diri"
+          onclick="selectCategory('Kosmetik & Perawatan Diri')" 
           class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
         >
-          <i class="bi bi-pen"></i> Alat Tulis & Pulpen
+          <i class="bi bi-heart-pulse"></i> Kosmetik & Skincare
         </button>
         <button 
-          data-category="Peralatan Kantor & Map"
-          onclick="selectCategory('Peralatan Kantor & Map')" 
+          data-category="Sembako & Kelontongan"
+          onclick="selectCategory('Sembako & Kelontongan')" 
           class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
         >
-          <i class="bi bi-briefcase"></i> Peralatan Kantor & Map
+          <i class="bi bi-shop"></i> Sembako & Kelontong
         </button>
         <button 
-          data-category="Jasa Cetak & Fotokopi"
-          onclick="selectCategory('Jasa Cetak & Fotokopi')" 
+          data-category="Makanan & Minuman"
+          onclick="selectCategory('Makanan & Minuman')" 
           class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
         >
-          <i class="bi bi-printer"></i> Jasa Cetak & Fotokopi
+          <i class="bi bi-cup-straw"></i> Makanan & Minuman
         </button>
       </div>
     </section>
@@ -265,121 +277,40 @@
       </div>
     </section>
 
-    <!-- 4. SECTION KHUSUS: KALKULATOR JASA FOTOKOPI & CETAK KILAT -->
-    <section id="fotokopiCalculatorSection" class="mt-8 bg-white rounded-2xl border border-emerald-100 p-4 sm:p-6 card-shadow scroll-mt-20">
-      <div class="border-b border-gray-100 pb-3 mb-4 flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md inline-block">
-            Menu Spesial
-          </span>
-          <h3 class="text-base sm:text-lg font-bold text-gray-800 mt-1 flex items-center gap-2">
-            <i class="bi bi-printer text-tokopedia-green"></i> Kalkulator Estimasi Jasa Fotokopi
-          </h3>
-          <p class="text-xs text-gray-500">Hitung perkiraan biaya sebelum upload file atau pesan.</p>
+    <!-- 4. SECTION SPESIAL: PROGRAM MEMBER & ROYALTY (30x BELANJA = 1 HADIAH GRATIS) -->
+    <section id="memberLoyaltySection" class="mt-8 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 rounded-3xl p-5 sm:p-8 text-white relative overflow-hidden shadow-xl border border-emerald-700/50">
+      <div class="relative z-10 max-w-2xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black uppercase tracking-wider mb-3 border border-amber-400/30">
+          <i class="bi bi-gift-fill text-amber-400"></i> Program Loyalitas Pelanggan
         </div>
-        <span class="text-xs bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-200 font-medium">
-          <i class="bi bi-info-circle mr-1"></i> Gratis Staples Dokumen
-        </span>
+        <h3 class="text-xl sm:text-3xl font-black tracking-tight leading-tight">
+          30x Belanja = Gratis 1 Pilihan Hadiah Istimewa! 🎁
+        </h3>
+        <p class="text-xs sm:text-sm text-emerald-100/90 mt-2 leading-relaxed">
+          Setiap kali berbelanja di website atau kasir toko Delina, nomor HP Anda otomatis mendapatkan 1 stempel loyalitas. Kumpulkan 30 stempel belanja dan pilih 1 dari 10 hadiah gratis mulai dari Tumbler Stainless Exclusive, Minyak Goreng 1L, Paket Skincare, hingga Voucher Belanja Langsung!
+        </p>
+        <div class="mt-5 flex items-center gap-3 flex-wrap">
+          <button 
+            type="button" 
+            onclick="openMemberModal()" 
+            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-900 font-extrabold text-xs sm:text-sm shadow-lg transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+          >
+            <i class="bi bi-person-badge-fill text-base"></i>
+            <span>Buka Kartu Member & Stempel</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="openMemberModal('rewards')" 
+            class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="bi bi-stars text-amber-300"></i>
+            <span>Lihat 10 Pilihan Hadiah</span>
+          </button>
+        </div>
       </div>
-
-      <!-- Form Interaktif Kalkulator & Unggah Dokumen -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Kolom 1: Pilihan Kertas & Jenis Cetak -->
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Ukuran Kertas</label>
-            <select id="kertasSize" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" onchange="calculateFotokopi()">
-              <option value="A4" selected>A4 (HVS 75/80 gr)</option>
-              <option value="F4">F4 / Folio (HVS 75/80 gr)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Cetak</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="cursor-pointer border rounded-xl p-2.5 text-center flex flex-col items-center gap-1 hover:border-emerald-500 transition-all bg-emerald-50/50 border-emerald-400" id="labelBW">
-                <input type="radio" name="printType" value="bw" checked class="hidden" onchange="updatePrintTypeUI('bw')" />
-                <span class="text-xs font-bold text-gray-800">Hitam Putih</span>
-                <span class="text-[10px] text-gray-500">Rp 250 / lbr</span>
-              </label>
-              <label class="cursor-pointer border rounded-xl p-2.5 text-center flex flex-col items-center gap-1 hover:border-emerald-500 transition-all border-gray-200" id="labelColor">
-                <input type="radio" name="printType" value="color" class="hidden" onchange="updatePrintTypeUI('color')" />
-                <span class="text-xs font-bold text-gray-800">Warna</span>
-                <span class="text-[10px] text-gray-500">Rp 1.000 / lbr</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kolom 2: Lembar, Rangkap & Jilid -->
-        <div class="space-y-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Jumlah Lembar</label>
-              <input type="number" id="lembarCount" min="1" value="10" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" oninput="calculateFotokopi()" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Rangkap (Copy)</label>
-              <input type="number" id="rangkapCount" min="1" value="1" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" oninput="calculateFotokopi()" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Opsi Jilid Dokumen</label>
-            <select id="jilidOption" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600" onchange="calculateFotokopi()">
-              <option value="none">Tanpa Jilid (Gratis Staples)</option>
-              <option value="lakban">Jilid Lakban Biasa (+ Rp 4.000)</option>
-              <option value="spiral">Jilid Spiral Kawat/Plastik (+ Rp 10.000)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Kolom 3: Unggah File Dokumen & Catatan -->
-        <div class="space-y-2.5">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1 flex items-center justify-between">
-              <span>Unggah File Dokumen</span>
-              <span class="text-[10px] text-emerald-700 font-normal">Maks 10 MB</span>
-            </label>
-            <label for="fotokopiFileInput" class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-2.5 text-center flex flex-col items-center justify-center cursor-pointer bg-emerald-50/40 hover:bg-emerald-50 transition-all">
-              <i class="bi bi-file-earmark-arrow-up-fill text-2xl text-emerald-700"></i>
-              <span id="fotokopiFileNameText" class="text-xs font-bold text-gray-700 mt-1 truncate max-w-[200px]">Pilih File Dokumen</span>
-              <span id="fotokopiFileSizeText" class="text-[10px] text-gray-500">PDF, DOC, DOCX, JPG, PNG</span>
-              <input type="file" id="fotokopiFileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden" onchange="handleFotokopiFileSelect(event)" />
-            </label>
-            <div id="fotokopiFileNotice" class="hidden mt-1 text-[11px] bg-emerald-100/80 text-emerald-800 px-2.5 py-1 rounded-lg flex items-center justify-between">
-              <span class="truncate flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> <span id="fotokopiNoticeText"></span></span>
-              <button type="button" onclick="clearFotokopiFile()" class="text-red-600 hover:text-red-800 font-bold ml-1 text-xs">Hapus</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Cetak/Jilid (Opsional)</label>
-            <input type="text" id="fotokopiNotes" placeholder="Misal: Cover mika biru, jilid rapi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white" />
-          </div>
-        </div>
-
-        <!-- Kolom 4: Hasil Estimasi & Tombol Aksi -->
-        <div class="bg-gray-50 rounded-xl p-4 flex flex-col justify-between border border-gray-100">
-          <div>
-            <span class="text-[11px] text-gray-500 block">Estimasi Total Biaya:</span>
-            <span id="fotokopiTotal" class="text-2xl font-black text-delina-emerald block mt-1">
-              Rp 2.500
-            </span>
-            <p class="text-[10px] text-gray-400 mt-1 leading-snug">
-              *Harga sudah termasuk kertas HVS berkualitas. Belum termasuk ongkos kirim jika diantar.
-            </p>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-gray-200 flex flex-col gap-2">
-            <button 
-              onclick="addFotokopiToCart()" 
-              class="w-full py-2.5 px-3 rounded-xl bg-delina-emerald hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
-            >
-              <i class="bi bi-cart-plus"></i> Masukkan Pesanan Cetak
-            </button>
-          </div>
-        </div>
+      <!-- Ornamen Latar Belakang -->
+      <div class="absolute -right-6 -bottom-6 text-white/5 text-9xl pointer-events-none">
+        <i class="bi bi-gift-fill"></i>
       </div>
     </section>
 
@@ -394,7 +325,7 @@
             DELINA<span class="text-tokopedia-green">.store</span>
           </span>
           <p class="text-gray-500 leading-relaxed max-w-sm">
-            Toko Online Alat Tulis Kantor (ATK) dan Jasa Fotokopi terpercaya. Melayani pembelian eceran, grosir sekolah, kebutuhan kantor, dan cetak tugas secara amanah.
+            Toko Online ATK, Kosmetik, dan Kelontongan terpercaya. Melayani pembelian eceran, grosir, perlengkapan sekolah & kantor, aneka kosmetik kecantikan, dan sembako keluarga secara amanah.
           </p>
           <!-- Tautan Alamat Fisik Toko Dinamis (Google Maps) -->
           <div class="mt-3 text-xs text-gray-500 flex items-start gap-1.5">
@@ -419,7 +350,7 @@
             </li>
             <li>
               <a id="footerMapsLink" href="https://maps.google.com/?q=Toko+Delina+ATK" target="_blank" rel="noopener noreferrer" class="hover:text-amber-700 transition-colors inline-flex items-center">
-                <i class="bi bi-geo-alt text-amber-600 mr-2 text-sm"></i> Toko Fisik Delina ATK
+                <i class="bi bi-geo-alt text-amber-600 mr-2 text-sm"></i> Toko Fisik Delina.store
               </a>
             </li>
           </ul>
@@ -440,7 +371,7 @@
       </div>
 
       <div class="border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-2">
-        <div>© 2026 Toko ATK dan Fotokopi Delina. Didukung oleh Asisten AI Kiko. InsyaAllah Berkah & Amanah.</div>
+        <div>© 2026 Delina.store (ATK, Kosmetik dan Kelontongan). Didukung oleh Asisten AI Kiko. InsyaAllah Berkah & Amanah.</div>
         <a href="admin.html" class="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-700 transition-colors font-semibold">
           <i class="bi bi-shield-lock"></i>
           <span>Portal Kasir & Admin Toko</span>
@@ -1324,17 +1255,17 @@
           <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kategori</span>
         </button>
 
-        <!-- 3. Fotokopi (Aksen Menonjol di Tengah) -->
+        <!-- 3. Member & Hadiah (Aksen Menonjol di Tengah) -->
         <button 
-          data-nav="fotokopi"
-          onclick="handleBottomNav('fotokopi')" 
+          data-nav="member"
+          onclick="handleBottomNav('member')" 
           class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-delina-emerald transition-all py-1 relative focus:outline-none group"
-          title="Jasa Fotokopi"
+          title="Member & Hadiah Royalty (30x Belanja)"
         >
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-delina-emerald to-tokopedia-green text-white flex items-center justify-center shadow-lg -mt-6 border-2 border-white group-hover:scale-110 group-active:scale-95 transition-all">
-            <i class="bi bi-printer-fill text-base sm:text-lg"></i>
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-600 text-slate-900 flex items-center justify-center shadow-lg -mt-6 border-2 border-white group-hover:scale-110 group-active:scale-95 transition-all">
+            <i class="bi bi-gift-fill text-base sm:text-lg text-slate-900"></i>
           </div>
-          <span class="text-[10px] sm:text-xs font-bold text-delina-emerald mt-0.5">Fotokopi</span>
+          <span class="text-[10px] sm:text-xs font-bold text-amber-700 mt-0.5">Hadiah</span>
         </button>
 
         <!-- 4. Lacak Pesanan (Layanan Tanpa Antre) -->
@@ -1374,6 +1305,217 @@
   <script src="./js/config.js?v=20261030_02"></script>
   <script src="./js/printer.js?v=20261030_02"></script>
   <script src="./js/app.js?v=20261030_02"></script>
+
+  <!-- =========================================================
+       MODAL MEMBER & ROYALTY DELINA.STORE (30x BELANJA = 1 HADIAH)
+       ========================================================= -->
+  <div id="memberModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[92vh] animate-fadeIn">
+      
+      <!-- Header Modal Member -->
+      <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white flex items-center justify-between flex-shrink-0 border-b border-emerald-700/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-md">
+            🎁
+          </div>
+          <div>
+            <h3 class="font-black text-base sm:text-lg tracking-tight">DELINA<span class="text-amber-400">.store</span> VIP Club</h3>
+            <p class="text-[11px] text-emerald-200">Program Loyalitas 30x Belanja = 1 Hadiah Gratis</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeMemberModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-all cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Konten Modal Member (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1" id="memberModalContent">
+        
+        <!-- ================= VIEW 1: AUTH MEMBER (JIKA BELUM LOGIN) ================= -->
+        <div id="memberAuthContainer" class="space-y-4">
+          
+          <!-- Tab Switcher: Masuk vs Daftar -->
+          <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl">
+            <button 
+              type="button" 
+              id="tabBtnMemberLogin" 
+              onclick="switchMemberAuthMode('login')" 
+              class="py-2 text-xs font-extrabold rounded-xl transition-all bg-white text-emerald-800 shadow-xs cursor-pointer"
+            >
+              Masuk Akun Member
+            </button>
+            <button 
+              type="button" 
+              id="tabBtnMemberRegister" 
+              onclick="switchMemberAuthMode('register')" 
+              class="py-2 text-xs font-extrabold rounded-xl transition-all text-slate-500 hover:text-slate-800 cursor-pointer"
+            >
+              Daftar Member Baru
+            </button>
+          </div>
+
+          <!-- Formulir Masuk / Daftar -->
+          <form id="formMemberAuth" onsubmit="handleMemberAuthSubmit(event)" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp / HP Aktif <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="bi bi-phone text-slate-400 absolute left-3 top-2.5 text-sm"></i>
+                <input 
+                  type="tel" 
+                  id="memberInputPhone" 
+                  placeholder="Contoh: 081234567890" 
+                  required 
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-emerald-600 focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- Field Nama (Hanya muncul saat daftar baru) -->
+            <div id="fieldMemberNameContainer" class="hidden">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap Member <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="bi bi-person text-slate-400 absolute left-3 top-2.5 text-sm"></i>
+                <input 
+                  type="text" 
+                  id="memberInputName" 
+                  placeholder="Contoh: Siti Rahmawati" 
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-emerald-600 focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Password / PIN Keamanan <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="bi bi-lock text-slate-400 absolute left-3 top-2.5 text-sm"></i>
+                <input 
+                  type="password" 
+                  id="memberInputPassword" 
+                  placeholder="Masukkan password atau 4 digit PIN" 
+                  required 
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-emerald-600 focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              id="btnSubmitMemberAuth"
+              class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-600 hover:to-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <i class="bi bi-box-arrow-in-right"></i>
+              <span id="btnSubmitMemberAuthText">Masuk ke Akun Member</span>
+            </button>
+          </form>
+
+          <!-- Keuntungan Member Delina -->
+          <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 text-xs space-y-2 text-amber-950">
+            <div class="font-extrabold flex items-center gap-1.5 text-amber-900">
+              <i class="bi bi-stars text-amber-500"></i>
+              <span>Keistimewaan Member VIP Delina.store:</span>
+            </div>
+            <ul class="space-y-1 text-[11px] text-amber-900/90 pl-5 list-disc">
+              <li>Setiap 1 kali transaksi berhasil (online atau kasir) mendapat 1 stempel.</li>
+              <li>Mencapai 30 stempel langsung dapat memilih 1 dari 10 Hadiah Gratis.</li>
+              <li>Stempel dihitung otomatis cukup menyebutkan nomor WhatsApp di kasir.</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- ================= VIEW 2: DASHBOARD MEMBER (JIKA SUDAH LOGIN) ================= -->
+        <div id="memberDashboardContainer" class="hidden space-y-5">
+          
+          <!-- KARTU MEMBER VIP ELEGAN ISLAMI -->
+          <div class="rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-white border-2 border-amber-400/40 shadow-xl relative overflow-hidden">
+            
+            <div class="flex items-center justify-between border-b border-emerald-800/80 pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-base font-black tracking-tight text-white">DELINA<span class="text-amber-400">.store</span></span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">VIP MEMBER</span>
+              </div>
+              <div class="text-right">
+                <span id="cardMemberName" class="text-xs font-black text-amber-300 block">Nama Member</span>
+                <span id="cardMemberPhone" class="text-[10px] text-emerald-300 font-mono">0812xxxx</span>
+              </div>
+            </div>
+
+            <!-- Grid 30 Stempel Belanja Visual -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-emerald-200 flex items-center gap-1.5">
+                  <i class="bi bi-check2-circle text-amber-400"></i>
+                  <span>Progress Stempel Belanja:</span>
+                </span>
+                <strong id="cardStampCounterText" class="font-black text-amber-400 text-sm">0 / 30</strong>
+              </div>
+
+              <!-- 30 Slot Lingkaran Stempel (Grid 10 Kolom di Layar Lebar, 6 di HP) -->
+              <div id="cardStampsGrid" class="grid grid-cols-6 sm:grid-cols-10 gap-1.5 p-3 rounded-2xl bg-black/30 border border-white/10">
+                <!-- Diisi 30 slot stempel oleh JavaScript -->
+              </div>
+            </div>
+
+            <!-- Tombol Buka Kunci Hadiah -->
+            <div class="mt-4 pt-3 border-t border-emerald-800/80">
+              <button 
+                type="button" 
+                id="btnClaimRewardUnlock"
+                onclick="scrollToRewardsSection()" 
+                class="w-full py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2"
+              >
+                <!-- Teks tombol diatur oleh JavaScript (Terkunci / Siap Klaim) -->
+              </button>
+            </div>
+
+          </div>
+
+          <!-- KATALOG 10 PILIHAN HADIAH ROYALTY -->
+          <div id="sectionRewardsCatalog" class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                <i class="bi bi-stars text-amber-500"></i>
+                <span>10 Pilihan Hadiah Bebas Pilih</span>
+              </h4>
+              <span class="text-[11px] text-slate-500 font-semibold">Tersedia untuk 30x Belanja</span>
+            </div>
+
+            <!-- Grid Kartu Hadiah -->
+            <div id="rewardsCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Diisi dinamis oleh JavaScript -->
+            </div>
+          </div>
+
+          <!-- RIWAYAT KLAIM HADIAH MEMBER -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <h4 class="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
+              <i class="bi bi-clock-history text-emerald-700"></i>
+              <span>Riwayat Klaim Hadiah Anda</span>
+            </h4>
+            <div id="memberClaimsListContainer" class="space-y-2 max-h-44 overflow-y-auto">
+              <!-- Diisi dinamis oleh JavaScript -->
+            </div>
+          </div>
+
+          <!-- Tombol Keluar Akun Member -->
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Terdaftar sejak: <strong id="memberRegisteredDateText" class="text-slate-600">-</strong></span>
+            <button 
+              type="button" 
+              onclick="handleMemberLogout()" 
+              class="text-red-500 hover:text-red-700 font-bold transition-colors cursor-pointer"
+            >
+              Keluar Akun Member
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
 

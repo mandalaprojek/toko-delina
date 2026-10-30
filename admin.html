@@ -122,7 +122,7 @@
         <i class="bi bi-shield-lock-fill"></i>
       </div>
       <h2 class="text-xl font-extrabold text-slate-900 tracking-tight text-center">Portal Manajemen Toko</h2>
-      <p class="text-xs text-slate-500 text-center mt-1">Toko ATK & Fotokopi Delina</p>
+      <p class="text-xs text-slate-500 text-center mt-1">Delina.store - ATK, Kosmetik dan Kelontongan</p>
       
       <!-- Titik Indikator PIN (4 Digit) -->
       <div id="pinDotsContainer" class="flex items-center gap-3 my-5">
@@ -256,14 +256,14 @@
             <span>Katalog & Stok</span>
           </button>
 
-          <!-- Tab 4: Tarif Fotokopi (Admin Only) -->
+          <!-- Tab 4: Member & 10 Hadiah (Admin & Kasir) -->
           <button 
-            onclick="switchTab('rates')" 
-            data-tab="rates"
-            class="admin-tab-btn admin-only-feature py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            onclick="switchTab('members')" 
+            data-tab="members"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
           >
-            <i class="bi bi-printer"></i>
-            <span>Tarif Fotokopi</span>
+            <i class="bi bi-gift"></i>
+            <span>Member & 10 Hadiah</span>
           </button>
 
           <!-- Tab 5: Kupon Diskon (Admin Only) -->
@@ -567,6 +567,28 @@
             <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-3">
               <div class="space-y-3">
+                <!-- Input Nomor HP Member Kasir (Program Loyalitas 30x Belanja) -->
+                <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/80 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1.5">
+                      <i class="bi bi-person-badge-fill text-amber-600"></i>
+                      <span>Nomor HP Member (Opsional):</span>
+                    </label>
+                    <span id="posMemberStatusBadge" class="text-[10px] font-bold text-slate-500">+1 Stempel</span>
+                  </div>
+                  <input 
+                    type="tel" 
+                    id="posMemberPhoneInput" 
+                    placeholder="Contoh: 081234567890" 
+                    oninput="handlePosMemberPhoneInput(this.value)" 
+                    class="w-full text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 focus:border-emerald-600 focus:outline-none bg-white"
+                  />
+                  <div id="posMemberInfoBox" class="hidden text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-1 rounded-md flex items-center justify-between">
+                    <span id="posMemberNameText">Member: -</span>
+                    <span id="posMemberPointsText" class="font-extrabold text-amber-900">0/30 Belanja</span>
+                  </div>
+                </div>
+
                 <div class="flex items-baseline justify-between border-b border-slate-200 pb-2">
                   <span class="text-xs font-bold text-slate-600">Total Belanja:</span>
                   <strong id="posLiveTotalText" class="text-xl sm:text-2xl font-black text-emerald-800">Rp 0</strong>
@@ -742,42 +764,113 @@
       </section>
 
       <!-- =========================================================
-           TAB 4: TARIF FOTOKOPI & CETAK KILAT (SUPER ADMIN)
+           TAB 4: KELOLA MEMBER & 10 HADIAH ROYALTY
            ========================================================= -->
-      <section id="tabContentRates" class="tab-pane hidden space-y-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs max-w-2xl mx-auto space-y-4">
-          <div class="border-b border-slate-100 pb-3">
-            <h3 class="font-extrabold text-base text-slate-800">Penyesuaian Tarif Jasa Fotokopi & Jilid</h3>
-            <p class="text-xs text-slate-500">Harga yang diubah di sini langsung tersinkron ke kalkulator fotokopi etalase pembeli.</p>
+      <section id="tabContentMembers" class="tab-pane hidden space-y-6">
+        
+        <!-- Header Info Tab Member -->
+        <div class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 p-5 rounded-2xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md border border-emerald-700/40">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider mb-1.5">
+              <i class="bi bi-gift-fill"></i> Royalty Club Delina
+            </div>
+            <h3 class="font-black text-lg text-white">Manajemen Member & 10 Hadiah Royalty</h3>
+            <p class="text-xs text-emerald-200">Setiap 30x belanja berhak mendapatkan 1 hadiah gratis. Kelola hadiah, pantau poin, dan validasi penyerahan klaim.</p>
+          </div>
+          <button 
+            type="button" 
+            onclick="refreshAdminMemberData()" 
+            class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer border border-white/20"
+          >
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>Segarkan Data</span>
+          </button>
+        </div>
+
+        <!-- 1. KELOLA 10 PILIHAN HADIAH ROYALTY -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i class="bi bi-gift text-amber-500"></i>
+              <span>10 Slot Pilihan Hadiah Royalty (30x Belanja)</span>
+            </h4>
+            <span class="text-xs text-slate-400">Total: 10 Hadiah Aktif</span>
           </div>
 
-          <form id="formRates" onsubmit="handleSaveRates(event)" class="space-y-3">
-            <div id="ratesFieldsContainer" class="space-y-3">
-              <!-- Diisi dinamis oleh JavaScript -->
-            </div>
-
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
-              <button 
-                type="button" 
-                onclick="printLembarSaktiBarcode()" 
-                class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
-                title="Cetak lembar kertas kode batang barcode jasa fotokopi & jilid untuk meja kasir"
-              >
-                <i class="bi bi-upc-scan text-amber-400"></i>
-                <span>🖨️ Cetak Lembar Sakti Barcode Kasir</span>
-              </button>
-
-              <button 
-                type="submit" 
-                id="btnSaveRates"
-                class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
-              >
-                <i class="bi bi-check2-circle"></i>
-                <span>Simpan Perubahan Tarif</span>
-              </button>
-            </div>
-          </form>
+          <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="adminRewardsContainer">
+            <!-- Diisi dinamis oleh JavaScript -->
+          </div>
         </div>
+
+        <!-- 2. DAFTAR KLAIM HADIAH PELANGGAN (VERIFIKASI PENYERAHAN) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i class="bi bi-clock-history text-emerald-700"></i>
+              <span>Daftar Klaim Hadiah Pelanggan (Serahkan Hadiah)</span>
+            </h4>
+            <span class="text-xs text-slate-500">Tunjukkan kode klaim untuk serahkan</span>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th class="p-3">Kode Klaim</th>
+                  <th class="p-3">Waktu</th>
+                  <th class="p-3">Pelanggan Member</th>
+                  <th class="p-3">Hadiah Dipilih</th>
+                  <th class="p-3">Status Pengambilan</th>
+                  <th class="p-3 text-right">Aksi Kasir / Admin</th>
+                </tr>
+              </thead>
+              <tbody id="adminClaimsTableBody" class="divide-y divide-slate-100">
+                <!-- Diisi otomatis oleh JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. DAFTAR MEMBER TERDAFTAR -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                <i class="bi bi-people-fill text-delina-emerald"></i>
+                <span>Database Member VIP Terdaftar</span>
+              </h4>
+              <p class="text-xs text-slate-500">Poin belanja bertambah otomatis setiap transaksi website & kasir.</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <i class="bi bi-search text-slate-400 absolute left-3 top-2 text-xs"></i>
+              <input 
+                type="text" 
+                id="searchMemberInput" 
+                placeholder="Cari No HP / Nama..." 
+                oninput="filterAdminMembers(this.value)"
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:border-emerald-600"
+              />
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th class="p-3">Nomor HP</th>
+                  <th class="p-3">Nama Member</th>
+                  <th class="p-3">Stempel Belanja (x/30)</th>
+                  <th class="p-3">Total Hadiah Diklaim</th>
+                  <th class="p-3">Tanggal Daftar</th>
+                </tr>
+              </thead>
+              <tbody id="adminMembersTableBody" class="divide-y divide-slate-100">
+                <!-- Diisi otomatis oleh JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </section>
 
       <!-- =========================================================
@@ -961,18 +1054,24 @@
         <input type="hidden" id="prodEditId" value="" />
         
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Nama Produk ATK</label>
-          <input type="text" id="prodEditName" placeholder="Contoh: Kertas HVS PaperOne A4 75gsm" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+          <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
+          <input type="text" id="prodEditName" placeholder="Contoh: Kertas HVS / Sunscreen / Beras" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Kategori</label>
-            <input type="text" id="prodEditCategory" placeholder="Kertas & Buku, Alat Tulis, dll." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+            <label class="block font-bold text-slate-700 mb-1">Kategori Produk</label>
+            <input type="text" id="prodEditCategory" list="categoriesListDatalist" placeholder="Pilih atau ketik kategori..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+            <datalist id="categoriesListDatalist">
+              <option value="ATK & Perlengkapan Kantor"></option>
+              <option value="Kosmetik & Perawatan Diri"></option>
+              <option value="Sembako & Kelontongan"></option>
+              <option value="Makanan & Minuman"></option>
+            </datalist>
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Satuan</label>
-            <input type="text" id="prodEditUnit" placeholder="Pcs, Rim, Pack, Lusin" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+            <input type="text" id="prodEditUnit" placeholder="Pcs, Rim, Pack, Lusin, Btl, Pouch" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
           </div>
         </div>
 
@@ -1448,11 +1547,11 @@
     // =========================================================
     function switchTab(tabId) {
       // Periksa role jika kasir mencoba akses fitur admin
-      if (userRole === "kasir" && ["dashboard", "rates", "coupons", "settings"].includes(tabId)) {
+      if (userRole === "kasir" && ["dashboard", "coupons", "settings"].includes(tabId)) {
         tabId = "pos";
       }
 
-      const tabs = ["dashboard", "pos", "products", "rates", "coupons", "settings"];
+      const tabs = ["dashboard", "pos", "products", "members", "coupons", "settings"];
       tabs.forEach(t => {
         const pane = document.getElementById(`tabContent${capitalize(t)}`);
         const btn = document.querySelector(`.admin-tab-btn[data-tab="${t}"]`);
@@ -1794,9 +1893,9 @@ ${escapeHtml(order.itemsText || "-")}
         return;
       }
 
-      const storeName = (adminData.settings && adminData.settings.NAMA_TOKO) ? adminData.settings.NAMA_TOKO : "Toko ATK & Fotokopi Delina";
+      const storeName = (adminData.settings && adminData.settings.NAMA_TOKO) ? adminData.settings.NAMA_TOKO : "Delina.store";
 
-      const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh Kak *${order.customerName}*,\n\nAlhamdulillah, pesanan ATK & Fotokopi Kakak di *${storeName}* dengan rincian:\n📋 *No. Nota:* ${order.orderId}\n💰 *Total Tagihan:* ${formatRupiah(order.total || 0)}\n\nSaat ini *SUDAH SELESAI & SIAP DIAMBIL* di toko kami.\n\nSilakan datang ke toko untuk pengambilan dan serah terima dokumen nggih kak.\n_Jazakumullah Khairan Katsiran._ 🌟`;
+      const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh Kak *${order.customerName}*,\n\nAlhamdulillah, pesanan belanja Kakak di *${storeName}* dengan rincian:\n📋 *No. Nota:* ${order.orderId}\n💰 *Total Tagihan:* ${formatRupiah(order.total || 0)}\n\nSaat ini *SUDAH SELESAI & SIAP DIAMBIL* di toko kami.\n\nSilakan datang ke toko untuk pengambilan nggih kak.\n_Jazakumullah Khairan Katsiran._ 🤲`;
 
       const waUrl = `https://wa.me/62${rawPhone}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, "_blank");
@@ -1827,8 +1926,8 @@ ${escapeHtml(order.itemsText || "-")}
 
     function generateReceiptHtml(order) {
       const s = adminData.settings || {};
-      const storeName = s.NAMA_TOKO || "TOKO ATK & FOTOKOPI DELINA";
-      const slogan = s.SLOGAN_TOKO || "Lengkap, Murah & Berkah";
+      const storeName = s.NAMA_TOKO || "DELINA.STORE";
+      const slogan = s.SLOGAN_TOKO || "ATK, Kosmetik dan Kelontongan";
       const wa = s.NO_WA_TOKO || "0812-3456-7890";
       const alamat = s.ALAMAT_TOKO || "";
 
@@ -3340,7 +3439,7 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     // Cetak Struk Bluetooth Thermal dari Keranjang Kasir
-    function printPosCartBluetooth() {
+    function printPosCartBluetooth(memberPhoneArg) {
       if (posLiveCart.length === 0) {
         alert("Keranjang kasir masih kosong. Scan barang terlebih dahulu.");
         return;
@@ -3359,7 +3458,8 @@ ${escapeHtml(order.itemsText || "-")}
         })),
         total: totalPrice,
         discountAmount: 0,
-        paymentMethod: posSelectedPayMethod === "Tunai" ? "Tunai Kasir" : "QRIS Toko"
+        paymentMethod: posSelectedPayMethod === "Tunai" ? "Tunai Kasir" : "QRIS Toko",
+        memberPhone: memberPhoneArg || (document.getElementById("posMemberPhoneInput") ? document.getElementById("posMemberPhoneInput").value.trim() : "")
       };
 
       if (typeof printReceiptViaBluetooth === "function") {
@@ -3369,8 +3469,8 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
-    // Selesaikan Transaksi Kasir
-    function submitPosDirectTransaction() {
+    // Selesaikan Transaksi Kasir (Kirim ke GAS & Tambah Poin Member)
+    async function submitPosDirectTransaction() {
       if (posLiveCart.length === 0) {
         alert("Keranjang kasir masih kosong.");
         return;
@@ -3378,26 +3478,59 @@ ${escapeHtml(order.itemsText || "-")}
 
       const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
       const totalItems = posLiveCart.reduce((sum, i) => sum + i.qty, 0);
+      const memberPhone = (document.getElementById("posMemberPhoneInput") ? document.getElementById("posMemberPhoneInput").value.trim() : "");
+      let memberNote = memberPhone ? `\n• Member WhatsApp: ${memberPhone} (+1 Stempel)` : "";
 
       const confirmDone = confirm(
         `Selesaikan transaksi kasir?\n\n` +
         `• Total Item: ${totalItems} pcs\n` +
         `• Total Tagihan: ${formatRupiah(totalPrice)}\n` +
-        `• Pembayaran: ${posSelectedPayMethod}\n\n` +
-        `Klik OK untuk menyimpan & mencetak struk.`
+        `• Pembayaran: ${posSelectedPayMethod}${memberNote}\n\n` +
+        `Klik OK untuk menyimpan ke database Google Sheets & mencetak struk.`
       );
       if (!confirmDone) return;
+
+      const orderId = `#POS-${Date.now().toString().slice(-4)}`;
+      const orderTime = new Date().toLocaleString("id-ID");
+
+      // Kirim transaksi kasir ke backend GAS
+      try {
+        fetch(CONFIG.GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "createPosOrder",
+            pin: currentUserPin,
+            orderId: orderId,
+            orderTime: orderTime,
+            customerName: "Pelanggan Kasir Toko",
+            memberPhone: memberPhone,
+            items: posLiveCart,
+            total: totalPrice,
+            paymentMethod: posSelectedPayMethod === "Tunai" ? "Tunai Kasir" : "QRIS Toko"
+          })
+        }).then(r => r.json()).then(resJson => {
+          if (resJson.status === "success" && resJson.member) {
+            showToastAdmin(`Alhamdulillah! +1 Stempel ditambahkan ke ${resJson.member.name} (${resJson.member.belanjaCount}/30)`);
+            fetchAdminData();
+          }
+        }).catch(err => console.warn("Notice POS GAS sync:", err));
+      } catch (err) {}
 
       beepSuccess();
       showToastAdmin(`Alhamdulillah, transaksi ${formatRupiah(totalPrice)} selesai!`);
 
-      // Cetak Bluetooth otomatis jika diinginkan
-      printPosCartBluetooth();
+      // Cetak Bluetooth
+      printPosCartBluetooth(memberPhone);
 
-      // Kosongkan keranjang
+      // Kosongkan keranjang & reset input
       posLiveCart = [];
       const cashInput = document.getElementById("posCashReceivedInput");
       if (cashInput) cashInput.value = "";
+      const memberInput = document.getElementById("posMemberPhoneInput");
+      if (memberInput) memberInput.value = "";
+      const memberInfo = document.getElementById("posMemberInfoBox");
+      if (memberInfo) memberInfo.classList.add("hidden");
       renderPosLiveCart();
     }
 
@@ -3446,7 +3579,7 @@ ${escapeHtml(order.itemsText || "-")}
 
           <!-- Footer -->
           <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #64748b; border-top: 1px dashed #cbd5e1; pt: 6px;">
-            Sistem Kasir Pintar Toko Delina ATK & Fotokopi • Format Barcode CODE128 Standar Scanner Kamera
+            Sistem Kasir Pintar Delina.store • ATK, Kosmetik dan Kelontongan
           </div>
         </div>
       `;
@@ -3623,5 +3756,314 @@ ${escapeHtml(order.itemsText || "-")}
       }, 300);
     }
   </script>
+
+  <!-- =========================================================
+       MODAL EDIT HADIAH ROYALTY
+       ========================================================= -->
+  <div id="modalEditReward" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <h4 class="font-extrabold text-sm flex items-center gap-2">
+          <i class="bi bi-pencil-square text-amber-400"></i>
+          <span>Edit Pilihan Hadiah Royalty</span>
+        </h4>
+        <button type="button" onclick="closeEditRewardModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <form id="formEditReward" onsubmit="handleSaveRewardSubmit(event)" class="p-4 space-y-3 text-xs">
+        <input type="hidden" id="editRewardId" />
+        
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Hadiah</label>
+          <input type="text" id="editRewardName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">URL Foto Hadiah</label>
+          <input type="url" id="editRewardImage" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Stok Hadiah (Pcs)</label>
+            <input type="number" id="editRewardStock" min="0" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Status Hadiah</label>
+            <select id="editRewardStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600">
+              <option value="AKTIF">AKTIF</option>
+              <option value="NONAKTIF">NONAKTIF</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Deskripsi Singkat</label>
+          <textarea id="editRewardDesc" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeEditRewardModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">
+            Batal
+          </button>
+          <button type="submit" id="btnSaveRewardSubmit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold shadow-md">
+            Simpan Hadiah
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+
+    // =========================================================
+    // 17. LOGIKA MANAJEMEN MEMBER & 10 HADIAH ROYALTY DI ADMIN
+    // =========================================================
+    let adminMembersList = [];
+    let adminRewardsList = [];
+    let adminClaimsList = [];
+
+    function refreshAdminMemberData() {
+      if (typeof fetchAdminData === "function") {
+        fetchAdminData();
+      }
+    }
+
+    function renderAdminRewards() {
+      const container = document.getElementById("adminRewardsContainer");
+      if (!container) return;
+
+      if (!adminRewardsList || adminRewardsList.length === 0) {
+        container.innerHTML = `<div class="col-span-3 text-slate-400 text-center py-6">Memuat daftar hadiah...</div>`;
+        return;
+      }
+
+      container.innerHTML = adminRewardsList.map(r => `
+        <div class="p-3 rounded-2xl border border-slate-200/90 bg-slate-50 hover:bg-white hover:border-amber-400 hover:shadow-md transition-all flex gap-3 items-center">
+          <img src="${r.imageUrl}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">${r.id}</span>
+              <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded ${r.status === 'AKTIF' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r.status}</span>
+            </div>
+            <h5 class="text-xs font-black text-slate-800 truncate mt-1" title="${r.name}">${r.name}</h5>
+            <div class="text-[11px] font-bold text-slate-600">Stok: <strong class="${r.stock <= 5 ? 'text-red-600' : 'text-emerald-700'}">${r.stock} pcs</strong></div>
+            <button 
+              type="button" 
+              onclick="openEditRewardModal('${r.id}')" 
+              class="mt-1.5 px-3 py-1 rounded-lg bg-slate-900 hover:bg-black text-white text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
+            >
+              <i class="bi bi-pencil"></i> Edit Hadiah
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderAdminClaims() {
+      const tbody = document.getElementById("adminClaimsTableBody");
+      if (!tbody) return;
+
+      if (!adminClaimsList || adminClaimsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Belum ada klaim hadiah yang masuk.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = adminClaimsList.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-mono font-black text-delina-emerald">${c.claimId}</td>
+          <td class="p-3 text-slate-500">${c.time}</td>
+          <td class="p-3">
+            <div class="font-extrabold text-slate-800">${c.memberName}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${c.phone}</div>
+          </td>
+          <td class="p-3 font-semibold text-slate-800">${c.rewardName}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${c.status === 'Sudah Diserahkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">
+              ${c.status}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            ${c.status !== 'Sudah Diserahkan' ? `
+              <button 
+                type="button" 
+                onclick="verifyMemberClaim('${c.claimId}')" 
+                class="px-3 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1 ml-auto"
+              >
+                <i class="bi bi-check2-circle"></i>
+                <span>Serahkan Hadiah</span>
+              </button>
+            ` : `
+              <span class="text-[11px] text-slate-400 font-bold italic">Selesai</span>
+            `}
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderAdminMembers(filterList) {
+      const tbody = document.getElementById("adminMembersTableBody");
+      if (!tbody) return;
+
+      const list = filterList || adminMembersList;
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Tidak ada member ditemukan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(m => {
+        const count = Number(m.belanjaCount) || 0;
+        const progress = Math.min(100, Math.round((count / 30) * 100));
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-mono font-bold text-slate-700">${m.phone}</td>
+            <td class="p-3 font-extrabold text-slate-800">${m.name}</td>
+            <td class="p-3">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-xs ${count >= 30 ? 'text-amber-600 font-extrabold' : 'text-slate-700'}">${count}/30</span>
+                <div class="w-20 bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <div class="h-full ${count >= 30 ? 'bg-amber-400' : 'bg-emerald-600'}" style="width: ${progress}%"></div>
+                </div>
+                ${count >= 30 ? '<span class="text-[10px] font-black text-amber-600">🎉 Hadiah Terbuka!</span>' : ''}
+              </div>
+            </td>
+            <td class="p-3 font-bold text-slate-700">${m.totalClaimed || 0} Hadiah</td>
+            <td class="p-3 text-slate-500">${m.registeredAt || '-'}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function filterAdminMembers(q) {
+      const cleanQ = String(q || "").toLowerCase().trim();
+      if (!cleanQ) {
+        renderAdminMembers();
+        return;
+      }
+      const filtered = adminMembersList.filter(m => 
+        (m.phone && m.phone.toLowerCase().includes(cleanQ)) ||
+        (m.name && m.name.toLowerCase().includes(cleanQ))
+      );
+      renderAdminMembers(filtered);
+    }
+
+    function openEditRewardModal(rewardId) {
+      const r = adminRewardsList.find(item => item.id === rewardId);
+      if (!r) return;
+
+      document.getElementById("editRewardId").value = r.id;
+      document.getElementById("editRewardName").value = r.name || "";
+      document.getElementById("editRewardImage").value = r.imageUrl || "";
+      document.getElementById("editRewardStock").value = r.stock || 0;
+      document.getElementById("editRewardStatus").value = r.status || "AKTIF";
+      document.getElementById("editRewardDesc").value = r.description || "";
+
+      document.getElementById("modalEditReward").classList.remove("hidden");
+    }
+
+    function closeEditRewardModal() {
+      const modal = document.getElementById("modalEditReward");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    async function handleSaveRewardSubmit(event) {
+      event.preventDefault();
+      const id = document.getElementById("editRewardId").value;
+      const name = document.getElementById("editRewardName").value.trim();
+      const imageUrl = document.getElementById("editRewardImage").value.trim();
+      const stock = Number(document.getElementById("editRewardStock").value) || 0;
+      const status = document.getElementById("editRewardStatus").value;
+      const description = document.getElementById("editRewardDesc").value.trim();
+      const btn = document.getElementById("btnSaveRewardSubmit");
+
+      btn.disabled = true;
+      btn.textContent = "Menyimpan...";
+
+      try {
+        const res = await fetch(CONFIG.GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "saveReward",
+            pin: currentUserPin,
+            idHadiah: id,
+            name: name,
+            imageUrl: imageUrl,
+            stock: stock,
+            status: status,
+            description: description
+          })
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          showToastAdmin("Alhamdulillah, data hadiah berhasil diperbarui!");
+          closeEditRewardModal();
+          fetchAdminData();
+        } else {
+          alert(json.message || "Gagal menyimpan hadiah.");
+        }
+      } catch (err) {
+        alert("Terjadi kendala jaringan saat menyimpan hadiah.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Simpan Hadiah";
+      }
+    }
+
+    async function verifyMemberClaim(claimId) {
+      const confirmVerify = confirm(`Validasi penyerahan hadiah untuk Kode Klaim "${claimId}"?\n\nStatus akan diubah menjadi "Sudah Diserahkan".`);
+      if (!confirmVerify) return;
+
+      try {
+        const res = await fetch(CONFIG.GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "verifyClaim",
+            pin: currentUserPin,
+            claimId: claimId,
+            status: "Sudah Diserahkan"
+          })
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          showToastAdmin("✅ Penyerahan hadiah berhasil divalidasi!");
+          fetchAdminData();
+        } else {
+          alert(json.message || "Gagal memverifikasi klaim.");
+        }
+      } catch (err) {
+        alert("Terjadi kendala jaringan saat validasi klaim.");
+      }
+    }
+
+    function handlePosMemberPhoneInput(val) {
+      const clean = String(val || "").trim().replace(/\D/g, "");
+      const badge = document.getElementById("posMemberStatusBadge");
+      const infoBox = document.getElementById("posMemberInfoBox");
+      const nameText = document.getElementById("posMemberNameText");
+      const pointsText = document.getElementById("posMemberPointsText");
+
+      if (!clean) {
+        if (badge) badge.textContent = "+1 Stempel";
+        if (infoBox) infoBox.classList.add("hidden");
+        return;
+      }
+
+      // Cari di data member lokal
+      const found = adminMembersList.find(m => m.phone && m.phone.replace(/\D/g, "").endsWith(clean.slice(-8)));
+      if (found) {
+        if (badge) badge.textContent = "✅ Terdaftar";
+        if (nameText) nameText.textContent = "Member: " + found.name;
+        if (pointsText) pointsText.textContent = found.belanjaCount + "/30 Belanja";
+        if (infoBox) infoBox.classList.remove("hidden");
+      } else {
+        if (badge) badge.textContent = "🌟 Member Baru";
+        if (nameText) nameText.textContent = "Otomatis didaftarkan";
+        if (pointsText) pointsText.textContent = "+1 Belanja";
+        if (infoBox) infoBox.classList.remove("hidden");
+      }
+    }
+</script>
 </body>
 </html>
