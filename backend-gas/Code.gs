@@ -1773,6 +1773,44 @@ function hitungRingkasanDashboard(orders, products) {
     }
   });
 
+  // Hitung Omzet Mingguan (Senin s/d Minggu)
+  const dayOfWeek = now.getDay();
+  const distanceToMonday = (dayOfWeek + 6) % 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - distanceToMonday);
+  monday.setHours(0, 0, 0, 0);
+
+  const daysOfWeek = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+  const weeklyOmzet = daysOfWeek.map((dayName, idx) => {
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + idx);
+    const dateSlash = Utilities.formatDate(targetDate, "Asia/Jakarta", "dd/MM/yyyy");
+    const dateDash = Utilities.formatDate(targetDate, "Asia/Jakarta", "yyyy-MM-dd");
+    const dateIndo = `${targetDate.getDate()} ${monthNamesId[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+    const isCurrentDay = targetDate.toDateString() === now.toDateString();
+
+    let dayTotal = 0;
+    let dayCount = 0;
+
+    orders.forEach(o => {
+      const t = String(o.orderTime || "");
+      const matched = t.includes(dateSlash) || t.includes(dateDash) || t.includes(dateIndo);
+      const st = (o.orderStatus || "").toLowerCase();
+      if (matched && !st.includes("batal")) {
+        dayTotal += (Number(o.total) || 0);
+        dayCount++;
+      }
+    });
+
+    return {
+      day: dayName,
+      dateFormatted: Utilities.formatDate(targetDate, "Asia/Jakarta", "dd/MM"),
+      total: dayTotal,
+      orderCount: dayCount,
+      isToday: isCurrentDay
+    };
+  });
+
   const lowStockProducts = products.filter(p => Number(p.stock) <= 3);
 
   return {
@@ -1786,7 +1824,8 @@ function hitungRingkasanDashboard(orders, products) {
     lowStockCount: lowStockProducts.length,
     lowStockItems: lowStockProducts.slice(0, 10),
     totalProduk: products.length,
-    totalPesanan: orders.length
+    totalPesanan: orders.length,
+    weeklyOmzet: weeklyOmzet
   };
 }
 
