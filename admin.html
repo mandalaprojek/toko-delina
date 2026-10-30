@@ -502,9 +502,22 @@
             <div class="flex items-center justify-between text-white pb-2 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-                <strong class="text-xs text-emerald-400 uppercase tracking-wider font-extrabold">Continuous Scan Aktif (Kamera Belakang)</strong>
+                <strong class="text-xs text-emerald-400 uppercase tracking-wider font-extrabold">Continuous Scan Aktif</strong>
               </div>
-              <span id="posScanCooldownText" class="text-[11px] font-mono text-amber-300">Siap Scan (Jeda 1.5s per item)</span>
+              <div class="flex items-center gap-2">
+                <!-- Tombol Flash Kasir POS -->
+                <button 
+                  type="button" 
+                  id="btnPosTorch"
+                  onclick="togglePosTorch()" 
+                  class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
+                  title="Nyalakan lampu flash kamera kasir"
+                >
+                  <i id="posTorchIcon" class="bi bi-lightning-charge"></i>
+                  <span id="posTorchText">Flash</span>
+                </button>
+                <span id="posScanCooldownText" class="text-[11px] font-mono text-amber-300">Siap Scan (Jeda 1.5s)</span>
+              </div>
             </div>
             <div id="pos-continuous-qr-reader" class="w-full max-w-md mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black aspect-video flex items-center justify-center"></div>
             <p class="text-[11px] text-slate-400">
@@ -1103,20 +1116,37 @@
             <p class="text-[11px] text-slate-400">Arahkan kamera ke barcode kemasan ATK</p>
           </div>
         </div>
-        <button onclick="closeProductBarcodeScannerModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
-          <i class="bi bi-x-lg"></i>
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- Tombol Aktifkan Flash (Torch) & Autofocus Cepat -->
+          <button 
+            type="button" 
+            id="btnProductTorch"
+            onclick="toggleProductTorch()" 
+            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+            title="Nyalakan lampu flash kamera agar cepat fokus di tempat minim cahaya"
+          >
+            <i id="productTorchIcon" class="bi bi-lightning-charge"></i>
+            <span id="productTorchText">Nyalakan Flash</span>
+          </button>
+          <button onclick="closeProductBarcodeScannerModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
       </div>
 
       <div class="p-4 space-y-3 text-center">
         <div id="product-qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center"></div>
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-left text-xs space-y-1">
-          <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-            <i class="bi bi-info-circle-fill"></i>
-            <span>Logika Cerdas:</span>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+              <i class="bi bi-lightning-charge-fill text-amber-400"></i>
+              <span>Auto-Focus & Flash Aktif</span>
+            </div>
+            <span class="text-[10px] text-slate-400">Gemini 3.8 Flash AI</span>
           </div>
           <p class="text-slate-300 text-[11px] leading-relaxed">
-            • Jika barcode <strong>belum ada</strong>: Langsung buka form "Tambah Produk" dengan SKU terisi otomatis.<br>
+            • Jika minim cahaya, tekan tombol <strong>Nyalakan Flash</strong> di atas untuk fokus cepat.<br>
+            • Jika barcode <strong>belum ada</strong>: Gemini 3.8 Flash & Open Food Facts otomatis mengisi nama & foto barang.<br>
             • Jika barcode <strong>sudah ada</strong>: Langsung buka form cepat "Tambah Stok Masuk (+N)".
           </p>
         </div>
@@ -1127,6 +1157,33 @@
           Batal & Tutup Kamera
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6b. MODAL LOADING IDENTIFIKASI BARCODE (GEMINI 3.8 FLASH + TIMEOUT)
+       ========================================================================= -->
+  <div id="barcodeLookupLoadingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-emerald-500/30 animate-fadeIn">
+      <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+        <div class="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+        <i class="bi bi-upc-scan absolute text-emerald-600 text-2xl"></i>
+      </div>
+      <div>
+        <h4 class="font-extrabold text-base text-slate-800">Mengidentifikasi Barcode</h4>
+        <p id="barcodeLookupCodeText" class="font-mono text-xs text-emerald-700 font-bold bg-emerald-50 py-1 px-3 rounded-full inline-block mt-1">...</p>
+      </div>
+      <div class="text-xs text-slate-500 space-y-1">
+        <p class="flex items-center justify-center gap-1.5 text-slate-700 font-bold">
+          <i class="bi bi-cpu-fill text-emerald-600"></i>
+          <span>Model Google: <strong>Gemini 3.8 Flash</strong></span>
+        </p>
+        <p class="text-[11px] text-slate-400">Mencari nama merek, spesifikasi & foto barang...</p>
+      </div>
+      <button type="button" onclick="cancelBarcodeLookupAndOpenManual()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+        <i class="bi bi-pencil-square"></i>
+        <span>Lewati & Langsung Isi Manual</span>
+      </button>
     </div>
   </div>
 
@@ -1224,7 +1281,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbzY3U-QhtVGk6kJs5b8dnZvrUGoKeBFbGsKm_MJVqta7LxJf1DZtqQkxHhH4e5y1LDChA/exec";
+      : "https://script.google.com/macros/s/AKfycbwm45LTtFbdt2_A6NdvZ_5-g5897b-Axg5Z-fMREG2Id1buZYa91iq2Hh3Kdk5wf7x1fg/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -2469,6 +2526,104 @@ ${escapeHtml(order.itemsText || "-")}
     let productBarcodeScanner = null;
     let isProductScannerRunning = false;
     let activeRestockProduct = null;
+    let isProductTorchOn = false;
+    let isPosTorchOn = false;
+    let currentLookupBarcode = "";
+    let isLookupCancelled = false;
+
+    function getSupportedBarcodeFormats() {
+      if (typeof Html5QrcodeSupportedFormats !== "undefined") {
+        return [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.QR_CODE
+        ];
+      }
+      return undefined;
+    }
+
+    async function toggleProductTorch() {
+      const videoEl = document.querySelector("#product-qr-reader video");
+      const btn = document.getElementById("btnProductTorch");
+      const icon = document.getElementById("productTorchIcon");
+      const text = document.getElementById("productTorchText");
+
+      if (!videoEl || !videoEl.srcObject) {
+        showToastAdmin("Kamera scanner belum aktif.");
+        return;
+      }
+      const track = videoEl.srcObject.getVideoTracks()[0];
+      if (!track) return;
+
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (!caps.torch) {
+        showToastAdmin("Perangkat ini tidak memiliki senter flash fisik.");
+        return;
+      }
+
+      isProductTorchOn = !isProductTorchOn;
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: isProductTorchOn, focusMode: "continuous" }]
+        });
+        if (isProductTorchOn) {
+          if (btn) btn.className = "px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95";
+          if (text) text.innerText = "Matikan Flash";
+          if (icon) icon.className = "bi bi-lightning-charge-fill animate-pulse";
+          showToastAdmin("⚡ Lampu Flash Aktif & Auto-Focus Terkunci!");
+        } else {
+          if (btn) btn.className = "px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95";
+          if (text) text.innerText = "Nyalakan Flash";
+          if (icon) icon.className = "bi bi-lightning-charge";
+        }
+      } catch (e) {
+        console.warn("Gagal toggle torch:", e);
+        showToastAdmin("Flash tidak dapat diaktifkan pada browser ini.");
+      }
+    }
+
+    async function togglePosTorch() {
+      const videoEl = document.querySelector("#pos-continuous-qr-reader video");
+      const btn = document.getElementById("btnPosTorch");
+      const icon = document.getElementById("posTorchIcon");
+      const text = document.getElementById("posTorchText");
+
+      if (!videoEl || !videoEl.srcObject) {
+        showToastAdmin("Kamera kasir belum aktif.");
+        return;
+      }
+      const track = videoEl.srcObject.getVideoTracks()[0];
+      if (!track) return;
+
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (!caps.torch) {
+        showToastAdmin("Perangkat tidak mendukung fitur flash senter.");
+        return;
+      }
+
+      isPosTorchOn = !isPosTorchOn;
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: isPosTorchOn, focusMode: "continuous" }]
+        });
+        if (isPosTorchOn) {
+          if (btn) btn.className = "px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-[11px] font-black flex items-center gap-1 transition-all cursor-pointer shadow-md active:scale-95";
+          if (text) text.innerText = "Mati";
+          if (icon) icon.className = "bi bi-lightning-charge-fill animate-pulse";
+          showToastAdmin("⚡ Flash Kasir Nyala");
+        } else {
+          if (btn) btn.className = "px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95";
+          if (text) text.innerText = "Flash";
+          if (icon) icon.className = "bi bi-lightning-charge";
+        }
+      } catch (e) {
+        console.warn("Gagal toggle pos torch:", e);
+      }
+    }
 
     function openProductBarcodeScannerModal() {
       const modal = document.getElementById("productBarcodeScannerModal");
@@ -2485,10 +2640,18 @@ ${escapeHtml(order.itemsText || "-")}
         try { productBarcodeScanner.clear(); } catch (e) {}
       }
 
-      productBarcodeScanner = new Html5Qrcode("product-qr-reader");
+      const formats = getSupportedBarcodeFormats();
+      productBarcodeScanner = formats 
+        ? new Html5Qrcode("product-qr-reader", { formatsToSupport: formats, verbose: false })
+        : new Html5Qrcode("product-qr-reader");
+
       const scanConfig = {
-        fps: 12,
-        qrbox: { width: 280, height: 160 },
+        fps: 20, // 20 FPS untuk pembacaan instan
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const width = Math.min(Math.floor(viewfinderWidth * 0.88), 340);
+          const height = Math.floor(width * 0.45); // Rasio persegi panjang khusus 1D barcode kemasan
+          return { width, height };
+        },
         aspectRatio: 1.777778
       };
 
@@ -2504,6 +2667,16 @@ ${escapeHtml(order.itemsText || "-")}
         }
       ).then(() => {
         isProductScannerRunning = true;
+        // Picu auto-focus hardware continuous
+        setTimeout(() => {
+          try {
+            const v = document.querySelector("#product-qr-reader video");
+            const track = v && v.srcObject && v.srcObject.getVideoTracks()[0];
+            if (track && track.applyConstraints) {
+              track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+            }
+          } catch (e) {}
+        }, 300);
       }).catch(err => {
         console.error("Gagal membuka kamera:", err);
         alert(
@@ -2518,6 +2691,15 @@ ${escapeHtml(order.itemsText || "-")}
       const modal = document.getElementById("productBarcodeScannerModal");
       if (modal) modal.classList.add("hidden");
 
+      // Reset flash state
+      isProductTorchOn = false;
+      const btn = document.getElementById("btnProductTorch");
+      const icon = document.getElementById("productTorchIcon");
+      const text = document.getElementById("productTorchText");
+      if (btn) btn.className = "px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95";
+      if (text) text.innerText = "Nyalakan Flash";
+      if (icon) icon.className = "bi bi-lightning-charge";
+
       if (productBarcodeScanner && isProductScannerRunning) {
         productBarcodeScanner.stop().then(() => {
           productBarcodeScanner.clear();
@@ -2527,6 +2709,33 @@ ${escapeHtml(order.itemsText || "-")}
           isProductScannerRunning = false;
         });
       }
+    }
+
+    function showBarcodeLookupModal(barcode) {
+      currentLookupBarcode = barcode;
+      isLookupCancelled = false;
+      const modal = document.getElementById("barcodeLookupLoadingModal");
+      const text = document.getElementById("barcodeLookupCodeText");
+      if (text) text.innerText = barcode;
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function hideBarcodeLookupModal() {
+      const modal = document.getElementById("barcodeLookupLoadingModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function cancelBarcodeLookupAndOpenManual() {
+      isLookupCancelled = true;
+      hideBarcodeLookupModal();
+      openAddProductModal();
+      const idInput = document.getElementById("prodEditId");
+      if (idInput && currentLookupBarcode) idInput.value = currentLookupBarcode;
+      showToastAdmin(`Barcode ${currentLookupBarcode} siap diisi secara manual.`);
+      setTimeout(() => {
+        const nameInput = document.getElementById("prodEditName");
+        if (nameInput) nameInput.focus();
+      }, 300);
     }
 
     async function handleProductBarcodeDetected(barcodeText) {
@@ -2549,18 +2758,31 @@ ${escapeHtml(order.itemsText || "-")}
         return;
       }
 
-      // Animasi Loading Pencarian Identitas Produk
-      showToastAdmin(`🔍 Mencari identitas produk dari barcode ${barcode}...`);
+      // Tampilkan Modal Loading Elegan (Gemini 3.8 Flash)
+      showBarcodeLookupModal(barcode);
 
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       let lookupResult = null;
 
-      try {
-        const res = await fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(barcode)}&pin=${encodeURIComponent(pin)}`);
-        lookupResult = await res.json();
-      } catch (err) {
-        console.warn("Gagal auto-lookup barcode online, menggunakan fallback lokal:", err);
-      }
+      // Timeout protektif 4 detik agar proses TIDAK PERNAH MACET
+      const timeoutPromise = new Promise((resolve) => {
+        setTimeout(() => resolve({ status: "timeout", message: "Timeout" }), 4000);
+      });
+
+      const fetchPromise = (async () => {
+        try {
+          const res = await fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(barcode)}&pin=${encodeURIComponent(pin)}`);
+          return await res.json();
+        } catch (err) {
+          console.warn("Gagal auto-lookup barcode online, menggunakan fallback lokal:", err);
+          return { status: "error", message: err.message };
+        }
+      })();
+
+      lookupResult = await Promise.race([fetchPromise, timeoutPromise]);
+
+      if (isLookupCancelled) return;
+      hideBarcodeLookupModal();
 
       // 1. Jika Backend menemukan bahwa produk ternyata SUDAH ADA di Sheet 'Produk'
       if (lookupResult && lookupResult.status === "existing" && lookupResult.product) {
@@ -2583,9 +2805,9 @@ ${escapeHtml(order.itemsText || "-")}
       // Auto-fill Barcode / SKU
       if (idInput) idInput.value = barcode;
 
-      if (lookupResult && lookupResult.status === "success") {
-        // Auto-fill Nama Produk resmi dari OpenFoodFacts / Gemini
-        if (nameInput && lookupResult.nama) {
+      if (lookupResult && lookupResult.status === "success" && lookupResult.nama) {
+        // Auto-fill Nama Produk resmi dari Gemini 3.8 Flash / OpenFoodFacts
+        if (nameInput) {
           nameInput.value = lookupResult.nama;
         }
 
@@ -2615,9 +2837,9 @@ ${escapeHtml(order.itemsText || "-")}
           descInput.value = `Produk ${lookupResult.nama || barcode} original berkualitas.`;
         }
 
-        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}"! Silakan masukkan harga.`);
+        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}" (${lookupResult.source || 'Gemini 3.8 Flash'})!`);
       } else {
-        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi detail barang.`);
+        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi harga & detail.`);
       }
 
       // Kursor otomatis FOKUS ke Harga Jual (Rp) sehingga kasir tinggal ketik harga!
@@ -2727,6 +2949,13 @@ ${escapeHtml(order.itemsText || "-")}
           posContinuousScanner.stop().then(() => {
             posContinuousScanner.clear();
             isPosCameraActive = false;
+            isPosTorchOn = false;
+            const btnTorch = document.getElementById("btnPosTorch");
+            const iconTorch = document.getElementById("posTorchIcon");
+            const textTorch = document.getElementById("posTorchText");
+            if (btnTorch) btnTorch.className = "px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95";
+            if (textTorch) textTorch.innerText = "Flash";
+            if (iconTorch) iconTorch.className = "bi bi-lightning-charge";
             container.classList.add("hidden");
             if (badge) {
               badge.innerText = "Kamera Nonaktif";
@@ -2737,6 +2966,7 @@ ${escapeHtml(order.itemsText || "-")}
             console.warn("Gagal matikan kamera kasir:", err);
             container.classList.add("hidden");
             isPosCameraActive = false;
+            isPosTorchOn = false;
           });
         }
       } else {
@@ -2753,10 +2983,18 @@ ${escapeHtml(order.itemsText || "-")}
           return;
         }
 
-        posContinuousScanner = new Html5Qrcode("pos-continuous-qr-reader");
+        const formats = getSupportedBarcodeFormats();
+        posContinuousScanner = formats 
+          ? new Html5Qrcode("pos-continuous-qr-reader", { formatsToSupport: formats, verbose: false })
+          : new Html5Qrcode("pos-continuous-qr-reader");
+
         const scanConfig = {
-          fps: 12,
-          qrbox: { width: 300, height: 180 },
+          fps: 20, // 20 FPS untuk scan cepat kasir
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const width = Math.min(Math.floor(viewfinderWidth * 0.88), 340);
+            const height = Math.floor(width * 0.45);
+            return { width, height };
+          },
           aspectRatio: 1.777778
         };
 
@@ -2772,6 +3010,16 @@ ${escapeHtml(order.itemsText || "-")}
           }
         ).then(() => {
           isPosCameraActive = true;
+          // Picu auto-focus hardware continuous
+          setTimeout(() => {
+            try {
+              const v = document.querySelector("#pos-continuous-qr-reader video");
+              const track = v && v.srcObject && v.srcObject.getVideoTracks()[0];
+              if (track && track.applyConstraints) {
+                track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+              }
+            } catch (e) {}
+          }, 300);
         }).catch(err => {
           console.error("Gagal membuka kamera kasir:", err);
           alert(

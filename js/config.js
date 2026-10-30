@@ -3,7 +3,7 @@
  */
 const CONFIG = {
   // URL Web App Google Apps Script Hasil Deploy Resmi
-  GAS_API_URL: "https://script.google.com/macros/s/AKfycbzY3U-QhtVGk6kJs5b8dnZvrUGoKeBFbGsKm_MJVqta7LxJf1DZtqQkxHhH4e5y1LDChA/exec",
+  GAS_API_URL: "https://script.google.com/macros/s/AKfycbwm45LTtFbdt2_A6NdvZ_5-g5897b-Axg5Z-fMREG2Id1buZYa91iq2Hh3Kdk5wf7x1fg/exec",
   
   // Informasi Toko
   STORE_NAME: "Toko ATK & Fotokopi Delina",

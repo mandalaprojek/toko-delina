@@ -1720,7 +1720,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
+    const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -2214,7 +2214,7 @@ function prosesLookupBarcode(barcode, ss) {
     if (geminiApiKey) {
       const promptAI = `Sebutkan nama lengkap produk dagang Indonesia, merek, dan kategori yang memiliki barcode/EAN: ${cleanBarcode}. Kembalikan HANYA format JSON murni: {"nama": "...", "kategori": "...", "satuan": "Pcs"} tanpa markdown.`;
       
-      const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
+      const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
       for (let m = 0; m < models.length; m++) {
         const modelName = models[m];
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
