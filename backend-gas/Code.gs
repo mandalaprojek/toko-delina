@@ -369,6 +369,16 @@ function doGet(e) {
       }
     }
 
+    // 3d. API Auto-Lookup Barcode Produk (Open Food Facts + Gemini AI Fallback)
+    if (action === "lookupBarcode") {
+      const barcode = (e && e.parameter && (e.parameter.barcode || e.parameter.code || "")).trim();
+      if (!barcode) {
+        return createJsonResponse({ status: "error", message: "Parameter barcode wajib diisi." });
+      }
+      const result = prosesLookupBarcode(barcode, ss);
+      return createJsonResponse(result);
+    }
+
     // 4. API LOGIN ADMIN / KASIR
     if (action === "loginAdmin") {
       const auth = validatePin(pin, ss);
@@ -853,6 +863,16 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
         message: "Alhamdulillah! 50 Data dummy pesanan, produk bundling, dan tarif berhasil digenerate.",
         data: res
       });
+    }
+
+    // 4.0b API Auto-Lookup Barcode Produk
+    if (action === "lookupBarcode") {
+      const barcode = String(payload.barcode || payload.code || "").trim();
+      if (!barcode) {
+        return createJsonResponse({ status: "error", message: "Parameter barcode wajib diisi." });
+      }
+      const result = prosesLookupBarcode(barcode, ss);
+      return createJsonResponse(result);
     }
 
     // 4.1 Login Admin / Kasir
@@ -1700,7 +1720,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-2.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
+    const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -2115,4 +2135,173 @@ function kurangiStokProduk(sheetProduk, items) {
 function createJsonResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * =========================================================================
+ * 8. AUTO-LOOKUP BARCODE PRODUK (OPEN FOOD FACTS + GEMINI AI FALLBACK)
+ * =========================================================================
+ */
+function prosesLookupBarcode(barcode, ss) {
+  if (!barcode) {
+    return { status: "error", message: "Barcode tidak valid." };
+  }
+  const cleanBarcode = String(barcode).trim();
+  const cleanBarcodeUpper = cleanBarcode.toUpperCase();
+
+  // 1. Cek di Tab 'Produk' Google Sheets
+  const sheetProduk = ss.getSheetByName(TAB_PRODUK);
+  if (sheetProduk && sheetProduk.getLastRow() > 1) {
+    const data = sheetProduk.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const rowId = String(data[i][0] || "").trim().toUpperCase();
+      const rowName = String(data[i][1] || "").trim();
+      if (rowId === cleanBarcodeUpper || rowId.replace(/[^A-Z0-9]/g, "") === cleanBarcodeUpper.replace(/[^A-Z0-9]/g, "")) {
+        return {
+          status: "existing",
+          message: "Produk sudah terdaftar di toko.",
+          product: {
+            id: data[i][0],
+            name: rowName,
+            category: data[i][2] || "Alat Tulis & Pulpen",
+            price: Number(data[i][3]) || 0,
+            stock: Number(data[i][4]) || 0,
+            unit: data[i][5] || "Pcs",
+            image: data[i][6] || "",
+            description: data[i][7] || ""
+          }
+        };
+      }
+    }
+  }
+
+  // 2. Cek ke Open Food Facts API publik
+  try {
+    const offUrl = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(cleanBarcode)}.json`;
+    const res = UrlFetchApp.fetch(offUrl, { muteHttpExceptions: true });
+    if (res.getResponseCode() === 200) {
+      const offJson = JSON.parse(res.getContentText());
+      if (offJson.status === 1 && offJson.product) {
+        const p = offJson.product;
+        const brand = p.brands || "";
+        const prodName = p.product_name_id || p.product_name || p.generic_name_id || p.generic_name || "";
+        let fullTitle = prodName;
+        if (brand && !prodName.toLowerCase().includes(brand.toLowerCase())) {
+          fullTitle = `${brand} ${prodName}`;
+        }
+        if (fullTitle && fullTitle.trim().length > 2) {
+          const imgUrl = p.image_url || p.image_front_url || p.image_front_small_url || "";
+          return {
+            status: "success",
+            isNew: true,
+            source: "OpenFoodFacts",
+            nama: fullTitle.trim(),
+            kategori: mapKategoriProduk(p.categories || fullTitle),
+            satuan: "Pcs",
+            fotoUrl: imgUrl
+          };
+        }
+      }
+    }
+  } catch (errOff) {
+    Logger.log("Open Food Facts fetch error: " + errOff.toString());
+  }
+
+  // 3. Fallback AI: Gemini API
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const geminiApiKey = props.getProperty("GEMINI_API_KEY");
+    if (geminiApiKey) {
+      const promptAI = `Sebutkan nama lengkap produk dagang Indonesia, merek, dan kategori yang memiliki barcode/EAN: ${cleanBarcode}. Kembalikan HANYA format JSON murni: {"nama": "...", "kategori": "...", "satuan": "Pcs"} tanpa markdown.`;
+      
+      const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
+      for (let m = 0; m < models.length; m++) {
+        const modelName = models[m];
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
+        const payload = {
+          contents: [{ role: "user", parts: [{ text: promptAI }] }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 250 }
+        };
+        const options = {
+          method: "post",
+          contentType: "application/json",
+          payload: JSON.stringify(payload),
+          muteHttpExceptions: true
+        };
+        const aiRes = UrlFetchApp.fetch(geminiUrl, options);
+        if (aiRes.getResponseCode() === 200) {
+          const aiJson = JSON.parse(aiRes.getContentText());
+          if (aiJson.candidates && aiJson.candidates[0] && aiJson.candidates[0].content && aiJson.candidates[0].content.parts) {
+            const rawText = aiJson.candidates[0].content.parts[0].text;
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                if (parsed && parsed.nama) {
+                  return {
+                    status: "success",
+                    isNew: true,
+                    source: "GeminiAI",
+                    nama: parsed.nama.trim(),
+                    kategori: mapKategoriProduk(parsed.kategori || parsed.nama),
+                    satuan: parsed.satuan || "Pcs",
+                    fotoUrl: getDefaultPhotoForCategory(parsed.kategori, parsed.nama)
+                  };
+                }
+              } catch (eParse) {
+                Logger.log("JSON parse error: " + eParse.toString());
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (errAi) {
+    Logger.log("Gemini lookup error: " + errAi.toString());
+  }
+
+  // 4. Fallback Default jika tidak terdeteksi di API
+  return {
+    status: "success",
+    isNew: true,
+    source: "default",
+    nama: `Barang ATK Baru (${cleanBarcode})`,
+    kategori: "Alat Tulis & Pulpen",
+    satuan: "Pcs",
+    fotoUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500"
+  };
+}
+
+function mapKategoriProduk(rawCategory) {
+  const cat = String(rawCategory || "").toLowerCase();
+  if (cat.includes("buku") || cat.includes("kertas") || cat.includes("paper") || cat.includes("book") || cat.includes("binder") || cat.includes("notes") || cat.includes("hvs") || cat.includes("folio")) {
+    return "Kertas & Buku";
+  }
+  if (cat.includes("pulpen") || cat.includes("pen") || cat.includes("pencil") || cat.includes("pensil") || cat.includes("spidol") || cat.includes("marker") || cat.includes("crayon") || cat.includes("stabilo") || cat.includes("eraser") || cat.includes("penghapus") || cat.includes("tipp-ex")) {
+    return "Alat Tulis & Pulpen";
+  }
+  if (cat.includes("map") || cat.includes("folder") || cat.includes("stapler") || cat.includes("kantor") || cat.includes("office") || cat.includes("gunting") || cat.includes("cutter") || cat.includes("lem") || cat.includes("glue") || cat.includes("lakban") || cat.includes("tape") || cat.includes("penggaris")) {
+    return "Peralatan Kantor & Map";
+  }
+  if (cat.includes("snack") || cat.includes("makanan") || cat.includes("minuman") || cat.includes("food") || cat.includes("beverage") || cat.includes("noodle") || cat.includes("nouilles") || cat.includes("indomie") || cat.includes("biskuit") || cat.includes("kopi") || cat.includes("teh") || cat.includes("candy") || cat.includes("permen") || cat.includes("cokelat") || cat.includes("wafer")) {
+    return "Snack & Minuman";
+  }
+  return "Alat Tulis & Pulpen";
+}
+
+function getDefaultPhotoForCategory(kategori, nama) {
+  const text = `${kategori || ""} ${nama || ""}`.toLowerCase();
+  if (text.includes("kertas") || text.includes("paper") || text.includes("hvs")) {
+    return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+  }
+  if (text.includes("buku") || text.includes("book") || text.includes("tulis")) {
+    return "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500";
+  }
+  if (text.includes("pulpen") || text.includes("pen") || text.includes("gel") || text.includes("spidol")) {
+    return "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500";
+  }
+  if (text.includes("map") || text.includes("stapler") || text.includes("kantor")) {
+    return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
+  }
+  return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
 }

@@ -407,3 +407,4 @@ if (typeof window !== "undefined") {
   window.printTrackedOrderBluetooth = printTrackedOrderBluetooth;
   window.printAdminActiveReceiptBluetooth = printAdminActiveReceiptBluetooth;
 }
+

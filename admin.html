@@ -1224,7 +1224,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
+      : "https://script.google.com/macros/s/AKfycbzY3U-QhtVGk6kJs5b8dnZvrUGoKeBFbGsKm_MJVqta7LxJf1DZtqQkxHhH4e5y1LDChA/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -2529,7 +2529,7 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
-    function handleProductBarcodeDetected(barcodeText) {
+    async function handleProductBarcodeDetected(barcodeText) {
       const barcode = barcodeText.trim();
       if (!barcode) return;
 
@@ -2537,29 +2537,97 @@ ${escapeHtml(order.itemsText || "-")}
       beepSuccess();
       closeProductBarcodeScannerModal();
 
-      // Cek apakah barcode sudah ada di database produk
-      const existingProduct = (adminData.products || []).find(p => 
+      // Cek apakah barcode sudah ada di memori produk lokal terlebih dahulu
+      const localExisting = (adminData.products || []).find(p => 
         String(p.id).toUpperCase() === barcode.toUpperCase() ||
         (p.barcode && String(p.barcode).toUpperCase() === barcode.toUpperCase())
       );
 
-      if (existingProduct) {
-        // SUDAH ADA: Buka Modal Cepat "Tambah Stok Masuk"
-        openQuickRestockModal(existingProduct);
-      } else {
-        // BELUM ADA: Buka Modal "Tambah Produk Baru", isi Barcode/SKU, dan fokus ke Nama Produk
-        openAddProductModal();
-        const idInput = document.getElementById("prodEditId");
-        const nameInput = document.getElementById("prodEditName");
-        if (idInput) idInput.value = barcode;
-        setTimeout(() => {
-          if (nameInput) {
-            nameInput.focus();
-            nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }, 300);
-        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi nama barang.`);
+      if (localExisting) {
+        // SUDAH ADA: Langsung buka Modal Cepat "Tambah Stok Masuk"
+        openQuickRestockModal(localExisting);
+        return;
       }
+
+      // Animasi Loading Pencarian Identitas Produk
+      showToastAdmin(`🔍 Mencari identitas produk dari barcode ${barcode}...`);
+
+      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+      let lookupResult = null;
+
+      try {
+        const res = await fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(barcode)}&pin=${encodeURIComponent(pin)}`);
+        lookupResult = await res.json();
+      } catch (err) {
+        console.warn("Gagal auto-lookup barcode online, menggunakan fallback lokal:", err);
+      }
+
+      // 1. Jika Backend menemukan bahwa produk ternyata SUDAH ADA di Sheet 'Produk'
+      if (lookupResult && lookupResult.status === "existing" && lookupResult.product) {
+        openQuickRestockModal(lookupResult.product);
+        return;
+      }
+
+      // 2. Jika produk BARU: Buka modal "Tambah Produk Baru" dengan isian cerdas
+      openAddProductModal();
+
+      const idInput = document.getElementById("prodEditId");
+      const nameInput = document.getElementById("prodEditName");
+      const categoryInput = document.getElementById("prodEditCategory");
+      const unitInput = document.getElementById("prodEditUnit");
+      const priceInput = document.getElementById("prodEditPrice");
+      const imageUrlInput = document.getElementById("prodImageUrl");
+      const imagePreview = document.getElementById("prodImagePreview");
+      const descInput = document.getElementById("prodEditDesc");
+
+      // Auto-fill Barcode / SKU
+      if (idInput) idInput.value = barcode;
+
+      if (lookupResult && lookupResult.status === "success") {
+        // Auto-fill Nama Produk resmi dari OpenFoodFacts / Gemini
+        if (nameInput && lookupResult.nama) {
+          nameInput.value = lookupResult.nama;
+        }
+
+        // Auto-select Kategori
+        if (categoryInput && lookupResult.kategori) {
+          for (let opt of categoryInput.options) {
+            if (opt.value.toLowerCase().includes(lookupResult.kategori.toLowerCase()) || 
+                lookupResult.kategori.toLowerCase().includes(opt.value.toLowerCase())) {
+              categoryInput.value = opt.value;
+              break;
+            }
+          }
+        }
+
+        // Auto-fill Satuan
+        if (unitInput && lookupResult.satuan) {
+          unitInput.value = lookupResult.satuan;
+        }
+
+        // Auto-fill Foto URL jika tersedia
+        if (lookupResult.fotoUrl) {
+          if (imageUrlInput) imageUrlInput.value = lookupResult.fotoUrl;
+          if (imagePreview) imagePreview.src = lookupResult.fotoUrl;
+        }
+
+        if (descInput) {
+          descInput.value = `Produk ${lookupResult.nama || barcode} original berkualitas.`;
+        }
+
+        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}"! Silakan masukkan harga.`);
+      } else {
+        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi detail barang.`);
+      }
+
+      // Kursor otomatis FOKUS ke Harga Jual (Rp) sehingga kasir tinggal ketik harga!
+      setTimeout(() => {
+        if (priceInput) {
+          priceInput.focus();
+          priceInput.select();
+          priceInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 350);
     }
 
     // Modal Cepat Tambah Stok Masuk (+N)
