@@ -1720,7 +1720,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+    const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -2175,46 +2175,114 @@ function prosesLookupBarcode(barcode, ss) {
     }
   }
 
-  // 2. Cek ke Open Food Facts API publik
-  try {
-    const offUrl = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(cleanBarcode)}.json`;
-    const res = UrlFetchApp.fetch(offUrl, { muteHttpExceptions: true });
-    if (res.getResponseCode() === 200) {
-      const offJson = JSON.parse(res.getContentText());
-      if (offJson.status === 1 && offJson.product) {
-        const p = offJson.product;
-        const brand = p.brands || "";
-        const prodName = p.product_name_id || p.product_name || p.generic_name_id || p.generic_name || "";
-        let fullTitle = prodName;
-        if (brand && !prodName.toLowerCase().includes(brand.toLowerCase())) {
-          fullTitle = `${brand} ${prodName}`;
-        }
-        if (fullTitle && fullTitle.trim().length > 2) {
-          const imgUrl = p.image_url || p.image_front_url || p.image_front_small_url || "";
-          return {
-            status: "success",
-            isNew: true,
-            source: "OpenFoodFacts",
-            nama: fullTitle.trim(),
-            kategori: mapKategoriProduk(p.categories || fullTitle),
-            satuan: "Pcs",
-            fotoUrl: imgUrl
-          };
+  // 2. Cek ke Open Food Facts API publik (v2) dengan variasi padding barcode
+  const variants = [cleanBarcode];
+  if (cleanBarcode.length === 12) variants.push("0" + cleanBarcode);
+  if (cleanBarcode.length === 13 && cleanBarcode.startsWith("0")) variants.push(cleanBarcode.substring(1));
+  if (cleanBarcode.length === 11) variants.push("00" + cleanBarcode);
+  const padded13 = cleanBarcode.padStart(13, "0");
+  if (!variants.includes(padded13)) variants.push(padded13);
+
+  for (let i = 0; i < variants.length; i++) {
+    const v = variants[i];
+    try {
+      const offUrl = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(v)}.json`;
+      const res = UrlFetchApp.fetch(offUrl, {
+        muteHttpExceptions: true,
+        headers: { "User-Agent": "TokoDelina-Lookup/1.0 (contact@tokodelina.store)" }
+      });
+      if (res.getResponseCode() === 200) {
+        const offJson = JSON.parse(res.getContentText());
+        if (offJson.status === 1 && offJson.product) {
+          const p = offJson.product;
+          const brand = p.brands || "";
+          const prodName = p.product_name_id || p.product_name || p.generic_name_id || p.generic_name || "";
+          let fullTitle = prodName;
+          if (brand && !prodName.toLowerCase().includes(brand.toLowerCase())) {
+            fullTitle = `${brand} ${prodName}`;
+          }
+          if (fullTitle && fullTitle.trim().length > 2) {
+            const imgUrl = p.image_url || p.image_front_url || p.image_front_small_url || "";
+            return {
+              status: "success",
+              isNew: true,
+              source: "OpenFoodFacts",
+              nama: fullTitle.trim(),
+              kategori: mapKategoriProduk(p.categories || fullTitle),
+              satuan: "Pcs",
+              fotoUrl: imgUrl
+            };
+          }
         }
       }
+    } catch (errOff) {
+      Logger.log("Open Food Facts fetch error: " + errOff.toString());
     }
-  } catch (errOff) {
-    Logger.log("Open Food Facts fetch error: " + errOff.toString());
   }
 
-  // 3. Fallback AI: Gemini API
+  // 2b. Cek ke UPCitemdb Retail Database (Untuk Barang Retail & Supermarket)
+  for (let i = 0; i < variants.length; i++) {
+    const v = variants[i];
+    try {
+      const upcUrl = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(v)}`;
+      const res = UrlFetchApp.fetch(upcUrl, {
+        muteHttpExceptions: true,
+        headers: { "User-Agent": "Mozilla/5.0" }
+      });
+      if (res.getResponseCode() === 200) {
+        const upcJson = JSON.parse(res.getContentText());
+        if (upcJson.items && upcJson.items.length > 0) {
+          const item = upcJson.items[0];
+          if (item.title && item.title.trim().length > 2) {
+            const imgUrl = (item.images && item.images.length > 0) ? item.images[0] : "";
+            return {
+              status: "success",
+              isNew: true,
+              source: "UPCitemdb",
+              nama: item.title.trim(),
+              kategori: mapKategoriProduk(item.category || item.title),
+              satuan: "Pcs",
+              fotoUrl: imgUrl || getDefaultPhotoForCategory(item.category, item.title)
+            };
+          }
+        }
+      }
+    } catch (errUpc) {
+      Logger.log("UPCitemdb fetch error: " + errUpc.toString());
+    }
+  }
+
+  // 3. Deteksi Merek Indonesia via Prefiks GS1 Indonesia (899...)
+  const indonesianBrands = {
+    "8992388": { brand: "Sinar Dunia (SiDu)", category: "Kertas & Buku", sample: "Buku Tulis Sinar Dunia 38 Lembar" },
+    "8998866": { brand: "Indofood", category: "Snack & Minuman", sample: "Indomie Mi Goreng Original" },
+    "8992745": { brand: "Standard Pen", category: "Alat Tulis & Pulpen", sample: "Pulpen Standard AE7 0.5mm" },
+    "8991389": { brand: "Snowman", category: "Alat Tulis & Pulpen", sample: "Spidol Snowman Boardmarker Hitam" },
+    "8996001": { brand: "Danone Aqua", category: "Snack & Minuman", sample: "Air Mineral Aqua 600ml" },
+    "8992775": { brand: "Sosro", category: "Snack & Minuman", sample: "Teh Botol Sosro 350ml" },
+    "8991001": { brand: "Mayora", category: "Snack & Minuman", sample: "Biskuit Roma Kelapa Mayora" },
+    "8999999": { brand: "Joyko", category: "Alat Tulis & Pulpen", sample: "Alat Tulis Joyko" },
+    "8993175": { brand: "Kenko", category: "Alat Tulis & Pulpen", sample: "Perlengkapan Kantor Kenko" },
+    "8992759": { brand: "PaperOne", category: "Kertas & Buku", sample: "Kertas HVS PaperOne A4 75gsm" },
+    "8993005": { brand: "Wings Food", category: "Snack & Minuman", sample: "Mie Sedaap Goreng" },
+    "8992999": { brand: "Faber-Castell", category: "Alat Tulis & Pulpen", sample: "Pensil 2B Faber-Castell" }
+  };
+  const prefix7 = cleanBarcode.substring(0, 7);
+  const matchedBrand = indonesianBrands[prefix7];
+
+  // 4. Fallback AI: Gemini API (Model Aktif: gemini-3.5-flash & gemini-3.1-flash-lite)
   try {
     const props = PropertiesService.getScriptProperties();
     const geminiApiKey = props.getProperty("GEMINI_API_KEY");
     if (geminiApiKey) {
-      const promptAI = `Sebutkan nama lengkap produk dagang Indonesia, merek, dan kategori yang memiliki barcode/EAN: ${cleanBarcode}. Kembalikan HANYA format JSON murni: {"nama": "...", "kategori": "...", "satuan": "Pcs"} tanpa markdown.`;
+      let promptAI = "";
+      if (matchedBrand) {
+        promptAI = `Barcode: ${cleanBarcode} adalah produk resmi dari ${matchedBrand.brand} (${matchedBrand.category}). Sebutkan nama spesifik item ini di Indonesia (misal tipe / varian). Kembalikan HANYA format JSON: {"nama": "...", "kategori": "${matchedBrand.category}", "satuan": "Pcs"}.`;
+      } else {
+        promptAI = `Sebutkan nama lengkap produk dagang Indonesia dan merek dari barcode ${cleanBarcode}. Jangan menyebut Indomie jika bukan dari Indofood. Kembalikan HANYA format JSON: {"nama": "...", "kategori": "...", "satuan": "Pcs"}.`;
+      }
       
-      const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+      const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
       for (let m = 0; m < models.length; m++) {
         const modelName = models[m];
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -2238,14 +2306,19 @@ function prosesLookupBarcode(barcode, ss) {
               try {
                 const parsed = JSON.parse(jsonMatch[0]);
                 if (parsed && parsed.nama) {
+                  // Validasi anti halusinasi
+                  if (matchedBrand && parsed.nama.toLowerCase().includes("indomie") && !matchedBrand.brand.toLowerCase().includes("indofood")) {
+                    parsed.nama = matchedBrand.sample;
+                    parsed.kategori = matchedBrand.category;
+                  }
                   return {
                     status: "success",
                     isNew: true,
                     source: "GeminiAI",
                     nama: parsed.nama.trim(),
-                    kategori: mapKategoriProduk(parsed.kategori || parsed.nama),
+                    kategori: mapKategoriProduk(parsed.kategori || (matchedBrand ? matchedBrand.category : parsed.nama)),
                     satuan: parsed.satuan || "Pcs",
-                    fotoUrl: getDefaultPhotoForCategory(parsed.kategori, parsed.nama)
+                    fotoUrl: getDefaultPhotoForCategory(parsed.kategori || (matchedBrand ? matchedBrand.category : ""), parsed.nama)
                   };
                 }
               } catch (eParse) {
@@ -2260,7 +2333,20 @@ function prosesLookupBarcode(barcode, ss) {
     Logger.log("Gemini lookup error: " + errAi.toString());
   }
 
-  // 4. Fallback Default jika tidak terdeteksi di API
+  // 5. Jika AI gagal, gunakan database merek GS1 Indonesia
+  if (matchedBrand) {
+    return {
+      status: "success",
+      isNew: true,
+      source: "GS1-Indonesia",
+      nama: `${matchedBrand.sample}`,
+      kategori: matchedBrand.category,
+      satuan: "Pcs",
+      fotoUrl: getDefaultPhotoForCategory(matchedBrand.category, matchedBrand.sample)
+    };
+  }
+
+  // 6. Fallback Default jika tidak terdeteksi di API
   return {
     status: "success",
     isNew: true,
