@@ -62,85 +62,84 @@
     </div>
   </div>
 
-  <!-- ================= HEADER UTAMA (GAYA TOKOPEDIA) ================= -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-4 md:gap-6">
+  <!-- ================= HEADER DINAMIS ANIMATIF (ALA ALFAGIFT) ================= -->
+  <header id="mainHeader" class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-xs transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 transition-all duration-300">
       
-      <!-- Logo Delina -->
-      <a href="index.html" class="flex items-center gap-2 flex-shrink-0 group">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-delina-emerald to-tokopedia-green flex items-center justify-center text-white font-black text-lg shadow-sm shadow-emerald-200 group-hover:rotate-3 transition-transform overflow-hidden">
-          <img id="navStoreLogoImg" src="" alt="Logo" class="w-full h-full object-contain hidden store-brand-logo" />
-          <span id="navStoreLogoPlaceholder">D</span>
+      <!-- Container Baris Header -->
+      <div class="flex items-center justify-between gap-2.5 sm:gap-4">
+        
+        <!-- Sisi Kiri: Branding & Kolom Pencarian yang Bertransisi Halus -->
+        <div id="headerContentWrapper" class="flex-1 flex flex-col transition-all duration-300 min-w-0">
+          
+          <!-- Baris Logo & Branding (Collapsible saat di-scroll) -->
+          <div id="headerBrandRow" class="flex items-center gap-2.5 transition-all duration-300 origin-left">
+            <a href="index.html" class="flex items-center gap-2 group flex-shrink-0">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-delina-emerald to-tokopedia-green flex items-center justify-center text-white font-black text-base shadow-xs group-hover:rotate-3 transition-transform overflow-hidden">
+                <img id="navStoreLogoImg" src="" alt="Logo" class="w-full h-full object-contain hidden store-brand-logo" />
+                <span id="navStoreLogoPlaceholder">D</span>
+              </div>
+              <div class="leading-tight">
+                <span class="block text-sm sm:text-base font-black text-delina-emerald tracking-tight">
+                  DELINA<span class="text-tokopedia-green">.store</span>
+                </span>
+                <span class="text-[9px] sm:text-[10px] text-gray-400 font-semibold tracking-wider uppercase block truncate max-w-[190px] sm:max-w-none">
+                  ATK, Kosmetik dan Kelontongan
+                </span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Kolom Pencarian Ala Alfagift (Expands & Slides Up saat Scrolled) -->
+          <div id="headerSearchContainer" class="w-full mt-2 transition-all duration-300">
+            <div class="relative flex items-center">
+              <i class="bi bi-search absolute left-3.5 text-gray-400 text-xs sm:text-sm"></i>
+              <input 
+                type="text" 
+                id="searchInput"
+                placeholder="Cari ATK, kosmetik, sembako, snack, minuman..."
+                class="w-full bg-gray-100 hover:bg-gray-50 focus:bg-white border border-transparent focus:border-tokopedia-green text-xs sm:text-sm rounded-full pl-9 sm:pl-10 pr-4 py-1.5 sm:py-2 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all placeholder:text-gray-400 text-gray-800"
+              />
+            </div>
+          </div>
+
         </div>
-        <div class="leading-tight">
-          <span class="block text-base sm:text-lg font-black text-delina-emerald tracking-tight">
-            DELINA<span class="text-tokopedia-green">.store</span>
-          </span>
-          <span class="text-[10px] text-gray-400 font-medium tracking-wider uppercase block">
-            ATK, Kosmetik dan Kelontongan
-          </span>
+
+        <!-- Sisi Kanan: 2 Ikon Aksi Minimalis PERSISTENT (Lonceng & Keranjang) -->
+        <div id="headerActionIcons" class="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 self-start transition-all duration-300 pt-0.5">
+          
+          <!-- 1. Ikon Lonceng Notifikasi & Promo -->
+          <button 
+            type="button" 
+            id="btnPromoBell"
+            onclick="openPromoInfoModal()"
+            class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 hover:bg-emerald-50 text-gray-700 hover:text-delina-emerald border border-gray-200/80 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+            title="Promo & Kupon Diskon Aktif"
+          >
+            <i class="bi bi-bell-fill text-base sm:text-lg text-amber-500"></i>
+            <!-- Badge Merah Jumlah Promo Aktif -->
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
+              3
+            </span>
+          </button>
+
+          <!-- 2. Ikon Keranjang Belanja -->
+          <button 
+            type="button" 
+            id="btnHeaderCart"
+            onclick="toggleCartDrawer(true)"
+            class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-50 text-delina-emerald hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+            title="Keranjang Belanja"
+          >
+            <i class="bi bi-cart3 text-base sm:text-lg"></i>
+            <!-- Badge Counter Keranjang -->
+            <span class="cart-badge absolute -top-1 -right-1 bg-delina-gold text-white text-[9px] font-extrabold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-xs" style="display: none;">
+              0
+            </span>
+          </button>
+
         </div>
-      </a>
 
-      <!-- Kolom Pencarian Ala Tokopedia -->
-      <div class="flex-1 relative">
-        <div class="relative flex items-center">
-          <input 
-            type="text" 
-            id="searchInput"
-            placeholder="Cari ATK, kosmetik, sembako, makanan, minuman..."
-            class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm rounded-xl pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white focus:ring-2 focus:ring-emerald-100 transition-all placeholder:text-gray-400 text-gray-700"
-          />
-          <i class="bi bi-search absolute left-3 sm:left-3.5 text-gray-400 text-xs sm:text-sm"></i>
-        </div>
-      </div>
-
-      <!-- Aksi Pengguna: Lacak Pesanan, Keranjang & Bantuan Kiko -->
-      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-        <!-- Tombol Pintas Member VIP / Hadiah -->
-        <button 
-          type="button" 
-          onclick="openMemberModal()"
-          id="headerMemberBtn"
-          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-xs font-extrabold transition-all active:scale-95 shadow-xs cursor-pointer"
-          title="Member & Hadiah Royalty (30x Belanja)"
-        >
-          <i class="bi bi-gift-fill text-amber-500 text-sm"></i>
-          <span id="headerMemberText" class="hidden sm:inline">Member / Hadiah</span>
-        </button>
-
-        <!-- Tombol Lacak Pesanan (Layanan Tanpa Antre) -->
-        <button 
-          onclick="openLacakPesananModal()"
-          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold transition-all active:scale-95 shadow-xs"
-          title="Lacak Pesanan & Pengambilan Tanpa Antre"
-        >
-          <i class="bi bi-qr-code text-delina-emerald text-sm sm:text-base"></i>
-          <span class="hidden sm:inline">Lacak Pesanan</span>
-        </button>
-
-        <!-- Tombol Keranjang -->
-        <button 
-          onclick="toggleCartDrawer(true)"
-          class="relative p-2 sm:px-3 sm:py-2 rounded-xl text-gray-700 hover:text-tokopedia-green hover:bg-emerald-50 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-emerald-100"
-          title="Keranjang Belanja"
-        >
-          <i class="bi bi-cart3 text-xl sm:text-lg"></i>
-          <span class="hidden sm:inline text-xs font-bold">Keranjang</span>
-          <!-- Badge Counter -->
-          <span class="cart-badge absolute -top-1 -right-1 sm:top-1 sm:right-1 bg-delina-gold text-white text-[10px] font-extrabold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-sm" style="display: none;">
-            0
-          </span>
-        </button>
-
-        <!-- Shortcut Chat Kiko -->
-        <button 
-          onclick="openKikoChat()"
-          class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-delina-emerald hover:bg-emerald-100 text-xs font-bold border border-emerald-200/60 transition-all"
-        >
-          <span class="w-2 h-2 rounded-full bg-tokopedia-green pulse-badge"></span>
-          <span>Tanya Kiko AI</span>
-        </button>
       </div>
 
     </div>
@@ -289,52 +288,95 @@
 
     </section>
 
-    <!-- 2. PILIHAN KATEGORI ETALASE (Horizontal Scroll / Sticky Style) -->
-    <section id="categorySection" class="space-y-2 scroll-mt-20">
-      <div class="flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-          <i class="bi bi-grid text-tokopedia-green"></i> Kategori Produk
+    <!-- 2. KATEGORI PRODUK KOTAK BERGAMBAR (ALA ALFAGIFT) -->
+    <section id="categorySection" class="space-y-3 scroll-mt-24">
+      <div class="flex items-center justify-between px-0.5">
+        <h3 class="text-sm sm:text-base font-black text-gray-900 flex items-center gap-2">
+          <i class="bi bi-grid-fill text-tokopedia-green"></i> Kategori Produk
         </h3>
-        <span class="text-xs text-gray-400">Pilih untuk menyaring barang</span>
+        <button 
+          type="button" 
+          onclick="selectCategory('Semua Produk')" 
+          class="text-xs font-bold text-delina-emerald hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+        >
+          <span>Semua Kategori</span>
+          <i class="bi bi-chevron-right text-[10px]"></i>
+        </button>
       </div>
 
-      <!-- Kategori Pills Resmi Delina.store -->
-      <div id="categoryPillsContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        <button 
+      <!-- Grid Kartu Kotak Bergambar Ala Alfagift -->
+      <div id="categoryCardsContainer" class="grid grid-cols-5 gap-2 sm:gap-3.5 overflow-x-auto no-scrollbar py-1">
+        
+        <!-- Kartu 1: Semua Produk -->
+        <div 
           data-category="Semua Produk"
           onclick="selectCategory('Semua Produk')" 
-          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-emerald-800 text-white shadow-sm transition-all"
+          class="category-box-card group p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-emerald-50/90 to-emerald-100/60 border border-emerald-200/80 hover:border-emerald-500 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex flex-col items-center text-center justify-between ring-2 ring-emerald-600 active-card"
         >
-          <i class="bi bi-grid-fill"></i> Semua Produk
-        </button>
-        <button 
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/95 shadow-xs flex items-center justify-center p-1.5 mb-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=120&auto=format&fit=crop&q=80" alt="Semua" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=120';" />
+          </div>
+          <span class="text-[10px] sm:text-xs font-black text-emerald-950 leading-tight line-clamp-2">
+            Semua Produk
+          </span>
+        </div>
+
+        <!-- Kartu 2: ATK & Perlengkapan Sekolah/Kantor -->
+        <div 
           data-category="ATK & Perlengkapan Kantor"
           onclick="selectCategory('ATK & Perlengkapan Kantor')" 
-          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+          class="category-box-card group p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-blue-50/90 to-indigo-100/60 border border-blue-200/80 hover:border-blue-500 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex flex-col items-center text-center justify-between"
         >
-          <i class="bi bi-pencil-square"></i> ATK & Kantor
-        </button>
-        <button 
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/95 shadow-xs flex items-center justify-center p-1.5 mb-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=120&auto=format&fit=crop&q=80" alt="ATK" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=120';" />
+          </div>
+          <span class="text-[10px] sm:text-xs font-black text-slate-800 leading-tight line-clamp-2">
+            ATK & Kantor
+          </span>
+        </div>
+
+        <!-- Kartu 3: Kosmetik & Perawatan Diri -->
+        <div 
           data-category="Kosmetik & Perawatan Diri"
           onclick="selectCategory('Kosmetik & Perawatan Diri')" 
-          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+          class="category-box-card group p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-pink-50/90 to-rose-100/60 border border-pink-200/80 hover:border-pink-500 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex flex-col items-center text-center justify-between"
         >
-          <i class="bi bi-heart-pulse"></i> Kosmetik & Skincare
-        </button>
-        <button 
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/95 shadow-xs flex items-center justify-center p-1.5 mb-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=120&auto=format&fit=crop&q=80" alt="Kosmetik" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=120';" />
+          </div>
+          <span class="text-[10px] sm:text-xs font-black text-slate-800 leading-tight line-clamp-2">
+            Kosmetik & Cantik
+          </span>
+        </div>
+
+        <!-- Kartu 4: Sembako & Kelontongan -->
+        <div 
           data-category="Sembako & Kelontongan"
           onclick="selectCategory('Sembako & Kelontongan')" 
-          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+          class="category-box-card group p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-amber-50/90 to-yellow-100/60 border border-amber-200/80 hover:border-amber-500 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex flex-col items-center text-center justify-between"
         >
-          <i class="bi bi-shop"></i> Sembako & Kelontong
-        </button>
-        <button 
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/95 shadow-xs flex items-center justify-center p-1.5 mb-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=120&auto=format&fit=crop&q=80" alt="Sembako" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=120';" />
+          </div>
+          <span class="text-[10px] sm:text-xs font-black text-slate-800 leading-tight line-clamp-2">
+            Sembako & Dapur
+          </span>
+        </div>
+
+        <!-- Kartu 5: Makanan & Minuman -->
+        <div 
           data-category="Makanan & Minuman"
           onclick="selectCategory('Makanan & Minuman')" 
-          class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700 transition-all"
+          class="category-box-card group p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-orange-50/90 to-amber-100/60 border border-orange-200/80 hover:border-orange-500 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex flex-col items-center text-center justify-between"
         >
-          <i class="bi bi-cup-straw"></i> Makanan & Minuman
-        </button>
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/95 shadow-xs flex items-center justify-center p-1.5 mb-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=120&auto=format&fit=crop&q=80" alt="Snack & Minuman" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=120';" />
+          </div>
+          <span class="text-[10px] sm:text-xs font-black text-slate-800 leading-tight line-clamp-2">
+            Makanan & Minuman
+          </span>
+        </div>
+
       </div>
     </section>
 
@@ -1600,6 +1642,139 @@
 
         </div>
 
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL PROMO & KUPON DISKON (ALA ALFAGIFT BELL) ================= -->
+  <div id="modalPromoInfo" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100 flex flex-col max-h-[90vh] animate-fadeIn">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-800 to-teal-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl text-amber-300">
+            <i class="bi bi-bell-fill"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black tracking-tight leading-tight">Promo & Kupon Spesial</h3>
+            <p class="text-[11px] sm:text-xs text-emerald-200">Belanja hemat & berkah di Delina.store</p>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          onclick="closePromoInfoModal()" 
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer"
+        >
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable List Promo) -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-3.5 divide-y divide-slate-100 text-slate-800">
+        
+        <!-- Promo 1: Member Royalty Card -->
+        <div class="pt-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-emerald-50/80 to-teal-50/50 p-3.5 rounded-2xl border border-emerald-200">
+          <div class="space-y-1">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-amber-950">
+              👑 PROGRAM LOYALITAS
+            </span>
+            <h4 class="font-black text-xs sm:text-sm text-emerald-900 leading-snug">
+              Member Royalty: 30x Belanja = 1 Hadiah
+            </h4>
+            <p class="text-[11px] text-slate-600 leading-relaxed">
+              Kumpulkan 30 stempel belanja dan dapatkan hadiah bebas pilih: Tumbler Stainless, Pouch Velvet, Minyak Goreng, Beras, atau Voucher Belanja!
+            </p>
+          </div>
+          <button 
+            type="button" 
+            onclick="closePromoInfoModal(); openMemberModal();" 
+            class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-xs transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+          >
+            <span>Buka Kartu</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Promo 2: Diskon DELINABERKAH -->
+        <div class="pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-black text-xs">
+                DELINABERKAH
+              </span>
+              <span class="text-[10px] font-bold text-emerald-600">Hemat Rp 5.000</span>
+            </div>
+            <h4 class="font-extrabold text-xs text-slate-800">Diskon Belanja Berkah Rp 5.000</h4>
+            <p class="text-[11px] text-slate-500">Min. transaksi Rp 35.000 untuk semua produk ATK, sembako & kosmetik.</p>
+          </div>
+          <button 
+            type="button" 
+            onclick="copyPromoCouponCode('DELINABERKAH')" 
+            class="px-3 py-1.5 rounded-xl border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+          >
+            <i class="bi bi-copy"></i>
+            <span>Salin Kode</span>
+          </button>
+        </div>
+
+        <!-- Promo 3: Voucher GRATISONGKIR -->
+        <div class="pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono font-black text-xs">
+                GRATISONGKIR
+              </span>
+              <span class="text-[10px] font-bold text-blue-600">Gratis Antar</span>
+            </div>
+            <h4 class="font-extrabold text-xs text-slate-800">Gratis Ongkir Pengantaran Kurir Toko</h4>
+            <p class="text-[11px] text-slate-500">Bebas biaya antar seputar area radius Delina.store (Min. belanja Rp 50.000).</p>
+          </div>
+          <button 
+            type="button" 
+            onclick="copyPromoCouponCode('GRATISONGKIR')" 
+            class="px-3 py-1.5 rounded-xl border border-blue-600 text-blue-700 hover:bg-blue-50 font-bold text-xs transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+          >
+            <i class="bi bi-copy"></i>
+            <span>Salin Kode</span>
+          </button>
+        </div>
+
+        <!-- Promo 4: Promo GLOWUPHEMAT -->
+        <div class="pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-pink-100 text-pink-800 font-mono font-black text-xs">
+                GLOWUPHEMAT
+              </span>
+              <span class="text-[10px] font-bold text-pink-600">Hemat Rp 3.000</span>
+            </div>
+            <h4 class="font-extrabold text-xs text-slate-800">Spesial Kosmetik & Skincare</h4>
+            <p class="text-[11px] text-slate-500">Potongan Rp 3.000 khusus belanja aneka kosmetik, serum, dan lotion.</p>
+          </div>
+          <button 
+            type="button" 
+            onclick="copyPromoCouponCode('GLOWUPHEMAT')" 
+            class="px-3 py-1.5 rounded-xl border border-pink-600 text-pink-700 hover:bg-pink-50 font-bold text-xs transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+          >
+            <i class="bi bi-copy"></i>
+            <span>Salin Kode</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+        <span class="text-slate-400">Kode kupon dimasukkan di Keranjang Belanja</span>
+        <button 
+          type="button" 
+          onclick="closePromoInfoModal()" 
+          class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold transition-all cursor-pointer"
+        >
+          Tutup
+        </button>
       </div>
 
     </div>

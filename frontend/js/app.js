@@ -456,6 +456,17 @@ function renderCategoryPills(categoriesList) {
 function selectCategory(categoryName) {
   currentCategory = categoryName;
 
+  // 1. Highlight Kartu Kategori Kotak Bergambar 3D
+  document.querySelectorAll(".category-box-card").forEach(card => {
+    const isCurrent = card.dataset.category === categoryName;
+    if (isCurrent) {
+      card.classList.add("active-card", "ring-2", "ring-emerald-600");
+    } else {
+      card.classList.remove("active-card", "ring-2", "ring-emerald-600");
+    }
+  });
+
+  // 2. Highlight Pills Kategori jika ada
   document.querySelectorAll(".category-pill").forEach(btn => {
     const isCurrent = btn.dataset.category === categoryName;
     if (isCurrent) {
@@ -468,6 +479,12 @@ function selectCategory(categoryName) {
   });
 
   renderProducts();
+
+  // Scroll halus ke katalog jika sedang berada di atas
+  const katalogEl = document.getElementById("katalogProduk");
+  if (katalogEl && window.scrollY > 150) {
+    katalogEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 // 11. Modal Detail Produk Ala Tokopedia & Kontrol Pembelian
@@ -921,6 +938,69 @@ function handleSlideAtk() {
   if (categorySection) {
     categorySection.scrollIntoView({ behavior: "smooth" });
   }
+}
+
+// =========================================================================
+// 12b. DYNAMIC HEADER ANIMATIF (ALA ALFAGIFT: COLLAPSIBLE SEARCH & PERSISTENT ICONS)
+// =========================================================================
+let isHeaderScrolled = false;
+let headerTicking = false;
+
+function initAlfagiftHeaderScroll() {
+  const header = document.getElementById("mainHeader");
+  if (!header) return;
+
+  const handleScroll = () => {
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    if (scrollY > 20 && !isHeaderScrolled) {
+      isHeaderScrolled = true;
+      header.classList.add("scrolled");
+    } else if (scrollY <= 15 && isHeaderScrolled) {
+      isHeaderScrolled = false;
+      header.classList.remove("scrolled");
+    }
+    headerTicking = false;
+  };
+
+  window.addEventListener("scroll", () => {
+    if (!headerTicking) {
+      window.requestAnimationFrame(handleScroll);
+      headerTicking = true;
+    }
+  }, { passive: true });
+
+  // Panggil sekali saat start
+  handleScroll();
+}
+
+// Modal Promo & Kupon Diskon (Ala Lonceng Alfagift)
+function openPromoInfoModal() {
+  const modal = document.getElementById("modalPromoInfo");
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function closePromoInfoModal() {
+  const modal = document.getElementById("modalPromoInfo");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+}
+
+function copyPromoCouponCode(code) {
+  if (!code) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).catch(() => {});
+  }
+  const couponInput = document.getElementById("couponInput");
+  if (couponInput) {
+    couponInput.value = code;
+  }
+  showToast(`✅ Kode kupon "${code}" berhasil disalin! Silakan gunakan di keranjang belanja.`);
+  closePromoInfoModal();
 }
 
 // Alias setPrintType
@@ -2738,6 +2818,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchProductsFromGAS();
   initChidoriTooltip();
   initHeroCarousel();
+  initAlfagiftHeaderScroll();
 
   // Live listener jika admin menambah/mengedit produk di tab admin (Sync Real-time tanpa refresh)
   window.addEventListener("storage", (e) => {
@@ -3351,4 +3432,10 @@ if (typeof window !== "undefined") {
   window.prevHeroSlide = prevHeroSlide;
   window.handleSlideBelanja = handleSlideBelanja;
   window.handleSlideAtk = handleSlideAtk;
+
+  // Dynamic Header Alfagift & Promo Modal Handlers
+  window.initAlfagiftHeaderScroll = initAlfagiftHeaderScroll;
+  window.openPromoInfoModal = openPromoInfoModal;
+  window.closePromoInfoModal = closePromoInfoModal;
+  window.copyPromoCouponCode = copyPromoCouponCode;
 }

@@ -1132,7 +1132,8 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       let found = false;
 
       for (let i = 1; i < data.length; i++) {
-        if (String(data[i][cols.colId - 1]).trim().toUpperCase() === prodId.toUpperCase()) {
+        const rowIdStr = String(data[i][cols.colId - 1] || "").trim().toUpperCase();
+        if (rowIdStr === prodId.toUpperCase() || (prodId && rowIdStr.replace(/[^A-Z0-9]/g, "") === prodId.toUpperCase().replace(/[^A-Z0-9]/g, ""))) {
           const current = Number(data[i][cols.colStok - 1]) || 0;
           if (payload.delta !== undefined) {
             newStock = Math.max(0, current + Number(payload.delta));

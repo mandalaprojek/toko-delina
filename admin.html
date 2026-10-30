@@ -1898,7 +1898,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbyVqqi4L76V3YS0MnfqVRwWFoG4cWAk0ZfWQG3RE90Xz8lghE0PLxNbJ6_Bkt6rzi8dGg/exec";
+      : "https://script.google.com/macros/s/AKfycbyPqn_JpdlivaNigqTO9Nn7gttz0-7I9wQtGrieV5uuxv-VIm3XuaXKSG2-OdwjYC0TIg/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -2236,7 +2236,7 @@
       // Render tabel barang kritis
       const tableContainer = document.getElementById("lowStockTableContainer");
       if (tableContainer) {
-        const items = sum.lowStockItems || [];
+        const items = (sum.lowStockItems || []).filter(it => it && typeof it === "object");
         if (items.length === 0) {
           tableContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">Alhamdulillah, seluruh stok produk dalam batas aman (&gt; 3 pcs).</p>`;
         } else {
@@ -2251,18 +2251,23 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                ${items.map(it => `
+                ${items.map(it => {
+                  const itName = it.name || "Barang";
+                  const itCat = it.category || "Umum";
+                  const itId = it.id || "-";
+                  return `
                   <tr>
-                    <td class="p-2 font-bold text-slate-800">${escapeHtml(it.name)}</td>
-                    <td class="p-2 text-slate-500">${escapeHtml(it.category)}</td>
-                    <td class="p-2 text-center font-extrabold text-red-600">${it.stock} ${it.unit}</td>
+                    <td class="p-2 font-bold text-slate-800">${escapeHtml(itName)}</td>
+                    <td class="p-2 text-slate-500">${escapeHtml(itCat)}</td>
+                    <td class="p-2 text-center font-extrabold text-red-600">${it.stock || 0} ${it.unit || 'pcs'}</td>
                     <td class="p-2 text-right">
-                      <button onclick="quickUpdateStock('${it.id}', 10, true)" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[11px] transition-all">
+                      <button onclick="quickUpdateStock('${itId}', 10, true)" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[11px] transition-all cursor-pointer">
                         +10 Stok
                       </button>
                     </td>
                   </tr>
-                `).join("")}
+                  `;
+                }).join("")}
               </tbody>
             </table>
           `;
@@ -2918,7 +2923,7 @@ ${escapeHtml(order.itemsText || "-")}
       const tbody = document.getElementById("productsTableBody");
       if (!tbody) return;
 
-      let products = adminData.products || [];
+      let products = (adminData.products || []).filter(p => p && typeof p === "object");
 
       // Render tombol-tombol filter kategori produk
       renderProductCategoryFilterPills();
@@ -2941,9 +2946,9 @@ ${escapeHtml(order.itemsText || "-")}
       if (productSearchQuery) {
         const q = productSearchQuery.toLowerCase();
         products = products.filter(p => 
-          (p.name || "").toLowerCase().includes(q) ||
-          (p.category || "").toLowerCase().includes(q) ||
-          (p.id || "").toLowerCase().includes(q)
+          ((p.name || "").toLowerCase().includes(q)) ||
+          ((p.category || "").toLowerCase().includes(q)) ||
+          (String(p.id || "").toLowerCase().includes(q))
         );
       }
 
@@ -2959,6 +2964,9 @@ ${escapeHtml(order.itemsText || "-")}
       }
 
       tbody.innerHTML = products.map(p => {
+        const prodName = p.name || "Produk";
+        const prodId = p.id || "-";
+        const prodCat = p.category || "Umum";
         let stockColor = "text-emerald-700 bg-emerald-50 border-emerald-200";
         if (p.stock <= 10) stockColor = "text-amber-700 bg-amber-50 border-amber-200";
         if (p.stock <= 3) stockColor = "text-red-700 bg-red-50 border-red-200";
@@ -2969,30 +2977,30 @@ ${escapeHtml(order.itemsText || "-")}
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="p-3">
               <div class="flex items-center gap-2.5">
-                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(p.name)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" />
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" />
                 <div>
-                  <div class="font-extrabold text-slate-900 leading-tight">${escapeHtml(p.name)}</div>
-                  <span class="text-[10px] text-slate-400 font-mono">${p.id}</span>
+                  <div class="font-extrabold text-slate-900 leading-tight">${escapeHtml(prodName)}</div>
+                  <span class="text-[10px] text-slate-400 font-mono">${prodId}</span>
                 </div>
               </div>
             </td>
-            <td class="p-3 text-slate-600 font-medium">${escapeHtml(p.category)}</td>
+            <td class="p-3 text-slate-600 font-medium">${escapeHtml(prodCat)}</td>
             <td class="p-3 font-extrabold text-slate-900">${formatRupiah(p.price || 0)}</td>
             
             <!-- Quick Edit Stok -->
             <td class="p-3">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="quickUpdateStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">-</button>
+                <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">-</button>
                 <span class="px-2.5 py-1 rounded-xl font-black text-xs border ${stockColor} min-w-[50px] text-center">
-                  ${p.stock} <span class="text-[10px] font-normal text-slate-500">${p.unit || 'pcs'}</span>
+                  ${p.stock || 0} <span class="text-[10px] font-normal text-slate-500">${p.unit || 'pcs'}</span>
                 </span>
-                <button onclick="quickUpdateStock('${p.id}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">+</button>
+                <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">+</button>
               </div>
             </td>
 
             <!-- Aksi Edit (Admin Only) -->
             <td class="p-3 text-center ${isAdmin ? '' : 'hidden'}">
-              <button onclick="openEditProductModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 font-bold text-xs transition-all cursor-pointer">
+              <button onclick="openEditProductModal('${prodId}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 font-bold text-xs transition-all cursor-pointer">
                 <i class="bi bi-pencil-square"></i> Edit
               </button>
             </td>
@@ -3076,16 +3084,20 @@ ${escapeHtml(order.itemsText || "-")}
         if (json.status === "success") {
           showToastAdmin(`Stok produk ${prodId} berhasil diperbarui.`);
 
-          // Update data lokal seketika agar terlihat langsung di tabel stok & kasir POS
-          if (adminData.products) {
-            const p = adminData.products.find(item => String(item.id).toUpperCase() === String(prodId).toUpperCase());
-            if (p) {
-              p.stock = (json.newStock !== undefined) ? Number(json.newStock) : (Number(p.stock) + Number(delta));
+          try {
+            // Update data lokal seketika agar terlihat langsung di tabel stok & kasir POS
+            if (adminData && adminData.products) {
+              const p = adminData.products.find(item => item && String(item.id).toUpperCase() === String(prodId).toUpperCase());
+              if (p) {
+                p.stock = (json.newStock !== undefined) ? Number(json.newStock) : (Number(p.stock) + Number(delta));
+              }
             }
+            renderProductsTable();
+            renderPosProductsGrid();
+            fetchDashboardData(true);
+          } catch (renderErr) {
+            console.warn("Notice re-render setelah update stok:", renderErr);
           }
-          renderProductsTable();
-          renderPosProductsGrid();
-          fetchDashboardData(true);
           return json;
         } else {
           showToastAdmin("Gagal: " + (json.message || "Gagal memperbarui stok."));
@@ -4499,6 +4511,7 @@ ${escapeHtml(order.itemsText || "-")}
 
     // Modal Cepat Tambah Stok Masuk (+N)
     function openQuickRestockModal(product) {
+      if (!product) return;
       activeRestockProduct = product;
       const modal = document.getElementById("quickRestockModal");
       const imgEl = document.getElementById("restockProductImg");
@@ -4509,8 +4522,8 @@ ${escapeHtml(order.itemsText || "-")}
       const qtyInput = document.getElementById("restockQtyInput");
 
       if (imgEl) imgEl.src = formatImageUrl(product.image);
-      if (nameEl) nameEl.innerText = product.name;
-      if (barcodeEl) barcodeEl.innerText = product.id;
+      if (nameEl) nameEl.innerText = product.name || "Produk";
+      if (barcodeEl) barcodeEl.innerText = product.id || "-";
       if (currentStockEl) currentStockEl.innerText = String(product.stock || 0);
       if (unitEl) unitEl.innerText = product.unit || "Pcs";
       if (qtyInput) qtyInput.value = "10";
@@ -4944,15 +4957,15 @@ ${escapeHtml(order.itemsText || "-")}
       const countBadge = document.getElementById("posProductCountBadge");
       if (!container) return;
 
-      let products = adminData.products || [];
+      let products = (adminData.products || []).filter(p => p && typeof p === "object");
       if (posActiveCategory !== "all") {
         products = products.filter(p => (p.category || "").toLowerCase() === posActiveCategory.toLowerCase());
       }
       if (posSearchQuery) {
         products = products.filter(p => 
-          (p.name || "").toLowerCase().includes(posSearchQuery) ||
-          (p.id || "").toLowerCase().includes(posSearchQuery) ||
-          (p.category || "").toLowerCase().includes(posSearchQuery)
+          ((p.name || "").toLowerCase().includes(posSearchQuery)) ||
+          (String(p.id || "").toLowerCase().includes(posSearchQuery)) ||
+          ((p.category || "").toLowerCase().includes(posSearchQuery))
         );
       }
 
@@ -4969,15 +4982,17 @@ ${escapeHtml(order.itemsText || "-")}
       }
 
       container.innerHTML = products.map(p => {
-        const isLow = Number(p.stock) <= 3;
-        const isMedium = Number(p.stock) <= 10 && !isLow;
-        let stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock}</span>`;
-        if (isLow) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Sisa: ${p.stock}</span>`;
-        else if (isMedium) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Stok: ${p.stock}</span>`;
+        const prodName = p.name || "Produk";
+        const prodId = p.id || "-";
+        const isLow = Number(p.stock || 0) <= 3;
+        const isMedium = Number(p.stock || 0) <= 10 && !isLow;
+        let stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock || 0}</span>`;
+        if (isLow) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Sisa: ${p.stock || 0}</span>`;
+        else if (isMedium) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Stok: ${p.stock || 0}</span>`;
 
         return `
           <div 
-            onclick="handlePosManualItemClick('${p.id}')" 
+            onclick="handlePosManualItemClick('${prodId}')" 
             class="group p-2 rounded-xl border border-slate-200/90 bg-white hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between active:scale-95 text-left relative overflow-hidden"
             title="Klik untuk +1 ke keranjang kasir"
           >
@@ -4985,7 +5000,7 @@ ${escapeHtml(order.itemsText || "-")}
               <div class="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100">
                 <img 
                   src="${formatImageUrl(p.image)}" 
-                  alt="${escapeHtml(p.name)}" 
+                  alt="${escapeHtml(prodName)}" 
                   class="w-full h-full object-cover group-hover:scale-105 transition-all"
                   onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
                   loading="lazy"
@@ -4994,8 +5009,8 @@ ${escapeHtml(order.itemsText || "-")}
                   ${stockBadge}
                 </div>
               </div>
-              <div class="font-extrabold text-[11px] text-slate-800 leading-snug line-clamp-2" title="${escapeHtml(p.name)}">
-                ${escapeHtml(p.name)}
+              <div class="font-extrabold text-[11px] text-slate-800 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
+                ${escapeHtml(prodName)}
               </div>
             </div>
             <div class="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between">
@@ -5724,61 +5739,71 @@ ${escapeHtml(order.itemsText || "-")}
       const container = document.getElementById("adminRewardsContainer");
       if (!container) return;
 
-      if (!adminRewardsList || adminRewardsList.length === 0) {
+      const rewards = (adminRewardsList || []).filter(r => r && typeof r === "object");
+      if (rewards.length === 0) {
         container.innerHTML = `<div class="col-span-3 text-slate-400 text-center py-6">Memuat daftar hadiah...</div>`;
         return;
       }
 
-      container.innerHTML = adminRewardsList.map(r => `
+      container.innerHTML = rewards.map(r => {
+        const rName = r.name || "Hadiah";
+        const rId = r.id || "-";
+        return `
         <div class="p-3 rounded-2xl border border-slate-200/90 bg-slate-50 hover:bg-white hover:border-amber-400 hover:shadow-md transition-all flex gap-3 items-center">
-          <img src="${formatImageUrl(r.imageUrl)}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+          <img src="${formatImageUrl(r.imageUrl)}" alt="${escapeHtml(rName)}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">${r.id}</span>
-              <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded ${r.status === 'AKTIF' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r.status}</span>
+              <span class="text-[10px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">${rId}</span>
+              <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded ${r.status === 'AKTIF' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r.status || 'AKTIF'}</span>
             </div>
-            <h5 class="text-xs font-black text-slate-800 truncate mt-1" title="${r.name}">${r.name}</h5>
-            <div class="text-[11px] font-bold text-slate-600">Stok: <strong class="${r.stock <= 5 ? 'text-red-600' : 'text-emerald-700'}">${r.stock} pcs</strong></div>
+            <h5 class="text-xs font-black text-slate-800 truncate mt-1" title="${escapeHtml(rName)}">${escapeHtml(rName)}</h5>
+            <div class="text-[11px] font-bold text-slate-600">Stok: <strong class="${(r.stock || 0) <= 5 ? 'text-red-600' : 'text-emerald-700'}">${r.stock || 0} pcs</strong></div>
             <button 
               type="button" 
-              onclick="openEditRewardModal('${r.id}')" 
+              onclick="openEditRewardModal('${rId}')" 
               class="mt-1.5 px-3 py-1 rounded-lg bg-slate-900 hover:bg-black text-white text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
             >
               <i class="bi bi-pencil"></i> Edit Hadiah
             </button>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function renderAdminClaims() {
       const tbody = document.getElementById("adminClaimsTableBody");
       if (!tbody) return;
 
-      if (!adminClaimsList || adminClaimsList.length === 0) {
+      const claims = (adminClaimsList || []).filter(c => c && typeof c === "object");
+      if (claims.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Belum ada klaim hadiah yang masuk.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = adminClaimsList.map(c => `
+      tbody.innerHTML = claims.map(c => {
+        const mName = c.memberName || "Pelanggan";
+        const rName = c.rewardName || "Hadiah";
+        const cId = c.claimId || "-";
+        return `
         <tr class="hover:bg-slate-50">
-          <td class="p-3 font-mono font-black text-delina-emerald">${c.claimId}</td>
-          <td class="p-3 text-slate-500">${c.time}</td>
+          <td class="p-3 font-mono font-black text-delina-emerald">${cId}</td>
+          <td class="p-3 text-slate-500">${c.time || '-'}</td>
           <td class="p-3">
-            <div class="font-extrabold text-slate-800">${c.memberName}</div>
-            <div class="text-[10px] text-slate-500 font-mono">${c.phone}</div>
+            <div class="font-extrabold text-slate-800">${escapeHtml(mName)}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${c.phone || '-'}</div>
           </td>
-          <td class="p-3 font-semibold text-slate-800">${c.rewardName}</td>
+          <td class="p-3 font-semibold text-slate-800">${escapeHtml(rName)}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${c.status === 'Sudah Diserahkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">
-              ${c.status}
+              ${c.status || '-'}
             </span>
           </td>
           <td class="p-3 text-right">
             ${c.status !== 'Sudah Diserahkan' ? `
               <button 
                 type="button" 
-                onclick="verifyMemberClaim('${c.claimId}')" 
+                onclick="verifyMemberClaim('${cId}')" 
                 class="px-3 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1 ml-auto"
               >
                 <i class="bi bi-check2-circle"></i>
@@ -5789,15 +5814,17 @@ ${escapeHtml(order.itemsText || "-")}
             `}
           </td>
         </tr>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function renderAdminMembers(filterList) {
       const tbody = document.getElementById("adminMembersTableBody");
       if (!tbody) return;
 
-      const list = filterList || adminMembersList;
-      if (!list || list.length === 0) {
+      const rawList = filterList || adminMembersList;
+      const list = (rawList || []).filter(m => m && typeof m === "object");
+      if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Tidak ada member ditemukan.</td></tr>`;
         return;
       }
@@ -5805,10 +5832,11 @@ ${escapeHtml(order.itemsText || "-")}
       tbody.innerHTML = list.map(m => {
         const count = Number(m.belanjaCount) || 0;
         const progress = Math.min(100, Math.round((count / 30) * 100));
+        const memName = m.name || "Member";
         return `
           <tr class="hover:bg-slate-50">
-            <td class="p-3 font-mono font-bold text-slate-700">${m.phone}</td>
-            <td class="p-3 font-extrabold text-slate-800">${m.name}</td>
+            <td class="p-3 font-mono font-bold text-slate-700">${m.phone || '-'}</td>
+            <td class="p-3 font-extrabold text-slate-800">${escapeHtml(memName)}</td>
             <td class="p-3">
               <div class="flex items-center gap-2">
                 <span class="font-black text-xs ${count >= 30 ? 'text-amber-600 font-extrabold' : 'text-slate-700'}">${count}/30</span>

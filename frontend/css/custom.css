@@ -336,3 +336,70 @@ body {
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
 }
 
+/* ==========================================================================
+   DYNAMIC HEADER ANIMATIF (ALA ALFAGIFT: COLLAPSIBLE SEARCH & PERSISTENT ICONS)
+   ========================================================================== */
+#mainHeader {
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  will-change: padding, box-shadow;
+}
+
+#headerBrandRow {
+  max-height: 50px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.28s ease;
+  overflow: hidden;
+}
+
+#headerSearchContainer {
+  transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#headerActionIcons {
+  transition: transform 0.25s ease;
+}
+
+/* Scrolled State (Saat layar digulir ke bawah) */
+#mainHeader.scrolled {
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08);
+}
+
+#mainHeader.scrolled > div {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+#mainHeader.scrolled #headerBrandRow {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+#mainHeader.scrolled #headerSearchContainer {
+  margin-top: 0;
+}
+
+/* Kategori Kotak Bergambar 3D */
+.category-box-card {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.category-box-card:hover {
+  transform: translateY(-2px);
+}
+
+.category-box-card.active-card {
+  box-shadow: 0 0 0 2px #059669, 0 6px 16px rgba(5, 150, 105, 0.2) !important;
+  border-color: #059669 !important;
+  transform: translateY(-1px);
+}
+
+
