@@ -549,7 +549,11 @@ function doGet(e) {
         maps: settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Delina+Store",
         logo: settings.URL_LOGO,
         qris: settings.URL_QRIS,
-        rekening: settings.NOMOR_REKENING
+        rekening: settings.NOMOR_REKENING,
+        rekening1: settings.NOMOR_REKENING_1 || settings.NOMOR_REKENING,
+        rekening2: settings.NOMOR_REKENING_2 || "",
+        shopeepay: settings.EWALLET_SHOPEEPAY || "",
+        gopay: settings.EWALLET_GOPAY || ""
       },
       categories: categories,
       products: products,
