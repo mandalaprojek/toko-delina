@@ -562,6 +562,38 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- KATALOG GRID MANUAL POS (TOUCH TO ADD) -->
+              <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div class="flex items-center gap-2">
+                    <i class="bi bi-grid-fill text-emerald-700 text-sm"></i>
+                    <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Katalog Cepat Kasir POS</h4>
+                    <span id="posProductCountBadge" class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200">0 Produk</span>
+                  </div>
+                  <!-- Kolom Pencarian Instan POS -->
+                  <div class="relative w-full sm:w-64">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="posProductSearchInput" 
+                      oninput="handlePosProductSearch(this.value)" 
+                      placeholder="Cari nama barang / barcode..." 
+                      class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                </div>
+
+                <!-- Filter Kategori POS (Pills Horizontal Scroll) -->
+                <div id="posCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
+                  <!-- Diisi dinamis -->
+                </div>
+
+                <!-- Grid Kartu Produk Manual POS -->
+                <div id="posProductsManualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-72 overflow-y-auto pr-1">
+                  <!-- Diisi dinamis -->
+                </div>
+              </div>
             </div>
 
             <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth -->
@@ -1487,7 +1519,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbxuGNjJ9IpZv65_CaX1J_0C8malNlku9fGxgRZIfLm2k4kgxeKrEmhuSdggnQ2j2MYuVA/exec";
+      : "https://script.google.com/macros/s/AKfycbyFPJFcFCRPNlPPxGEbA1Wgi4oFimWG2xiODsJX7M5l4vhI_tpUN9NC8jK3g0ZDZ_WdQw/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -1772,6 +1804,10 @@
       // 8. Modul Kategori Produk
       populateProductCategoryDropdown();
       renderManageCategoriesList();
+
+      // 9. Modul Kasir Cepat POS
+      renderPosCategoryPills();
+      renderPosProductsGrid();
     }
 
     // =========================================================
@@ -2585,9 +2621,43 @@ ${escapeHtml(order.itemsText || "-")}
         if (json.status === "success") {
           showToastAdmin(json.message);
           closeProductModal();
-          fetchDashboardData();
+
+          // INSTANT AUTO-DISPLAY DI PENJUALAN & KATALOG STOK (TANPA PERLU REFRESH BROWSER)
+          const newProd = json.product || {
+            id: json.id || payload.id || ("DLN-899" + Date.now().toString().slice(-4)),
+            name: payload.name,
+            category: payload.category,
+            price: payload.price,
+            stock: payload.stock,
+            unit: payload.unit,
+            image: json.imageUrl || payload.imageUrl || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500",
+            description: payload.description,
+            status: "Aktif",
+            rating: 5.0,
+            sold: 0
+          };
+
+          if (!adminData.products) adminData.products = [];
+          const existingIdx = adminData.products.findIndex(p => String(p.id).toUpperCase() === String(newProd.id).toUpperCase());
+          if (existingIdx > -1) {
+            adminData.products[existingIdx] = { ...adminData.products[existingIdx], ...newProd };
+          } else {
+            adminData.products.unshift(newProd);
+          }
+
+          // Broadcast ke tab etalase index.html jika terbuka
+          try {
+            localStorage.setItem("delina_last_saved_product", JSON.stringify(newProd));
+          } catch(eStorage) {}
+
+          // Render seketika tabel stok & katalog kasir POS
+          renderProductsTable();
+          renderPosProductsGrid();
+
+          // Sinkronisasi data background
+          fetchDashboardData(true);
         } else {
-          showToastAdmin("Gagal: " + json.message);
+          showToastAdmin("Gagal: " + (json.message || "Gagal menyimpan produk."));
         }
       } catch (err) {
         showToastAdmin("Koneksi gagal.");
@@ -3840,9 +3910,14 @@ ${escapeHtml(order.itemsText || "-")}
         });
         showToastAdmin(`✅ +1 ${product.name}`);
       } else {
-        // TIDAK DIKENAL: Kamera TIDAK mati, berikan beepError()
+        // TIDAK DIKENAL: Kamera tetap standby (Continuous Scan), bunyikan error dan konfirmasi daftarkan
         beepError(); // 300Hz, 0.2s
-        showToastAdmin(`⚠️ Barcode "${code}" tidak terdaftar di katalog!`);
+        showToastAdmin(`⚠️ Barcode "${code}" belum terdaftar!`);
+        setTimeout(() => {
+          if (confirm(`⚠️ Barang dengan Barcode "${code}" belum terdaftar di katalog.\n\nApakah Anda ingin mendaftarkan produk ini sekarang?`)) {
+            handleProductBarcodeDetected(code);
+          }
+        }, 120);
       }
     }
 
@@ -4050,6 +4125,131 @@ ${escapeHtml(order.itemsText || "-")}
         changeEl.innerText = `Kurang ${formatRupiah(Math.abs(change))}`;
         changeEl.className = "font-black text-red-600";
       }
+    }
+
+    // =========================================================
+    // 15b. KATALOG GRID MANUAL KASIR POS (SENTUH / KLIK CEPAT)
+    // =========================================================
+    let posActiveCategory = "all";
+    let posSearchQuery = "";
+
+    function renderPosCategoryPills() {
+      const container = document.getElementById("posCategoryFilterPills");
+      if (!container) return;
+
+      const cats = (adminData.categories && adminData.categories.length > 0)
+        ? adminData.categories.map(c => c.nama)
+        : ["ATK & Perlengkapan Kantor", "Kosmetik & Perawatan Diri", "Sembako & Kelontongan", "Makanan & Minuman"];
+
+      let html = `
+        <button type="button" onclick="setPosCategoryFilter('all')" class="px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${posActiveCategory === 'all' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+          Semua
+        </button>
+      `;
+
+      cats.forEach(cat => {
+        const isActive = posActiveCategory === cat;
+        html += `
+          <button type="button" onclick="setPosCategoryFilter('${cat.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+            ${escapeHtml(cat)}
+          </button>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function setPosCategoryFilter(cat) {
+      posActiveCategory = cat;
+      renderPosCategoryPills();
+      renderPosProductsGrid();
+    }
+
+    function handlePosProductSearch(query) {
+      posSearchQuery = (query || "").toLowerCase().trim();
+      renderPosProductsGrid();
+    }
+
+    function renderPosProductsGrid() {
+      const container = document.getElementById("posProductsManualGrid");
+      const countBadge = document.getElementById("posProductCountBadge");
+      if (!container) return;
+
+      let products = adminData.products || [];
+      if (posActiveCategory !== "all") {
+        products = products.filter(p => (p.category || "").toLowerCase() === posActiveCategory.toLowerCase());
+      }
+      if (posSearchQuery) {
+        products = products.filter(p => 
+          (p.name || "").toLowerCase().includes(posSearchQuery) ||
+          (p.id || "").toLowerCase().includes(posSearchQuery) ||
+          (p.category || "").toLowerCase().includes(posSearchQuery)
+        );
+      }
+
+      if (countBadge) countBadge.innerText = `${products.length} Produk`;
+
+      if (products.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-8 text-center text-slate-400 text-xs">
+            <i class="bi bi-box-seam text-2xl block mb-1 text-slate-300"></i>
+            Tidak ada produk yang cocok dengan filter / pencarian.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = products.map(p => {
+        const isLow = Number(p.stock) <= 3;
+        const isMedium = Number(p.stock) <= 10 && !isLow;
+        let stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock}</span>`;
+        if (isLow) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Sisa: ${p.stock}</span>`;
+        else if (isMedium) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Stok: ${p.stock}</span>`;
+
+        return `
+          <div 
+            onclick="handlePosManualItemClick('${p.id}')" 
+            class="group p-2 rounded-xl border border-slate-200/90 bg-white hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between active:scale-95 text-left relative overflow-hidden"
+            title="Klik untuk +1 ke keranjang kasir"
+          >
+            <div class="space-y-1.5">
+              <div class="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100">
+                <img 
+                  src="${formatImageUrl(p.image)}" 
+                  alt="${escapeHtml(p.name)}" 
+                  class="w-full h-full object-cover group-hover:scale-105 transition-all"
+                  onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                  loading="lazy"
+                />
+                <div class="absolute top-1 right-1">
+                  ${stockBadge}
+                </div>
+              </div>
+              <div class="font-extrabold text-[11px] text-slate-800 leading-snug line-clamp-2" title="${escapeHtml(p.name)}">
+                ${escapeHtml(p.name)}
+              </div>
+            </div>
+            <div class="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between">
+              <strong class="text-xs text-emerald-700 font-black">${formatRupiah(p.price || 0)}</strong>
+              <span class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-black group-hover:bg-emerald-600 group-hover:text-white transition-all">+</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function handlePosManualItemClick(prodId) {
+      const product = (adminData.products || []).find(p => String(p.id).toUpperCase() === String(prodId).toUpperCase());
+      if (!product) return;
+
+      beepSuccess();
+      addItemToPosLiveCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        unit: product.unit || "Pcs",
+        image: product.image
+      });
+      showToastAdmin(`✅ +1 ${product.name}`);
     }
 
     // Shortcut Tes Scan untuk Tablet / PC tanpa kamera fisik

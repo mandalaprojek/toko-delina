@@ -1109,19 +1109,21 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       const sheetProduk = ss.getSheetByName(TAB_PRODUK);
       if (!sheetProduk) throw new Error("Tab Produk tidak ditemukan.");
 
+      upgradeTabProduk(sheetProduk);
+      const cols = getProdukColIndices(sheetProduk);
       const data = sheetProduk.getDataRange().getValues();
       let newStock = 0;
       let found = false;
 
       for (let i = 1; i < data.length; i++) {
-        if (String(data[i][0]).trim() === prodId) {
-          const current = Number(data[i][4]) || 0;
+        if (String(data[i][cols.colId - 1]).trim().toUpperCase() === prodId.toUpperCase()) {
+          const current = Number(data[i][cols.colStok - 1]) || 0;
           if (payload.delta !== undefined) {
             newStock = Math.max(0, current + Number(payload.delta));
           } else {
             newStock = Math.max(0, Number(payload.stock) || 0);
           }
-          sheetProduk.getRange(i + 1, 5).setValue(newStock);
+          sheetProduk.getRange(i + 1, cols.colStok).setValue(newStock);
           found = true;
           break;
         }
@@ -1139,8 +1141,8 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       });
     }
 
-    // 4.4 Simpan / Edit Produk ATK (Khusus Admin)
-    if (action === "saveProduct") {
+    // 4.4 Simpan / Edit Produk ATK, Kosmetik & Kelontongan (Khusus Admin)
+    if (action === "saveProduct" || action === "simpanProduk") {
       const auth = validatePin(payload.pin, ss);
       if (!auth.valid || auth.role !== "admin") {
         return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak mengelola produk." });
@@ -1148,6 +1150,9 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
 
       const sheetProduk = ss.getSheetByName(TAB_PRODUK);
       if (!sheetProduk) throw new Error("Tab Produk tidak ditemukan.");
+
+      upgradeTabProduk(sheetProduk);
+      const cols = getProdukColIndices(sheetProduk);
 
       let imageUrl = String(payload.imageUrl || "").trim();
       if (payload.imageBase64) {
@@ -1157,57 +1162,108 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
           SUBFOLDER_PRODUK
         );
       }
+      imageUrl = convertDriveUrlToLh3(imageUrl);
 
       const data = sheetProduk.getDataRange().getValues();
-      let prodId = String(payload.id || "").trim();
+      let prodId = String(payload.id || payload.barcode || "").trim();
       let rowIndex = -1;
 
-      if (prodId) {
+      // Jika produk tidak memiliki barcode fisik atau AI tidak menemukan barcode pada foto,
+      // buatkan otomatis ID Toko unik berbasis timestamp/urutan (contoh: DLN-899XXXX)
+      if (!prodId || prodId.toLowerCase() === "undefined" || prodId.toLowerCase() === "null") {
+        const rand4 = Math.floor(1000 + Math.random() * 9000);
+        prodId = "DLN-899" + String(Date.now()).slice(-3) + rand4.toString().slice(-2);
+      } else {
         for (let i = 1; i < data.length; i++) {
-          if (String(data[i][0]).trim() === prodId) {
+          if (String(data[i][cols.colId - 1]).trim().toUpperCase() === prodId.toUpperCase()) {
             rowIndex = i + 1;
             break;
           }
         }
       }
 
+      const name = String(payload.name || "Produk Baru").trim();
+      const category = String(payload.category || "Umum").trim();
+      const hargaJual = Number(payload.price || payload.hargaJual || payload.harga_jual) || 0;
+      const hargaBeli = Number(payload.costPrice || payload.hargaBeli || payload.harga_beli) || Math.round(hargaJual * 0.8);
+      const stock = Number(payload.stock || payload.stok) || 0;
+      const unit = String(payload.unit || payload.satuan || "Pcs").trim();
+      const description = String(payload.description || payload.deskripsi || "").trim();
+      const status = String(payload.status || "Aktif").trim();
+
       if (rowIndex > 0) {
-        if (!imageUrl) imageUrl = String(data[rowIndex - 1][6] || "");
-        sheetProduk.getRange(rowIndex, 2).setValue(payload.name || "");
-        sheetProduk.getRange(rowIndex, 3).setValue(payload.category || "Umum");
-        sheetProduk.getRange(rowIndex, 4).setValue(Number(payload.price) || 0);
-        sheetProduk.getRange(rowIndex, 5).setValue(Number(payload.stock) || 0);
-        sheetProduk.getRange(rowIndex, 6).setValue(payload.unit || "Pcs");
-        sheetProduk.getRange(rowIndex, 7).setValue(imageUrl);
-        sheetProduk.getRange(rowIndex, 8).setValue(payload.description || "");
+        if (!imageUrl) imageUrl = String(data[rowIndex - 1][cols.colFoto - 1] || "");
+        imageUrl = convertDriveUrlToLh3(imageUrl);
+
+        sheetProduk.getRange(rowIndex, cols.colNama).setValue(name);
+        sheetProduk.getRange(rowIndex, cols.colKategori).setValue(category);
+        if (cols.colHargaBeli > 0) sheetProduk.getRange(rowIndex, cols.colHargaBeli).setValue(hargaBeli);
+        sheetProduk.getRange(rowIndex, cols.colHargaJual).setValue(hargaJual);
+        sheetProduk.getRange(rowIndex, cols.colStok).setValue(stock);
+        sheetProduk.getRange(rowIndex, cols.colSatuan).setValue(unit);
+        sheetProduk.getRange(rowIndex, cols.colFoto).setValue(imageUrl);
+        sheetProduk.getRange(rowIndex, cols.colDeskripsi).setValue(description);
+        if (cols.colStatus > 0) sheetProduk.getRange(rowIndex, cols.colStatus).setValue(status);
 
         return createJsonResponse({
           status: "success",
-          message: `Produk "${payload.name}" berhasil diperbarui.`,
+          message: `Produk "${name}" berhasil diperbarui.`,
           id: prodId,
-          imageUrl: imageUrl
+          imageUrl: imageUrl,
+          product: {
+            id: prodId,
+            name: name,
+            category: category,
+            costPrice: hargaBeli,
+            price: hargaJual,
+            stock: stock,
+            unit: unit,
+            image: imageUrl,
+            description: description,
+            status: status,
+            rating: 4.9,
+            sold: 100
+          }
         });
       } else {
-        if (!prodId) {
-          prodId = "ATK-" + String(data.length).padStart(3, "0");
+        if (!imageUrl) {
+          imageUrl = "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
         }
+        imageUrl = convertDriveUrlToLh3(imageUrl);
+
         const newRow = [
           prodId,
-          payload.name || "Produk Baru",
-          payload.category || "Umum",
-          Number(payload.price) || 0,
-          Number(payload.stock) || 0,
-          payload.unit || "Pcs",
-          imageUrl || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500",
-          payload.description || ""
+          name,
+          category,
+          hargaBeli,
+          hargaJual,
+          stock,
+          unit,
+          imageUrl,
+          description,
+          status
         ];
         sheetProduk.appendRow(newRow);
 
         return createJsonResponse({
           status: "success",
-          message: `Produk baru "${payload.name}" berhasil ditambahkan dengan ID ${prodId}.`,
+          message: `Produk baru "${name}" berhasil ditambahkan dengan ID ${prodId}.`,
           id: prodId,
-          imageUrl: imageUrl
+          imageUrl: imageUrl,
+          product: {
+            id: prodId,
+            name: name,
+            category: category,
+            costPrice: hargaBeli,
+            price: hargaJual,
+            stock: stock,
+            unit: unit,
+            image: imageUrl,
+            description: description,
+            status: status,
+            rating: 5.0,
+            sold: 0
+          }
         });
       }
     }
@@ -1545,24 +1601,102 @@ function cariPesananDiSheet(ss, query) {
   return null;
 }
 
+// -------------------------------------------------------------
+// HELPER STRUKTUR TAB PRODUK (MENDUKUNG 10 KOLOM LENGKAP & 8 KOLOM LAMA)
+// -------------------------------------------------------------
+function getProdukColIndices(sheetProduk) {
+  if (!sheetProduk || sheetProduk.getLastColumn() < 1) {
+    return {
+      has10Cols: false,
+      colId: 1, colNama: 2, colKategori: 3, colHargaBeli: 0,
+      colHargaJual: 4, colStok: 5, colSatuan: 6, colFoto: 7,
+      colDeskripsi: 8, colStatus: 0
+    };
+  }
+
+  const header = sheetProduk.getRange(1, 1, 1, Math.max(1, sheetProduk.getLastColumn())).getValues()[0].map(h => String(h || "").trim().toLowerCase());
+  const idxHargaBeli = header.indexOf("harga_beli") > -1 ? header.indexOf("harga_beli") : header.indexOf("harga beli");
+  const idxHargaJual = header.indexOf("harga_jual") > -1 ? header.indexOf("harga_jual") : (header.indexOf("harga jual") > -1 ? header.indexOf("harga jual") : header.indexOf("harga"));
+  const idxFoto = header.indexOf("url_foto") > -1 ? header.indexOf("url_foto") : (header.indexOf("foto") > -1 ? header.indexOf("foto") : header.indexOf("url foto"));
+
+  return {
+    has10Cols: idxHargaBeli > -1,
+    colId: header.indexOf("id") > -1 ? header.indexOf("id") + 1 : 1,
+    colNama: header.indexOf("nama") > -1 ? header.indexOf("nama") + 1 : 2,
+    colKategori: header.indexOf("kategori") > -1 ? header.indexOf("kategori") + 1 : 3,
+    colHargaBeli: idxHargaBeli > -1 ? idxHargaBeli + 1 : 0,
+    colHargaJual: idxHargaJual > -1 ? idxHargaJual + 1 : 4,
+    colStok: header.indexOf("stok") > -1 ? header.indexOf("stok") + 1 : (idxHargaBeli > -1 ? 6 : 5),
+    colSatuan: header.indexOf("satuan") > -1 ? header.indexOf("satuan") + 1 : (idxHargaBeli > -1 ? 7 : 6),
+    colFoto: idxFoto > -1 ? idxFoto + 1 : (idxHargaBeli > -1 ? 8 : 7),
+    colDeskripsi: header.indexOf("deskripsi") > -1 ? header.indexOf("deskripsi") + 1 : (idxHargaBeli > -1 ? 9 : 8),
+    colStatus: header.indexOf("status") > -1 ? header.indexOf("status") + 1 : (idxHargaBeli > -1 ? 10 : 0)
+  };
+}
+
+function upgradeTabProduk(sheetProduk) {
+  if (!sheetProduk || sheetProduk.getLastRow() < 1) return;
+  const lastCol = sheetProduk.getLastColumn();
+  const header = sheetProduk.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || "").trim().toLowerCase());
+  if (header.includes("harga_beli") || header.includes("harga beli")) {
+    return; // Sudah versi 10 kolom
+  }
+
+  const lastRow = sheetProduk.getLastRow();
+  // 1. Sisipkan kolom Harga_Beli di posisi 4
+  sheetProduk.insertColumnAfter(3);
+  sheetProduk.getRange(1, 4).setValue("Harga_Beli");
+
+  if (lastRow > 1) {
+    const hargaJualValues = sheetProduk.getRange(2, 5, lastRow - 1, 1).getValues();
+    const hargaBeliValues = hargaJualValues.map(r => [Math.round((Number(r[0]) || 0) * 0.8)]);
+    sheetProduk.getRange(2, 4, lastRow - 1, 1).setValues(hargaBeliValues);
+  }
+
+  // Ganti header kolom 5 menjadi Harga_Jual
+  sheetProduk.getRange(1, 5).setValue("Harga_Jual");
+
+  // Tambahkan kolom Status di posisi 10 jika belum ada
+  if (sheetProduk.getLastColumn() < 10) {
+    sheetProduk.getRange(1, 10).setValue("Status");
+    if (lastRow > 1) {
+      const statusValues = Array(lastRow - 1).fill(["Aktif"]);
+      sheetProduk.getRange(2, 10, lastRow - 1, 1).setValues(statusValues);
+    }
+  }
+
+  formatHeaderSheet(sheetProduk, 10);
+  sheetProduk.autoResizeColumns(1, 10);
+}
+
 function ambilDaftarProduk(ss) {
   const sheetProduk = ss.getSheetByName(TAB_PRODUK);
   const produkList = [];
   if (!sheetProduk || sheetProduk.getLastRow() <= 1) return produkList;
 
+  upgradeTabProduk(sheetProduk);
+  const cols = getProdukColIndices(sheetProduk);
   const data = sheetProduk.getDataRange().getValues();
+
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    if (row[0]) {
+    const idVal = row[cols.colId - 1];
+    if (idVal) {
+      const hargaJual = Number(row[cols.colHargaJual - 1]) || 0;
+      const hargaBeli = cols.colHargaBeli > 0 ? (Number(row[cols.colHargaBeli - 1]) || Math.round(hargaJual * 0.8)) : Math.round(hargaJual * 0.8);
+      const statusVal = cols.colStatus > 0 ? String(row[cols.colStatus - 1] || "Aktif") : "Aktif";
+
       produkList.push({
-        id: String(row[0]),
-        name: String(row[1] || ""),
-        category: String(row[2] || "Umum"),
-        price: Number(row[3] || 0),
-        stock: Number(row[4] || 0),
-        unit: String(row[5] || "Pcs"),
-        image: convertDriveUrlToLh3(String(row[6] || "")),
-        description: String(row[7] || ""),
+        id: String(idVal),
+        name: String(row[cols.colNama - 1] || ""),
+        category: String(row[cols.colKategori - 1] || "Umum"),
+        costPrice: hargaBeli,
+        price: hargaJual,
+        stock: Number(row[cols.colStok - 1]) || 0,
+        unit: String(row[cols.colSatuan - 1] || "Pcs"),
+        image: convertDriveUrlToLh3(String(row[cols.colFoto - 1] || "")),
+        description: String(row[cols.colDeskripsi - 1] || ""),
+        status: statusVal,
         rating: 4.9,
         sold: 100
       });
@@ -2381,16 +2515,20 @@ function getOrCreateSubFolder(parentFolder, subFolderName) {
 }
 
 function kurangiStokProduk(sheetProduk, items) {
+  if (!sheetProduk || !Array.isArray(items) || items.length === 0) return;
+  upgradeTabProduk(sheetProduk);
+  const cols = getProdukColIndices(sheetProduk);
   const data = sheetProduk.getDataRange().getValues();
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (item.isFotokopi || String(item.id).startsWith("FOTO-")) continue;
 
     for (let r = 1; r < data.length; r++) {
-      if (String(data[r][0]) === String(item.id)) {
-        const currentStock = Number(data[r][4]) || 0;
+      if (String(data[r][cols.colId - 1]).trim().toUpperCase() === String(item.id).trim().toUpperCase()) {
+        const currentStock = Number(data[r][cols.colStok - 1]) || 0;
         const newStock = Math.max(0, currentStock - Number(item.qty));
-        sheetProduk.getRange(r + 1, 5).setValue(newStock);
+        sheetProduk.getRange(r + 1, cols.colStok).setValue(newStock);
         break;
       }
     }
@@ -2586,16 +2724,16 @@ function prosesLookupBarcode(barcode, ss, imageBase64) {
           if (match && match[1]) mimeType = match[1];
         }
 
-        const promptVision = `Periksa dan analisis foto produk / kemasan dagang Indonesia ini dengan teliti:
-1. Baca angka nomor barcode (EAN-13 / UPC / kode batang) yang tertera pada kemasan atau label produk jika tampak. Jika tidak tampak angka barcodenya, kembalikan "".
-2. Identifikasi Nama Lengkap Produk, Merek dagang, dan Varian secara akurat (contoh: "Indomie Mi Goreng Spesial 85g", "Buku Tulis Sinar Dunia 38 Lembar", "Garnier Micellar Water Salicylic BHA 125ml", "Minyak Goreng SunCo 1 Liter").
-3. Pilih Kategori yang paling tepat HANYA dari daftar kategori toko berikut:
+        const promptVision = `Tugas Anda adalah menganalisis foto produk / kemasan barang dagang ritel Indonesia (ATK, Kosmetik, Kelontong, Makanan/Minuman) secara super akurat:
+1. BARCODE: Prioritaskan membaca 8 hingga 13 digit angka barcode EAN-13 / UPC / kode batang yang tercetak pada kemasan jika tampak jelas. Jika tidak tampak atau terpotong, kembalikan "".
+2. NAMA: Ambil Nama Merek dan Varian rasa / jenis / ukuran yang paling dominan di kemasan secara lengkap & profesional (contoh: "Indomie Mi Goreng Spesial 85g", "Pocari Sweat Botol 500ml", "Garnier Bright Complete Vitamin C Serum 30ml", "Kertas HVS PaperOne A4 75gsm").
+3. KATEGORI: Pilih satu kategori yang paling cocok HANYA dari daftar berikut:
 ${storeCategories.join(", ")}
-4. Satuan standar (Pcs, Box, Pack, Btl, Rim, Sachet, Pouch, Lusin).
-5. Tuliskan deskripsi ringkas 1 kalimat tentang keunggulan barang ini.
+4. SATUAN: Satuan kemasan yang lazim (Pcs, Box, Pack, Btl, Rim, Sachet, Pouch, Lusin, Tub).
+5. HARGA_JUAL: Perkirakan harga jual eceran wajar dalam Rupiah (angka bulat tanpa titik/koma, contoh: 3500, 15000, 48000).
 
-Kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
-{"barcode": "...", "nama": "...", "kategori": "...", "satuan": "Pcs", "deskripsi": "..."}`;
+Wajib kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
+{"barcode": "...", "nama": "...", "kategori": "...", "satuan": "Pcs", "harga_jual": 0}`;
 
         const visionModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
         for (let m = 0; m < visionModels.length; m++) {
@@ -2617,7 +2755,11 @@ Kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
                   ]
                 }
               ],
-              generationConfig: { temperature: 0.1, maxOutputTokens: 300 }
+              generationConfig: {
+                temperature: 0.1,
+                maxOutputTokens: 350,
+                responseMimeType: "application/json"
+              }
             };
 
             const options = {
@@ -2632,40 +2774,54 @@ Kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
               const aiJson = JSON.parse(aiRes.getContentText());
               if (aiJson.candidates && aiJson.candidates[0] && aiJson.candidates[0].content && aiJson.candidates[0].content.parts) {
                 const rawText = aiJson.candidates[0].content.parts[0].text;
-                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                  const parsed = JSON.parse(jsonMatch[0]);
-                  if (parsed && parsed.nama) {
-                    const detectedBarcode = parsed.barcode && String(parsed.barcode).replace(/\D/g, "").length >= 4 
-                      ? String(parsed.barcode).replace(/\D/g, "") 
-                      : (cleanBarcode || "SKU-" + Math.floor(100000 + Math.random() * 900000));
+                let parsed = null;
+                try {
+                  parsed = JSON.parse(rawText.trim());
+                } catch(e) {
+                  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                  if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+                }
 
-                    // Simpan foto kemasan ke Drive agar langsung jadi foto produk HD
-                    let uploadedFotoUrl = "";
-                    try {
-                      uploadedFotoUrl = saveBase64ToDriveFolder(
-                        imageBase64, 
-                        `PROD-${detectedBarcode}.jpg`, 
-                        SUBFOLDER_PRODUK
-                      );
-                    } catch (eSave) {
-                      Logger.log("Save vision image to drive notice: " + eSave.toString());
-                    }
-
-                    const bestCat = mapKategoriKeDaftarToko(parsed.kategori, storeCategories);
-
-                    return {
-                      status: "success",
-                      isNew: true,
-                      source: `Gemini Vision AI (${modelName})`,
-                      barcode: detectedBarcode,
-                      nama: parsed.nama.trim(),
-                      kategori: bestCat,
-                      satuan: parsed.satuan || "Pcs",
-                      deskripsi: parsed.deskripsi || `Ready Stok ${parsed.nama.trim()} | Kategori: ${bestCat} — Dijamin Ori & Berkualitas di Delina.store`,
-                      fotoUrl: uploadedFotoUrl
-                    };
+                if (parsed && parsed.nama) {
+                  let detectedBarcode = "";
+                  if (parsed.barcode && String(parsed.barcode).replace(/\D/g, "").length >= 6) {
+                    detectedBarcode = String(parsed.barcode).replace(/\D/g, "");
+                  } else if (cleanBarcode) {
+                    detectedBarcode = cleanBarcode;
+                  } else {
+                    // ID Toko unik jika barcode fisik tidak tertera (DLN-899XXXX)
+                    const rand4 = Math.floor(1000 + Math.random() * 9000);
+                    detectedBarcode = "DLN-899" + String(Date.now()).slice(-3) + rand4.toString().slice(-2);
                   }
+
+                  // Simpan foto kemasan ke Drive agar langsung jadi foto produk HD format lh3
+                  let uploadedFotoUrl = "";
+                  try {
+                    uploadedFotoUrl = saveBase64ToDriveFolder(
+                      imageBase64, 
+                      `PROD-${detectedBarcode}.jpg`, 
+                      SUBFOLDER_PRODUK
+                    );
+                  } catch (eSave) {
+                    Logger.log("Save vision image to drive notice: " + eSave.toString());
+                  }
+
+                  const bestCat = mapKategoriKeDaftarToko(parsed.kategori, storeCategories);
+                  const hargaJual = Number(parsed.harga_jual) || 0;
+
+                  return {
+                    status: "success",
+                    isNew: true,
+                    source: `Gemini Vision AI (${modelName})`,
+                    barcode: detectedBarcode,
+                    nama: parsed.nama.trim(),
+                    kategori: bestCat,
+                    satuan: parsed.satuan || "Pcs",
+                    harga_jual: hargaJual,
+                    estimasiHarga: hargaJual,
+                    deskripsi: `Ready Stok ${parsed.nama.trim()} | Kategori: ${bestCat} — Dijamin Ori & Berkualitas di Delina.store`,
+                    fotoUrl: uploadedFotoUrl
+                  };
                 }
               }
             }
@@ -2688,23 +2844,27 @@ Kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
   // 1. Cek di Tab 'Produk' Google Sheets
   const sheetProduk = ss.getSheetByName(TAB_PRODUK);
   if (sheetProduk && sheetProduk.getLastRow() > 1) {
+    upgradeTabProduk(sheetProduk);
+    const cols = getProdukColIndices(sheetProduk);
     const data = sheetProduk.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      const rowId = String(data[i][0] || "").trim().toUpperCase();
-      const rowName = String(data[i][1] || "").trim();
+      const rowId = String(data[i][cols.colId - 1] || "").trim().toUpperCase();
+      const rowName = String(data[i][cols.colNama - 1] || "").trim();
       if (rowId === cleanBarcodeUpper || rowId.replace(/[^A-Z0-9]/g, "") === cleanBarcodeUpper.replace(/[^A-Z0-9]/g, "")) {
         return {
           status: "existing",
           message: "Produk sudah terdaftar di toko.",
           product: {
-            id: data[i][0],
+            id: data[i][cols.colId - 1],
             name: rowName,
-            category: data[i][2] || "ATK & Perlengkapan Kantor",
-            price: Number(data[i][3]) || 0,
-            stock: Number(data[i][4]) || 0,
-            unit: data[i][5] || "Pcs",
-            image: convertDriveUrlToLh3(String(data[i][6] || "")),
-            description: data[i][7] || ""
+            category: data[i][cols.colKategori - 1] || "ATK & Perlengkapan Kantor",
+            costPrice: cols.colHargaBeli > 0 ? (Number(data[i][cols.colHargaBeli - 1]) || 0) : 0,
+            price: Number(data[i][cols.colHargaJual - 1]) || 0,
+            stock: Number(data[i][cols.colStok - 1]) || 0,
+            unit: data[i][cols.colSatuan - 1] || "Pcs",
+            image: convertDriveUrlToLh3(String(data[i][cols.colFoto - 1] || "")),
+            description: data[i][cols.colDeskripsi - 1] || "",
+            status: cols.colStatus > 0 ? (data[i][cols.colStatus - 1] || "Aktif") : "Aktif"
           }
         };
       }

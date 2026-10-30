@@ -2579,6 +2579,25 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchProductsFromGAS();
   initChidoriTooltip();
 
+  // Live listener jika admin menambah/mengedit produk di tab admin (Sync Real-time tanpa refresh)
+  window.addEventListener("storage", (e) => {
+    if (e.key === "delina_last_saved_product" && e.newValue) {
+      try {
+        const newProd = JSON.parse(e.newValue);
+        if (newProd && newProd.id) {
+          const idx = productsData.findIndex(p => String(p.id).toUpperCase() === String(newProd.id).toUpperCase());
+          if (idx > -1) {
+            productsData[idx] = { ...productsData[idx], ...newProd };
+          } else {
+            productsData.unshift(newProd);
+          }
+          renderProducts();
+          showToast(`⚡ Produk "${newProd.name}" diperbarui di katalog!`);
+        }
+      } catch (err) {}
+    }
+  });
+
   // Pasang listener pencarian
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {

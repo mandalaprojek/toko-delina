@@ -3,8 +3,8 @@
  * Rebranding Delina.store (ATK, Kosmetik dan Kelontongan) & Member Royalty
  */
 const CONFIG = {
-  // URL Web App Google Apps Script Hasil Deploy Resmi Versi 41
-  GAS_API_URL: "https://script.google.com/macros/s/AKfycbxuGNjJ9IpZv65_CaX1J_0C8malNlku9fGxgRZIfLm2k4kgxeKrEmhuSdggnQ2j2MYuVA/exec",
+  // URL Web App Google Apps Script Hasil Deploy Resmi Versi 43
+  GAS_API_URL: "https://script.google.com/macros/s/AKfycbyFPJFcFCRPNlPPxGEbA1Wgi4oFimWG2xiODsJX7M5l4vhI_tpUN9NC8jK3g0ZDZ_WdQw/exec",
   
   // Informasi Toko
   STORE_NAME: "Delina.store",
