@@ -1735,11 +1735,56 @@ function useSimulatedReceipt() {
   }
 }
 
+// Salin Teks ke Clipboard dengan Feedback 2 Detik & Toast
+function copyToClipboard(text, btnElement) {
+  if (!text) return;
+
+  // 1. Salin ke clipboard browser (modern + fallback)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => {
+      fallbackCopyText(text);
+    });
+  } else {
+    fallbackCopyText(text);
+  }
+
+  // 2. Beri efek feedback pada tombol selama 2 detik
+  if (btnElement) {
+    const originalHtml = btnElement.innerHTML;
+    btnElement.innerHTML = `<span>✓ Tersalin!</span>`;
+    btnElement.classList.add("copied");
+    setTimeout(() => {
+      btnElement.innerHTML = originalHtml;
+      btnElement.classList.remove("copied");
+    }, 2000);
+  }
+
+  // 3. Tampilkan toast ringkas
+  if (typeof showToast === "function") {
+    showToast(`📋 Berhasil disalin: ${text}`);
+  }
+}
+
+function fallbackCopyText(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.top = "-9999px";
+  textArea.style.left = "-9999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand("copy");
+  } catch (err) {
+    console.warn("Fallback copy failed:", err);
+  }
+  document.body.removeChild(textArea);
+}
+
 // Salin No Rekening
-function copyRekening(rekNumber) {
-  navigator.clipboard.writeText(rekNumber).then(() => {
-    showToast(`Nomor Rekening ${rekNumber} berhasil disalin!`);
-  });
+function copyRekening(rekNumber, btnElement) {
+  copyToClipboard(rekNumber, btnElement);
 }
 
 // Konfirmasi & Kirim Pesanan (Simulasi Fase 2)
@@ -2471,6 +2516,10 @@ async function fetchProductsFromGAS() {
       if (rekTextEl && (t.rekening1 || t.rekening)) {
         rekTextEl.textContent = t.rekening1 || t.rekening;
       }
+      if (t.rekening1 || t.rekening) {
+        const elBca = document.getElementById("checkoutRekBcaNum");
+        if (elBca) elBca.textContent = (t.rekening1 || t.rekening).replace(/\D+/g, "") || (t.rekening1 || t.rekening);
+      }
       if (t.rekening2) {
         const box2 = document.getElementById("checkoutRekening2Box");
         const txt2 = document.getElementById("checkoutRekening2Text");
@@ -2478,6 +2527,8 @@ async function fetchProductsFromGAS() {
           txt2.textContent = t.rekening2;
           box2.classList.remove("hidden");
         }
+        const elBri = document.getElementById("checkoutRekBriNum");
+        if (elBri) elBri.textContent = t.rekening2.replace(/\D+/g, "") || t.rekening2;
       }
       if (t.shopeepay || t.gopay) {
         const boxE = document.getElementById("checkoutEwalletBox");
@@ -2488,6 +2539,14 @@ async function fetchProductsFromGAS() {
           if (t.gopay) parts.push(`GoPay: ${t.gopay}`);
           txtE.textContent = parts.join(" | ");
           boxE.classList.remove("hidden");
+        }
+        if (t.shopeepay) {
+          const elShopee = document.getElementById("checkoutEwalletShopeeNum");
+          if (elShopee) elShopee.textContent = t.shopeepay;
+        }
+        if (t.gopay) {
+          const elGopay = document.getElementById("checkoutEwalletGopayNum");
+          if (elGopay) elGopay.textContent = t.gopay;
         }
       }
       if (t.logo) {
@@ -3024,18 +3083,9 @@ function closeQrisInfoModal() {
   }
 }
 
-function copyModalRekening() {
-  const rekText = document.getElementById("modalRekeningText")?.textContent?.trim() || "";
-  if (!rekText) return;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(rekText).then(() => {
-      showToast("Alhamdulillah! Nomor rekening berhasil disalin.");
-    }).catch(() => {
-      showToast("Nomor Rekening: " + rekText);
-    });
-  } else {
-    showToast("Nomor Rekening: " + rekText);
-  }
+function copyModalRekening(btnElement) {
+  const rekText = document.getElementById("modalRekeningText")?.textContent?.trim() || "1234567890";
+  copyToClipboard(rekText, btnElement);
 }
 
 // =========================================================================
@@ -3701,6 +3751,7 @@ if (typeof window !== "undefined") {
   window.handleDeliveryChange = handleDeliveryChange;
   window.clearPaymentProof = clearPaymentProof;
   window.copyRekening = copyRekening;
+  window.copyToClipboard = copyToClipboard;
   window.openSuccessModal = openSuccessModal;
   window.closeSuccessModal = closeSuccessModal;
   window.copyOrderId = copyOrderId;
