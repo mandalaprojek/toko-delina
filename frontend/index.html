@@ -68,8 +68,9 @@
       
       <!-- Logo Delina -->
       <a href="index.html" class="flex items-center gap-2 flex-shrink-0 group">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-delina-emerald to-tokopedia-green flex items-center justify-center text-white font-black text-lg shadow-sm shadow-emerald-200 group-hover:rotate-3 transition-transform">
-          D
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-delina-emerald to-tokopedia-green flex items-center justify-center text-white font-black text-lg shadow-sm shadow-emerald-200 group-hover:rotate-3 transition-transform overflow-hidden">
+          <img id="navStoreLogoImg" src="" alt="Logo" class="w-full h-full object-contain hidden store-brand-logo" />
+          <span id="navStoreLogoPlaceholder">D</span>
         </div>
         <div class="leading-tight">
           <span class="block text-base sm:text-lg font-black text-delina-emerald tracking-tight">
@@ -667,13 +668,21 @@
               Buka aplikasi perbankan (BCA, Mandiri, BRI, BSI) atau e-Wallet (GoPay, DANA, OVO), lalu scan barcode di atas dan transfer sesuai nominal.
             </p>
 
-            <!-- Opsi Transfer Bank Manual -->
+            <!-- Opsi Transfer Bank Manual & E-Wallet -->
             <div class="bg-white rounded-xl p-2.5 border border-emerald-100 flex items-center justify-between text-[11px]">
-              <div class="text-left">
-                <span class="text-gray-400 block text-[10px]">Nomor Rekening Toko:</span>
+              <div class="text-left flex-1 mr-2">
+                <span class="text-gray-400 block text-[10px]">Nomor Rekening Utama:</span>
                 <span id="checkoutRekeningText" class="font-extrabold text-gray-800 tracking-wider">BCA 1234567890 a.n Delina Shop</span>
+                <div id="checkoutRekening2Box" class="hidden mt-1 pt-1 border-t border-gray-100">
+                  <span class="text-gray-400 block text-[10px]">Rekening Bank Alternatif:</span>
+                  <span id="checkoutRekening2Text" class="font-extrabold text-gray-800 tracking-wider"></span>
+                </div>
+                <div id="checkoutEwalletBox" class="hidden mt-1 pt-1 border-t border-gray-100">
+                  <span class="text-gray-400 block text-[10px]">E-Wallet (ShopeePay / GoPay):</span>
+                  <span id="checkoutEwalletText" class="font-extrabold text-emerald-800 tracking-wider"></span>
+                </div>
               </div>
-              <button type="button" onclick="copyRekening(document.getElementById('checkoutRekeningText').innerText)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] border border-emerald-200">
+              <button type="button" onclick="copyRekening(document.getElementById('checkoutRekeningText').innerText)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] border border-emerald-200 self-start mt-1">
                 <i class="bi bi-copy mr-0.5"></i> Salin
               </button>
             </div>

@@ -173,8 +173,9 @@
         
         <!-- Logo & Nama Toko -->
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 text-lg border border-white/15">
-            <i class="bi bi-shop"></i>
+          <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 text-lg border border-white/15 overflow-hidden">
+            <img id="headerLogoImg" src="" alt="Logo" class="w-full h-full object-contain hidden" />
+            <i id="headerLogoIcon" class="bi bi-shop"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
@@ -842,10 +843,10 @@
             <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
             <input 
               type="text" 
-              id="productSearchInput"
-              oninput="handleProductSearch(this.value)"
-              placeholder="Cari barang ATK berdasarkan nama..." 
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+              id="productSearchInput" 
+              oninput="handleProductSearch(this.value)" 
+              placeholder="Cari nama barang, kategori, barcode SKU..." 
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium" 
             />
           </div>
 
@@ -880,6 +881,37 @@
               <i class="bi bi-plus-lg"></i>
               <span>Tambah Barang Baru</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Filter Kategori & Filter Status Stok Produk -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <!-- Baris 1: Filter Kategori Horizontal -->
+          <div class="flex items-center gap-2 overflow-hidden">
+            <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5 flex-shrink-0">
+              <i class="bi bi-funnel-fill text-emerald-600"></i> Kategori:
+            </span>
+            <div id="productCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 flex-1">
+              <!-- Diisi dinamis oleh renderProductCategoryFilterPills() -->
+            </div>
+          </div>
+
+          <!-- Baris 2: Filter Status Ketersediaan Stok -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-xs">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-extrabold text-slate-600 mr-1 flex items-center gap-1">
+                <i class="bi bi-box-seam text-slate-400"></i> Status Stok:
+              </span>
+              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                <button type="button" onclick="setProductStockFilter('all')" data-stock-filter="all" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs cursor-pointer">Semua Stok</button>
+                <button type="button" onclick="setProductStockFilter('low')" data-stock-filter="low" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">⚠️ Kritis (&le; 3)</button>
+                <button type="button" onclick="setProductStockFilter('out')" data-stock-filter="out" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">❌ Habis (0)</button>
+                <button type="button" onclick="setProductStockFilter('safe')" data-stock-filter="safe" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">✅ Aman (&gt; 3)</button>
+              </div>
+            </div>
+            <div id="productFilterCountSummary" class="text-[11px] text-slate-500 font-bold">
+              Menampilkan 0 produk
+            </div>
           </div>
         </div>
 
@@ -1106,14 +1138,39 @@
               <input type="text" id="settingSloganToko" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">No. WhatsApp Toko</label>
-                <input type="text" id="settingNoWa" placeholder="081234567890" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">No. WhatsApp Toko</label>
+              <input type="text" id="settingNoWa" placeholder="081234567890" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+            </div>
+
+            <!-- Rekening Bank & E-Wallet Toko -->
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div class="font-extrabold text-slate-800 flex items-center justify-between text-xs">
+                <span class="flex items-center gap-1.5">
+                  <i class="bi bi-wallet2 text-emerald-700"></i>
+                  <span>Rekening Bank & E-Wallet Toko</span>
+                </span>
+                <span class="text-[10px] text-slate-400 font-normal">Otomatis tampil di checkout website & struk</span>
               </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Nomor Rekening Bank</label>
-                <input type="text" id="settingRekening" placeholder="BCA 1234567890 a.n Delina" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Rekening Bank 1 (Utama)</label>
+                  <input type="text" id="settingRekening1" placeholder="BCA 1234567890 a.n Delina Shop" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Rekening Bank 2 (Cadangan)</label>
+                  <input type="text" id="settingRekening2" placeholder="BRI / Mandiri 9876543210 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">E-Wallet ShopeePay</label>
+                  <input type="text" id="settingShopeePay" placeholder="ShopeePay 081234567890 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">E-Wallet GoPay / DANA</label>
+                  <input type="text" id="settingGopay" placeholder="GoPay 081234567890 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                </div>
               </div>
             </div>
 
@@ -1131,6 +1188,18 @@
             <div>
               <label class="block font-bold text-slate-700 mb-1">Alamat Fisik Toko</label>
               <textarea id="settingAlamat" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
+            </div>
+
+            <!-- Upload Logo Toko -->
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-800">Logo Toko (Header Web & Struk Kasir)</label>
+              <div class="flex items-center gap-3">
+                <img id="settingLogoPreview" src="" alt="Logo Toko" class="w-16 h-16 object-contain rounded-2xl bg-white border border-slate-200 p-1 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+                <div class="flex-1 space-y-1">
+                  <input type="file" id="settingLogoFile" accept="image/*" onchange="previewLogoFile(this)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200 cursor-pointer" />
+                  <p class="text-[10px] text-slate-400">Pilih gambar logo baru (PNG/JPG/SVG). Otomatis diunggah ke Google Drive dan tampil di header & struk.</p>
+                </div>
+              </div>
             </div>
 
             <!-- Upload QRIS Toko -->
@@ -1635,10 +1704,14 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbw_C-ETJmvWqgbvDC9kAQoTEXUBoIQ9JAu5v0n96dfy5odRqeII7G8UkrRnN8lWaDp52A/exec";
+      : "https://script.google.com/macros/s/AKfycbyY1uqo229DaVdF7FRNovppR1lF7YXIo-_sihjQatEZfBpfJ01wPDGq-0cgGB_IQ_8y2g/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
+    let currentUserPin = sessionStorage.getItem("delina_admin_pin") || "";
+    let activeProductCategoryFilter = "all";
+    let activeProductStockFilter = "all"; // "all" | "low" | "out" | "safe"
+    let tempLogoBase64 = null;
     let adminData = {
       summary: {},
       orders: [],
@@ -1766,6 +1839,7 @@
           userRole = json.role; // "admin" atau "kasir"
           sessionStorage.setItem("delina_admin_pin", pin);
           sessionStorage.setItem("delina_user_role", userRole);
+          currentUserPin = pin;
 
           document.getElementById("loginScreen").classList.add("hidden");
           document.getElementById("mainDashboard").classList.remove("hidden");
@@ -1865,6 +1939,7 @@
     // =========================================================
     // 3. AMBIL DATA ADMIN DARI BACKEND
     // =========================================================
+    window.fetchAdminData = function(isManual = false) { return fetchDashboardData(isManual); };
     async function fetchDashboardData(isManual = false) {
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       const btnRefresh = document.getElementById("btnRefreshData");
@@ -1876,6 +1951,9 @@
 
         if (json.status === "success") {
           adminData = json;
+          adminMembersList = json.members || [];
+          adminRewardsList = json.rewards || [];
+          adminClaimsList = json.claims || [];
           renderAllModules();
           if (isManual) showToastAdmin("Alhamdulillah, seluruh data berhasil disegarkan!");
         } else {
@@ -1890,13 +1968,21 @@
     }
 
     function renderAllModules() {
-      // 1. Header Info Toko
+      // 1. Header Info Toko & Logo
       if (adminData.settings) {
         const s = adminData.settings;
         const nameEl = document.getElementById("headerNamaToko");
         const sloganEl = document.getElementById("headerSlogan");
+        const logoImg = document.getElementById("headerLogoImg");
+        const logoIcon = document.getElementById("headerLogoIcon");
+
         if (nameEl && s.NAMA_TOKO) nameEl.innerText = s.NAMA_TOKO;
         if (sloganEl && s.SLOGAN_TOKO) sloganEl.innerText = s.SLOGAN_TOKO;
+        if (s.URL_LOGO && logoImg && logoIcon) {
+          logoImg.src = s.URL_LOGO;
+          logoImg.classList.remove("hidden");
+          logoIcon.classList.add("hidden");
+        }
       }
 
       // 2. Modul Dashboard & Ringkasan
@@ -1924,6 +2010,11 @@
       // 9. Modul Kasir Cepat POS
       renderPosCategoryPills();
       renderPosProductsGrid();
+
+      // 10. Modul Member & 10 Hadiah Royalty
+      if (typeof renderAdminRewards === "function") renderAdminRewards();
+      if (typeof renderAdminClaims === "function") renderAdminClaims();
+      if (typeof renderAdminMembers === "function") renderAdminMembers();
     }
 
     // =========================================================
@@ -2637,16 +2728,42 @@ ${escapeHtml(order.itemsText || "-")}
       if (!tbody) return;
 
       let products = adminData.products || [];
+
+      // Render tombol-tombol filter kategori produk
+      renderProductCategoryFilterPills();
+
+      // 1. Filter Berdasarkan Kategori
+      if (activeProductCategoryFilter !== "all") {
+        products = products.filter(p => (p.category || "").toLowerCase() === activeProductCategoryFilter.toLowerCase());
+      }
+
+      // 2. Filter Berdasarkan Status Ketersediaan Stok
+      if (activeProductStockFilter === "low") {
+        products = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 3);
+      } else if (activeProductStockFilter === "out") {
+        products = products.filter(p => Number(p.stock) <= 0);
+      } else if (activeProductStockFilter === "safe") {
+        products = products.filter(p => Number(p.stock) > 3);
+      }
+
+      // 3. Filter Pencarian Cerdas (Nama, Kategori, atau Barcode / SKU)
       if (productSearchQuery) {
+        const q = productSearchQuery.toLowerCase();
         products = products.filter(p => 
-          (p.name || "").toLowerCase().includes(productSearchQuery) ||
-          (p.category || "").toLowerCase().includes(productSearchQuery) ||
-          (p.id || "").toLowerCase().includes(productSearchQuery)
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q) ||
+          (p.id || "").toLowerCase().includes(q)
         );
       }
 
+      // Update ringkasan jumlah produk yang tampil
+      const countEl = document.getElementById("productFilterCountSummary");
+      if (countEl) {
+        countEl.innerText = `Menampilkan ${products.length} dari ${(adminData.products || []).length} produk`;
+      }
+
       if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Tidak ada produk ATK yang cocok.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Tidak ada produk yang sesuai dengan filter atau kata kunci pencarian.</td></tr>`;
         return;
       }
 
@@ -2674,23 +2791,79 @@ ${escapeHtml(order.itemsText || "-")}
             <!-- Quick Edit Stok -->
             <td class="p-3">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="quickUpdateStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90">-</button>
+                <button onclick="quickUpdateStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">-</button>
                 <span class="px-2.5 py-1 rounded-xl font-black text-xs border ${stockColor} min-w-[50px] text-center">
                   ${p.stock} <span class="text-[10px] font-normal text-slate-500">${p.unit || 'pcs'}</span>
                 </span>
-                <button onclick="quickUpdateStock('${p.id}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90">+</button>
+                <button onclick="quickUpdateStock('${p.id}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">+</button>
               </div>
             </td>
 
             <!-- Aksi Edit (Admin Only) -->
             <td class="p-3 text-center ${isAdmin ? '' : 'hidden'}">
-              <button onclick="openEditProductModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 font-bold text-xs transition-all">
+              <button onclick="openEditProductModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 font-bold text-xs transition-all cursor-pointer">
                 <i class="bi bi-pencil-square"></i> Edit
               </button>
             </td>
           </tr>
         `;
       }).join("");
+    }
+
+    function renderProductCategoryFilterPills() {
+      const container = document.getElementById("productCategoryFilterPills");
+      if (!container) return;
+
+      const allProducts = adminData.products || [];
+      const defaultCats = [
+        "Semua",
+        "ATK & Perlengkapan Kantor",
+        "Kosmetik & Perawatan Diri",
+        "Sembako & Kelontongan",
+        "Makanan & Minuman"
+      ];
+      (adminData.categories || []).forEach(c => {
+        const cName = c.nama || c;
+        if (cName && !defaultCats.includes(cName)) defaultCats.push(cName);
+      });
+
+      container.innerHTML = defaultCats.map(cat => {
+        const isAll = cat === "Semua";
+        const count = isAll ? allProducts.length : allProducts.filter(p => (p.category || "").toLowerCase() === cat.toLowerCase()).length;
+        const isActive = isAll ? (activeProductCategoryFilter === "all") : (activeProductCategoryFilter.toLowerCase() === cat.toLowerCase());
+
+        return `
+          <button 
+            type="button" 
+            onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')"
+            class="px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+              isActive 
+                ? 'bg-emerald-700 text-white shadow-xs' 
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }"
+          >
+            <span>${escapeHtml(cat)}</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600 font-extrabold'}">${count}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function setProductCategoryFilter(cat) {
+      activeProductCategoryFilter = cat;
+      renderProductsTable();
+    }
+
+    function setProductStockFilter(status) {
+      activeProductStockFilter = status;
+      document.querySelectorAll(".prod-stock-filter-btn").forEach(btn => {
+        if (btn.getAttribute("data-stock-filter") === status) {
+          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs cursor-pointer";
+        } else {
+          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer";
+        }
+      });
+      renderProductsTable();
     }
 
     async function quickUpdateStock(prodId, delta, isAbsoluteAdd = false) {
@@ -3408,25 +3581,47 @@ ${escapeHtml(order.itemsText || "-")}
       const namaEl = document.getElementById("settingNamaToko");
       const sloganEl = document.getElementById("settingSloganToko");
       const waEl = document.getElementById("settingNoWa");
-      const rekEl = document.getElementById("settingRekening");
+      const rek1El = document.getElementById("settingRekening1");
+      const rek2El = document.getElementById("settingRekening2");
+      const spPayEl = document.getElementById("settingShopeePay");
+      const gopayEl = document.getElementById("settingGopay");
       const tgEl = document.getElementById("settingTelegramBot");
       const mapsEl = document.getElementById("settingGoogleMaps");
       const alamatEl = document.getElementById("settingAlamat");
       const qrisPreview = document.getElementById("settingQrisPreview");
+      const logoPreview = document.getElementById("settingLogoPreview");
       const pinAdminEl = document.getElementById("settingPinAdmin");
       const pinKasirEl = document.getElementById("settingPinKasir");
 
       if (namaEl) namaEl.value = s.NAMA_TOKO || "";
       if (sloganEl) sloganEl.value = s.SLOGAN_TOKO || "";
       if (waEl) waEl.value = s.NO_WA_TOKO || "";
-      if (rekEl) rekEl.value = s.NOMOR_REKENING || "";
+      if (rek1El) rek1El.value = s.NOMOR_REKENING_1 || s.NOMOR_REKENING || "";
+      if (rek2El) rek2El.value = s.NOMOR_REKENING_2 || "";
+      if (spPayEl) spPayEl.value = s.EWALLET_SHOPEEPAY || "";
+      if (gopayEl) gopayEl.value = s.EWALLET_GOPAY || "";
       if (tgEl) tgEl.value = s.URL_TELEGRAM_BOT || "";
       if (mapsEl) mapsEl.value = s.URL_GOOGLE_MAPS || "";
       if (alamatEl) alamatEl.value = s.ALAMAT_TOKO || "";
       if (qrisPreview && s.URL_QRIS) qrisPreview.src = s.URL_QRIS;
+      if (logoPreview && s.URL_LOGO) logoPreview.src = s.URL_LOGO;
       if (pinAdminEl) pinAdminEl.value = s.PIN_ADMIN || "";
       if (pinKasirEl) pinKasirEl.value = s.PIN_KASIR || "";
       tempQrisBase64 = null;
+      tempLogoBase64 = null;
+    }
+
+    function previewLogoFile(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          tempLogoBase64 = e.target.result;
+          const preview = document.getElementById("settingLogoPreview");
+          if (preview) preview.src = tempLogoBase64;
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function previewQrisFile(input) {
@@ -3448,19 +3643,29 @@ ${escapeHtml(order.itemsText || "-")}
       btn.disabled = true;
       btn.innerText = "Menyimpan ke Google Drive & Sheets...";
 
+      const rek1 = document.getElementById("settingRekening1") ? document.getElementById("settingRekening1").value.trim() : "";
+      const rek2 = document.getElementById("settingRekening2") ? document.getElementById("settingRekening2").value.trim() : "";
+      const spPay = document.getElementById("settingShopeePay") ? document.getElementById("settingShopeePay").value.trim() : "";
+      const gopay = document.getElementById("settingGopay") ? document.getElementById("settingGopay").value.trim() : "";
+
       const payload = {
         action: "updateSettings",
         pin: pin,
         NAMA_TOKO: document.getElementById("settingNamaToko").value.trim(),
         SLOGAN_TOKO: document.getElementById("settingSloganToko").value.trim(),
         NO_WA_TOKO: document.getElementById("settingNoWa").value.trim(),
-        NOMOR_REKENING: document.getElementById("settingRekening").value.trim(),
+        NOMOR_REKENING: rek1,
+        NOMOR_REKENING_1: rek1,
+        NOMOR_REKENING_2: rek2,
+        EWALLET_SHOPEEPAY: spPay,
+        EWALLET_GOPAY: gopay,
         URL_TELEGRAM_BOT: document.getElementById("settingTelegramBot").value.trim(),
         URL_GOOGLE_MAPS: document.getElementById("settingGoogleMaps").value.trim(),
         ALAMAT_TOKO: document.getElementById("settingAlamat").value.trim(),
         PIN_ADMIN: document.getElementById("settingPinAdmin").value.trim() || "9999",
         PIN_KASIR: document.getElementById("settingPinKasir").value.trim() || "1234",
-        qrisBase64: tempQrisBase64
+        qrisBase64: tempQrisBase64,
+        logoBase64: tempLogoBase64
       };
 
       try {
@@ -4230,18 +4435,21 @@ ${escapeHtml(order.itemsText || "-")}
         return;
       }
 
+      const prodId = activeRestockProduct.id;
+      const prodName = activeRestockProduct.name || "Produk";
+      const prodUnit = activeRestockProduct.unit || "Pcs";
       const current = Number(activeRestockProduct.stock || 0);
       const newStock = current + addQty;
       const btn = document.getElementById("btnSaveRestock");
       if (btn) btn.disabled = true;
 
-      showToastAdmin(`Menambahkan +${addQty} stok ${activeRestockProduct.name}...`);
+      showToastAdmin(`Menambahkan +${addQty} stok ${prodName}...`);
 
       try {
-        await quickUpdateStock(activeRestockProduct.id, addQty);
+        await quickUpdateStock(prodId, addQty);
         beepSuccess();
         closeQuickRestockModal();
-        showToastAdmin(`✅ Stok ${activeRestockProduct.name} berhasil ditambah +${addQty} (Total: ${newStock} ${activeRestockProduct.unit || 'pcs'})!`);
+        showToastAdmin(`✅ Stok ${prodName} berhasil ditambah +${addQty} (Total: ${newStock} ${prodUnit})!`);
       } catch (err) {
         beepError();
         alert("Gagal memperbarui stok: " + err.message);

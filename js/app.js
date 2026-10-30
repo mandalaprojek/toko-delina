@@ -1959,8 +1959,36 @@ async function fetchProductsFromGAS() {
 
       // Checkout Modal Rekening & QRIS
       const rekTextEl = document.getElementById("checkoutRekeningText");
-      if (rekTextEl && t.rekening) {
-        rekTextEl.textContent = t.rekening;
+      if (rekTextEl && (t.rekening1 || t.rekening)) {
+        rekTextEl.textContent = t.rekening1 || t.rekening;
+      }
+      if (t.rekening2) {
+        const box2 = document.getElementById("checkoutRekening2Box");
+        const txt2 = document.getElementById("checkoutRekening2Text");
+        if (box2 && txt2) {
+          txt2.textContent = t.rekening2;
+          box2.classList.remove("hidden");
+        }
+      }
+      if (t.shopeepay || t.gopay) {
+        const boxE = document.getElementById("checkoutEwalletBox");
+        const txtE = document.getElementById("checkoutEwalletText");
+        if (boxE && txtE) {
+          const parts = [];
+          if (t.shopeepay) parts.push(`ShopeePay: ${t.shopeepay}`);
+          if (t.gopay) parts.push(`GoPay: ${t.gopay}`);
+          txtE.textContent = parts.join(" | ");
+          boxE.classList.remove("hidden");
+        }
+      }
+      if (t.logo) {
+        const logoImg = document.getElementById("navStoreLogoImg");
+        const logoPlaceholder = document.getElementById("navStoreLogoPlaceholder");
+        if (logoImg) {
+          logoImg.src = t.logo;
+          logoImg.classList.remove("hidden");
+          if (logoPlaceholder) logoPlaceholder.classList.add("hidden");
+        }
       }
       const qrisImgEl = document.getElementById("qrisBarcodeImg");
       if (qrisImgEl && t.qris) {

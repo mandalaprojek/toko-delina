@@ -73,6 +73,10 @@ function getPengaturanData(ss) {
     URL_LOGO: "",
     URL_QRIS: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD",
     NOMOR_REKENING: "BCA 1234567890 a.n Delina Shop",
+    NOMOR_REKENING_1: "BCA 1234567890 a.n Delina Shop",
+    NOMOR_REKENING_2: "BRI 0987654321 a.n Delina Shop",
+    EWALLET_SHOPEEPAY: "081234567890 a.n Delina Shop",
+    EWALLET_GOPAY: "081234567890 a.n Delina Shop",
     PIN_ADMIN: "9999",
     PIN_KASIR: "1234"
   };
@@ -471,7 +475,11 @@ function doGet(e) {
           maps: auth.settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
           logo: auth.settings.URL_LOGO,
           qris: auth.settings.URL_QRIS,
-          rekening: auth.settings.NOMOR_REKENING
+          rekening: auth.settings.NOMOR_REKENING,
+          rekening1: auth.settings.NOMOR_REKENING_1 || auth.settings.NOMOR_REKENING,
+          rekening2: auth.settings.NOMOR_REKENING_2 || "",
+          shopeepay: auth.settings.EWALLET_SHOPEEPAY || "",
+          gopay: auth.settings.EWALLET_GOPAY || ""
         }
       });
     }
@@ -1070,7 +1078,11 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
           maps: auth.settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK",
           logo: auth.settings.URL_LOGO,
           qris: auth.settings.URL_QRIS,
-          rekening: auth.settings.NOMOR_REKENING
+          rekening: auth.settings.NOMOR_REKENING,
+          rekening1: auth.settings.NOMOR_REKENING_1 || auth.settings.NOMOR_REKENING,
+          rekening2: auth.settings.NOMOR_REKENING_2 || "",
+          shopeepay: auth.settings.EWALLET_SHOPEEPAY || "",
+          gopay: auth.settings.EWALLET_GOPAY || ""
         }
       });
     }
@@ -1306,7 +1318,11 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
         ALAMAT_TOKO: payload.ALAMAT_TOKO,
         URL_TELEGRAM_BOT: payload.URL_TELEGRAM_BOT,
         URL_GOOGLE_MAPS: payload.URL_GOOGLE_MAPS,
-        NOMOR_REKENING: payload.NOMOR_REKENING,
+        NOMOR_REKENING: payload.NOMOR_REKENING || payload.NOMOR_REKENING_1,
+        NOMOR_REKENING_1: payload.NOMOR_REKENING_1,
+        NOMOR_REKENING_2: payload.NOMOR_REKENING_2,
+        EWALLET_SHOPEEPAY: payload.EWALLET_SHOPEEPAY,
+        EWALLET_GOPAY: payload.EWALLET_GOPAY,
         PIN_ADMIN: payload.PIN_ADMIN,
         PIN_KASIR: payload.PIN_KASIR,
         URL_QRIS: urlQris,
