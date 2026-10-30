@@ -1467,9 +1467,12 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
     if (Array.isArray(payload.items)) {
       rincianText = payload.items
         .map((item, idx) => {
-          let extra = item.notes ? ` (Catatan: ${item.notes})` : "";
-          let grosirInfo = item.isGrosir ? ` [🏷️ Grosir]` : "";
-          return `${idx + 1}. ${item.name} [${item.qty}x @ Rp ${Number(item.price).toLocaleString("id-ID")}]${grosirInfo}${extra}`;
+          let extra = (item && item.notes) ? ` (Catatan: ${item.notes})` : "";
+          let grosirInfo = (item && item.isGrosir) ? ` [🏷️ Grosir]` : "";
+          const itName = (item && item.name) ? item.name : "Barang";
+          const itQty = Number(item && item.qty) || 1;
+          const itPrice = Number(item && item.price) || 0;
+          return `${idx + 1}. ${itName} [${itQty}x @ Rp ${itPrice.toLocaleString("id-ID")}]${grosirInfo}${extra}`;
         })
         .join("\n");
     }
@@ -3697,15 +3700,15 @@ function prosesCreatePosOrder(payload, ss) {
   // 3. Catat ke Tab Pesanan sebagai Transaksi Selesai
   const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
   if (sheetPesanan) {
-    let rincianText = items.map((i, idx) => `${idx + 1}. ${i.name} [${i.qty}x @ Rp ${Number(i.price).toLocaleString("id-ID")}]`).join("\n");
+    let rincianText = items.map((i, idx) => `${idx + 1}. ${(i && i.name) || 'Barang'} [${Number(i && i.qty) || 1}x @ Rp ${Number(i && i.price || 0).toLocaleString("id-ID")}]`).join("\n");
     if (memberPhoneInput && memberResult) {
-      rincianText += `\n[🎁 Member: ${memberResult.name} (${memberResult.phone}) | Total Belanja: ${memberResult.belanjaCount}/30]`;
+      rincianText += `\n[🎁 Member: ${(memberResult && memberResult.name) || 'Member'} (${(memberResult && memberResult.phone) || memberPhoneInput}) | Total Belanja: ${(memberResult && memberResult.belanjaCount) || 1}/30]`;
     }
 
     sheetPesanan.appendRow([
       orderId,
       orderTimeNow,
-      memberResult ? memberResult.name : "Pelanggan Kasir Toko",
+      memberResult ? ((memberResult && memberResult.name) || "Pelanggan VIP") : "Pelanggan Kasir Toko",
       memberPhoneInput || "-",
       "Langsung di Toko",
       "-",

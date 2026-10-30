@@ -225,26 +225,18 @@ function getProductRedBadge(product) {
   return product.unit || "Pilihan Hemat";
 }
 
-// 5a. Render Kartu Produk Tunggal (Persis Gambar Referensi Alfagift 1)
+// 5a. Template Kartu Produk Khusus Horizontal Scroll Rail (Rapi, Bersih, Hijau Tokopedia)
 function renderAlfagiftCard(product) {
   if (!product) return "";
   const prodId = product.id;
   const prodName = product.name || "Produk Delina";
   const prodImage = formatImageUrl(product.image);
   const prodPrice = Number(product.price || 0);
-  const origPrice = product.originalPrice ? Number(product.originalPrice) : Math.round(prodPrice * 1.15);
-  const redBadge = getProductRedBadge(product);
-  
-  // Hitung diskon persentase
-  let discPct = 0;
-  if (origPrice > prodPrice) {
-    discPct = Math.round(((origPrice - prodPrice) / origPrice) * 100);
-  }
 
   return `
     <div class="alfagift-card w-[155px] sm:w-[165px] shrink-0 snap-start bg-white rounded-2xl border border-gray-200 p-2.5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group select-none">
       
-      <!-- Bagian Atas: Gambar, Pita Merah Sub-kategori, & Nama Produk -->
+      <!-- Bagian Atas: Gambar & Nama Produk -->
       <div>
         <!-- Area Gambar: Foto produk dengan rasio bersih persegi, latar putih, tinggi ~115px -->
         <div 
@@ -261,14 +253,9 @@ function renderAlfagiftCard(product) {
           />
         </div>
 
-        <!-- Badge Strip Merah di Bawah Gambar (Pita Merah Sub-Kategori / Tipe Produk) -->
-        <div class="bg-red-600 text-white text-[11px] font-bold py-0.5 px-2 rounded-md text-center mt-1.5 truncate shadow-xs w-full" title="${escapeHtml(redBadge)}">
-          ${escapeHtml(redBadge)}
-        </div>
-
         <!-- Nama Produk (Teks 2 Baris Rapi, min-height) -->
         <h4 
-          class="text-xs font-semibold text-gray-800 line-clamp-2 mt-1.5 leading-snug min-h-[32px] cursor-pointer hover:text-blue-700 transition-colors"
+          class="text-xs font-semibold text-gray-800 line-clamp-2 mt-2 leading-snug min-h-[32px] cursor-pointer hover:text-emerald-700 transition-colors"
           onclick="openProductDetailModal('${prodId}')"
           title="${escapeHtml(prodName)}"
         >
@@ -276,40 +263,18 @@ function renderAlfagiftCard(product) {
         </h4>
       </div>
 
-      <!-- Bagian Bawah: Harga, Promo Diskon, Pengiriman Instan, & Tombol Aksi -->
-      <div class="mt-2 pt-1 border-t border-gray-100 flex flex-col">
-        <!-- Harga Produk (Teks tebal hitam pekat) -->
-        <div class="text-base font-extrabold text-gray-900 leading-tight">
+      <!-- Bagian Bawah: Harga & Tombol Aksi + Keranjang (Hijau Delina) -->
+      <div class="mt-2 pt-1.5 border-t border-gray-100 flex flex-col">
+        <!-- Harga Produk (Teks tebal hijau emerald pekat) -->
+        <div class="text-base font-extrabold text-emerald-800 leading-tight">
           ${formatRupiah(prodPrice)}
         </div>
 
-        <!-- Baris Promo & Diskon (Diskon % + Harga Coret) -->
-        <div class="flex items-center gap-1.5 mt-0.5 min-h-[18px]">
-          ${discPct > 0 ? `
-            <span class="bg-red-100 text-red-700 text-[10px] font-black px-1.5 py-0.2 rounded">
-              ${discPct}%
-            </span>
-            <span class="text-[10px] text-gray-400 line-through">
-              ${formatRupiah(origPrice)}
-            </span>
-          ` : `
-            <span class="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.2 rounded">
-              Beli 2 Lebih Hemat
-            </span>
-          `}
-        </div>
-
-        <!-- Baris Pengiriman: Ikon Jam Oranye Mini + Pengiriman Instan -->
-        <div class="text-[10px] text-gray-600 font-medium flex items-center gap-1 mt-1">
-          <i class="bi bi-clock-fill text-amber-500 text-[11px]"></i>
-          <span>Pengiriman Instan</span>
-        </div>
-
-        <!-- Tombol Aksi Bawah: + Keranjang (Biru Alfagift #0066b2) -->
+        <!-- Tombol Aksi Bawah: + Keranjang (Hijau Tokopedia / Delina) -->
         <button 
           type="button" 
           onclick="addToCart('${prodId}')"
-          class="w-full bg-[#0066b2] hover:bg-[#00528e] text-white text-xs font-bold py-2 rounded-xl mt-2 flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer"
+          class="w-full bg-tokopedia-green hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl mt-2 flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer"
         >
           <i class="bi bi-cart-plus text-xs"></i>
           <span>+ Keranjang</span>
@@ -320,18 +285,18 @@ function renderAlfagiftCard(product) {
   `;
 }
 
-// 5b. Kartu Ke-11: "Lihat Produk Lainnya" (Persis Gambar Referensi Alfagift 2)
+// 5b. Kartu Ke-11: "Lihat Produk Lainnya" (Tema Hijau Delina)
 function renderLihatLainnyaCard(categoryName) {
   return `
     <div 
       onclick="selectCategory('${escapeHtml(categoryName)}')"
-      class="alfagift-more-card w-[155px] sm:w-[165px] min-h-[295px] shrink-0 snap-start bg-white rounded-2xl border-2 border-blue-500 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50/50 hover:shadow-md transition-all active:scale-95 group select-none"
+      class="alfagift-more-card w-[155px] sm:w-[165px] min-h-[220px] shrink-0 snap-start bg-white rounded-2xl border-2 border-emerald-500 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-emerald-50/60 hover:shadow-md transition-all active:scale-95 group select-none"
       title="Lihat semua produk ${escapeHtml(categoryName)}"
     >
-      <div class="w-12 h-12 rounded-full border-2 border-blue-600 flex items-center justify-center text-blue-600 text-xl font-black mb-3 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
+      <div class="w-12 h-12 rounded-full border-2 border-emerald-600 flex items-center justify-center text-emerald-700 text-xl font-black mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
         <i class="bi bi-arrow-right"></i>
       </div>
-      <div class="text-blue-700 font-bold text-sm leading-snug group-hover:underline">
+      <div class="text-emerald-800 font-bold text-sm leading-snug group-hover:underline">
         Lihat produk lainnya
       </div>
       <span class="text-[10px] text-gray-400 mt-1 block">
@@ -359,7 +324,7 @@ function renderHorizontalRail(railTitle, categoryFilterName, products) {
         <button 
           type="button" 
           onclick="selectCategory('${escapeHtml(categoryFilterName)}')"
-          class="text-blue-600 font-semibold text-xs sm:text-sm hover:underline cursor-pointer flex items-center gap-0.5"
+          class="text-emerald-700 hover:text-emerald-800 font-bold text-xs sm:text-sm hover:underline cursor-pointer flex items-center gap-0.5"
         >
           <span>Lihat Semua</span>
           <i class="bi bi-chevron-right text-[10px]"></i>
@@ -398,7 +363,7 @@ function renderProducts() {
     if (filtered.length === 0) {
       container.innerHTML = `
         <div class="py-16 text-center">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 mb-4">
             <i class="bi bi-search text-2xl"></i>
           </div>
           <h3 class="text-base font-bold text-gray-800">Barang Belum Ditemukan</h3>
@@ -408,7 +373,7 @@ function renderProducts() {
           <button 
             type="button" 
             onclick="selectCategory('Semua Produk')" 
-            class="mt-4 px-4 py-2 rounded-xl bg-[#0066b2] hover:bg-[#00528e] text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
+            class="mt-4 px-4 py-2 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
           >
             ← Tampilkan Semua Deret
           </button>
@@ -420,22 +385,22 @@ function renderProducts() {
     container.innerHTML = `
       <div class="space-y-4">
         <!-- Header Filter Aktif -->
-        <div class="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 border border-blue-200">
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200">
           <div class="flex items-center gap-2.5">
-            <span class="w-8 h-8 rounded-xl bg-[#0066b2] text-white flex items-center justify-center text-sm font-bold shadow-xs">
+            <span class="w-8 h-8 rounded-xl bg-tokopedia-green text-white flex items-center justify-center text-sm font-bold shadow-xs">
               <i class="bi bi-tag-fill"></i>
             </span>
             <div>
-              <h3 class="font-extrabold text-sm sm:text-base text-blue-950 leading-tight">
+              <h3 class="font-extrabold text-sm sm:text-base text-emerald-950 leading-tight">
                 ${q ? `Hasil Pencarian: "${searchQuery}"` : currentCategory}
               </h3>
-              <p class="text-[11px] text-blue-700">Ditemukan ${filtered.length} produk pilihan</p>
+              <p class="text-[11px] text-emerald-700">Ditemukan ${filtered.length} produk pilihan</p>
             </div>
           </div>
           <button 
             type="button" 
             onclick="selectCategory('Semua Produk')" 
-            class="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-100 text-[#0066b2] border border-blue-300 font-extrabold text-xs shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+            class="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1"
           >
             <span>Semua Deret</span>
             <i class="bi bi-arrow-right"></i>
