@@ -865,16 +865,25 @@
 
       <!-- Tombol Aksi -->
       <div class="space-y-2 pt-1">
+        <!-- Tombol Cetak Struk Bluetooth ESC/POS -->
+        <button 
+          onclick="printCurrentOrderBluetooth()" 
+          class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all border border-slate-800 cursor-pointer"
+        >
+          <i class="bi bi-bluetooth text-blue-400 text-sm"></i>
+          <span>🖨️ Cetak Struk Thermal Bluetooth (58mm/80mm)</span>
+        </button>
+
         <button 
           onclick="sendConfirmationWhatsApp()" 
-          class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
         >
           <i class="bi bi-whatsapp text-sm"></i>
           <span>Kirim Rincian ke WhatsApp Toko Delina</span>
         </button>
         <button 
           onclick="closeSuccessModal()" 
-          class="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
+          class="w-full py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
         >
           Tutup & Belanja Lagi
         </button>
@@ -1260,8 +1269,17 @@
       </div>
 
       <!-- Footer Modal -->
-      <div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
-        <button type="button" onclick="closeLacakPesananModal()" class="px-5 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs transition-all">
+      <div class="p-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
+        <button 
+          type="button" 
+          onclick="printTrackedOrderBluetooth()" 
+          class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+          title="Cetak struk nota pesanan ini ke printer thermal Bluetooth"
+        >
+          <i class="bi bi-bluetooth text-blue-400"></i>
+          <span>Cetak Thermal Bluetooth</span>
+        </button>
+        <button type="button" onclick="closeLacakPesananModal()" class="px-5 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs transition-all cursor-pointer">
           Tutup
         </button>
       </div>
@@ -1352,9 +1370,10 @@
     </div>
   </nav>
 
-  <!-- Berkas Konfigurasi & JavaScript Logika Utama (dengan Cache Buster) -->
-  <script src="./js/config.js?v=20261030_01"></script>
-  <script src="./js/app.js?v=20261030_01"></script>
+  <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama -->
+  <script src="./js/config.js?v=20261030_02"></script>
+  <script src="./js/printer.js?v=20261030_02"></script>
+  <script src="./js/app.js?v=20261030_02"></script>
 </body>
 </html>
 

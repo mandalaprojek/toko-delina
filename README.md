@@ -52,6 +52,50 @@ Marketplace perlengkapan alat tulis kantor (ATK) dan jasa fotokopi modern terper
 
 ---
 
+## 🖨️ Panduan Cetak Struk ke Printer Thermal Bluetooth (ESC/POS 58mm / 80mm)
+
+Website Toko Delina dilengkapi integrasi **Web Bluetooth API** murni untuk mencetak struk belanja langsung ke Printer Thermal Bluetooth (58mm / 80mm) seperti Panda, VSC, Iware, Eppos, Goojprt, Zjiang, atau printer kasir portable lainnya tanpa perlu install aplikasi driver tambahan!
+
+### Langkah Menghubungkan Printer Bluetooth di HP / Tablet / Laptop:
+1. **Nyalakan Printer:** Pastikan printer thermal Bluetooth sudah menyala dan terpasang kertas struk dengan benar.
+2. **Aktifkan Bluetooth:** Nyalakan Bluetooth di smartphone / Samsung Galaxy Tab A9+ / Laptop Anda.
+3. **Gunakan Browser Chromium:**
+   - Rekomendasi: **Google Chrome** (Android, Windows, macOS, ChromeOS) atau **Samsung Internet Browser**.
+   - *Catatan: Browser iOS Safari dari Apple saat ini belum mendukung Web Bluetooth API; bagi pengguna iOS, tersedia tombol alternatif cetak standar browser/PDF.*
+4. **Klik Tombol "🖨️ Cetak Struk Thermal Bluetooth":**
+   - Tombol ini tersedia di pop-up sukses pesanan pembeli, modal lacak nota, dan dashboard Kasir POS.
+5. **Pilih Printer dari Dialog:**
+   - Browser akan memunculkan dialog pencarian perangkat Bluetooth.
+   - Pilih nama printer Anda (contoh: *RPP02N*, *POS-58*, *MTP-II*, *BlueTooth Printer*, dll) lalu klik **Pair / Hubungkan**.
+6. **Struk Langsung Tercetak:**
+   - Struk otomatis terformat rapi sesuai ukuran kertas (Nama Toko, No Nota, Rincian ATK/Jasa, Total, dan Catatan Islami).
+
+---
+
+## 📷 Panduan Scanner Barcode Kamera HP / Tablet (Kasir Cepat & Lembar Sakti)
+
+Toko Delina 100% menggunakan kamera smartphone / Samsung Galaxy Tab A9+ via pustaka `html5-qrcode` CDN (tidak memerlukan hardware gun scanner terpisah):
+
+1. **Synthesizer Audio Kasir:**
+   - Menggunakan Web Audio API internal browser:
+     * `beepSuccess()`: Nada frekuensi **1200Hz (0.08 detik)** saat barcode berhasil terbaca.
+     * `beepError()`: Nada frekuensi **300Hz (0.2 detik)** saat barcode tidak terdaftar di katalog.
+2. **Katalog & Stok:**
+   - Klik **"📷 Scan Barcode Barang"** di tab Katalog.
+   - Jika barcode **sudah ada**: Muncul jendela cepat **"Tambah Stok Masuk (+N)"** dengan tombol praktis (+5, +10, +25, +50, +100).
+   - Jika barcode **belum ada**: Otomatis membuka form tambah barang baru dengan kode barcode/SKU terisi dan kursor langsung fokus ke nama barang.
+3. **Kasir POS (Continuous Scan Mode):**
+   - Klik **"📷 Buka Kamera Kasir"** di tab Antrean POS.
+   - Kamera belakang tetap aktif secara berkelanjutan.
+   - Dilengkapi jeda debounce **1.5 detik per pembacaan** agar barang tidak ter-scan dobel saat dihadapkan ke kamera.
+   - Tiap scan langsung menambah item ke keranjang kasir secara real-time.
+4. **Lembar Sakti Barcode Kasir:**
+   - Klik **"🖨️ Cetak Lembar Sakti Barcode Kasir"** di tab Tarif Fotokopi.
+   - Cetak selembar kertas berisi kode batang standar CODE128 (JsBarcode) untuk jasa fotokopi A4, F4, warna, jilid lakban, spiral, hardcover, dan laminating.
+   - Kasir cukup mengarahkan kamera tablet ke kertas tersebut di meja kasir untuk memasukkan transaksi jasa cetak secara instan!
+
+---
+
 ## 📁 Struktur Berkas Proyek
 
 ```text

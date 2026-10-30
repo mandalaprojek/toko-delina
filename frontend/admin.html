@@ -71,7 +71,8 @@
         visibility: hidden;
       }
       #thermal-print-area, #thermal-print-area *,
-      #label-print-sheet, #label-print-sheet * {
+      #label-print-sheet, #label-print-sheet *,
+      #lembar-sakti-print-sheet, #lembar-sakti-print-sheet * {
         visibility: visible;
       }
       #thermal-print-area {
@@ -85,7 +86,7 @@
         background: #fff !important;
         color: #000 !important;
       }
-      #label-print-sheet {
+      #label-print-sheet, #lembar-sakti-print-sheet {
         position: absolute;
         left: 0;
         top: 0;
@@ -101,8 +102,12 @@
     }
   </style>
 
-  <!-- HTML5 QR Code & Barcode Scanner Library -->
+  <!-- HTML5 QR Code & Barcode Scanner Library (Kamera HP & Tablet) -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- JsBarcode Library untuk Lembar Sakti Barcode Kasir -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- Modul Printer Bluetooth Thermal ESC/POS -->
+  <script src="./js/printer.js?v=20261030_02"></script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200">
 
@@ -428,103 +433,234 @@
       <!-- =========================================================
            TAB 2: KASIR POS & KELOLA PESANAN (KASIR & ADMIN)
            ========================================================= -->
-      <section id="tabContentPos" class="tab-pane hidden space-y-4">
+      <section id="tabContentPos" class="tab-pane hidden space-y-5">
         
-        <!-- Scanner & Cetak Label Action Bar -->
-        <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 w-full sm:w-auto">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg">
-              <i class="bi bi-upc-scan"></i>
+        <!-- =========================================================
+             STASIUN KASIR CEPAT (CONTINUOUS SCANNER & POS LIVE CART)
+             ========================================================= -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center text-xl shadow-xs">
+                <i class="bi bi-calculator"></i>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                  <span>Kasir Cepat & Continuous Scan</span>
+                  <span id="posCameraStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Kamera Siap</span>
+                </h3>
+                <p class="text-xs text-slate-500">Scan barcode kemasan ATK / Lembar Sakti berturut-turut untuk transaksi langsung di kasir</p>
+              </div>
             </div>
-            <div>
-              <h3 class="font-extrabold text-xs sm:text-sm">Scanner POS & Express Pick-up</h3>
-              <p class="text-[11px] text-slate-400">Scan QR Code nota pelanggan untuk layanan tanpa antre</p>
+
+            <!-- Kontrol Scanner Kasir -->
+            <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              <button 
+                type="button" 
+                id="btnTogglePosContinuousCamera" 
+                onclick="togglePosContinuousCamera()" 
+                class="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <i class="bi bi-camera"></i>
+                <span id="btnTogglePosCameraText">📷 Buka Kamera Kasir</span>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="simulatePosContinuousBarcodeScan()" 
+                class="px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                title="Simulasi scan barcode acak untuk uji coba kasir tanpa kamera fisik"
+              >
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Tes Scan ATK</span>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="simulatePosServiceScan()" 
+                class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                title="Simulasi scan jasa fotokopi dari Lembar Sakti Barcode"
+              >
+                <i class="bi bi-printer"></i>
+                <span>Tes Scan Fotokopi</span>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="printLembarSaktiBarcode()" 
+                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Cetak lembar kode batang jasa fotokopi untuk ditempel di meja kasir"
+              >
+                <i class="bi bi-upc"></i>
+                <span>Lembar Sakti</span>
+              </button>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap justify-end">
-            <!-- Tombol Buka Kamera Scanner -->
-            <button 
-              type="button" 
-              id="btnToggleScanner" 
-              onclick="toggleBarcodeScanner()"
-              class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 shadow-sm cursor-pointer"
-              title="Buka kamera untuk scan barcode / QR nota pelanggan"
-            >
-              <i class="bi bi-camera"></i>
-              <span>Kamera Scanner</span>
-            </button>
+          <!-- Viewport Kamera Kasir Continuous (Collapsible) -->
+          <div id="posCameraContainer" class="hidden bg-slate-950 border-2 border-emerald-500 rounded-2xl p-3 sm:p-4 text-center space-y-2.5 animate-fadeIn">
+            <div class="flex items-center justify-between text-white pb-2 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                <strong class="text-xs text-emerald-400 uppercase tracking-wider font-extrabold">Continuous Scan Aktif (Kamera Belakang)</strong>
+              </div>
+              <span id="posScanCooldownText" class="text-[11px] font-mono text-amber-300">Siap Scan (Jeda 1.5s per item)</span>
+            </div>
+            <div id="pos-continuous-qr-reader" class="w-full max-w-md mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black aspect-video flex items-center justify-center"></div>
+            <p class="text-[11px] text-slate-400">
+              💡 Arahkan barcode kemasan barang atau barcode Lembar Sakti ke dalam kotak kamera. Setiap scan otomatis berbunyi beep kasir dan masuk keranjang.
+            </p>
+          </div>
 
-            <!-- Tombol Tes Scan Barcode Dummy -->
-            <button 
-              type="button" 
-              onclick="simulateBarcodeScan()"
-              class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 shadow-sm cursor-pointer"
-              title="Uji coba scan instan dengan audio scanner beep khas kasir"
-            >
-              <i class="bi bi-lightning-charge-fill"></i>
-              <span>Tes Scan Dummy</span>
-            </button>
+          <!-- Bento Grid: Kiri Daftar Belanja Kasir, Kanan Ringkasan & Pembayaran -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <!-- Sisi Kiri (2 Kolom): Tabel Keranjang Kasir -->
+            <div class="lg:col-span-2 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="bi bi-cart3 text-emerald-700"></i>
+                  <span>Daftar Item Belanja Kasir</span>
+                  <span id="posCartItemCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0 Item</span>
+                </span>
+                <button type="button" onclick="clearPosLiveCart()" class="text-[11px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer">
+                  Kosongkan Keranjang
+                </button>
+              </div>
 
-            <!-- Tombol Cetak Label Rak / Barcode -->
-            <button 
-              type="button" 
-              onclick="openLabelPrintModal()"
-              class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 border border-slate-600 shadow-sm cursor-pointer"
-              title="Cetak stiker barcode / label harga untuk rak etalase toko"
-            >
-              <i class="bi bi-tag-fill text-amber-400"></i>
-              <span>Cetak Label Rak</span>
-            </button>
+              <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden max-h-64 overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-extrabold sticky top-0">
+                    <tr>
+                      <th class="p-2.5">Barang / Jasa</th>
+                      <th class="p-2.5 text-center">Harga</th>
+                      <th class="p-2.5 text-center">Qty</th>
+                      <th class="p-2.5 text-right">Subtotal</th>
+                      <th class="p-2.5 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="posLiveCartTableBody" class="divide-y divide-slate-200">
+                    <!-- Diisi dinamis -->
+                    <tr>
+                      <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
+                        Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-3">
+              <div class="space-y-3">
+                <div class="flex items-baseline justify-between border-b border-slate-200 pb-2">
+                  <span class="text-xs font-bold text-slate-600">Total Belanja:</span>
+                  <strong id="posLiveTotalText" class="text-xl sm:text-2xl font-black text-emerald-800">Rp 0</strong>
+                </div>
+
+                <!-- Pilihan Metode Pembayaran -->
+                <div class="space-y-1.5">
+                  <label class="block text-[11px] font-extrabold text-slate-600 uppercase">Metode Bayar:</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button type="button" id="btnPosPayCash" onclick="setPosPayMethod('Tunai')" class="py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                      <i class="bi bi-cash-stack"></i> <span>Tunai</span>
+                    </button>
+                    <button type="button" id="btnPosPayQris" onclick="setPosPayMethod('QRIS')" class="py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                      <i class="bi bi-qr-code"></i> <span>QRIS</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Input Uang Diterima & Kembalian (Khusus Tunai) -->
+                <div id="posCashCalculationBox" class="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-bold">Uang Diterima:</span>
+                    <input 
+                      type="number" 
+                      id="posCashReceivedInput" 
+                      placeholder="0" 
+                      oninput="calculatePosChange()"
+                      class="w-28 text-right font-black text-xs border border-slate-300 rounded-lg p-1 focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                  <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                    <span class="text-slate-500 font-bold">Kembalian:</span>
+                    <strong id="posCashChangeText" class="font-black text-emerald-700">Rp 0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tombol Aksi Kasir -->
+              <div class="space-y-2 pt-2 border-t border-slate-200">
+                <!-- Tombol Cetak Struk Bluetooth Thermal -->
+                <button 
+                  type="button" 
+                  onclick="printPosCartBluetooth()" 
+                  class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                >
+                  <i class="bi bi-bluetooth text-blue-400"></i>
+                  <span>🖨️ Cetak Struk Bluetooth Thermal</span>
+                </button>
+
+                <!-- Tombol Selesaikan Transaksi Langsung -->
+                <button 
+                  type="button" 
+                  onclick="submitPosDirectTransaction()" 
+                  class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                >
+                  <i class="bi bi-check2-circle text-base"></i>
+                  <span>Selesaikan Transaksi Kasir</span>
+                </button>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        <!-- Kamera Viewport Container (Collapsible) -->
-        <div id="scannerContainer" class="hidden bg-slate-900 border-2 border-emerald-500/50 rounded-2xl p-4 shadow-xl text-center space-y-3">
-          <div class="flex items-center justify-between text-white pb-2 border-b border-slate-800">
-            <span class="text-xs font-extrabold flex items-center gap-2 text-emerald-400">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-              Arahkan Kamera ke Barcode atau QR Code Nota
-            </span>
-            <button type="button" onclick="toggleBarcodeScanner()" class="text-slate-400 hover:text-white text-sm">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-          <div id="qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black"></div>
-          <p class="text-[11px] text-slate-400">
-            Kamera otomatis mendeteksi format QR Code (#DLN-XXXX) maupun Barcode standar 1D/2D.
-          </p>
-        </div>
-
-        <!-- Filter & Search Bar -->
-        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
-          
-          <!-- Filter Status Pesanan -->
-          <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold">
-            <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
-            <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Menunggu</button>
-            <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Diproses</button>
-            <button onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Siap Ambil</button>
-            <button onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
+        <!-- =========================================================
+             BAGIAN ANTREAN PESANAN ONLINE & PENGAMBILAN TANPA ANTRE
+             ========================================================= -->
+        <div class="border-t border-slate-200 pt-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i class="bi bi-inbox-fill text-delina-emerald"></i>
+              <span>Antrean Pesanan Masuk (Online / Express Pick-up)</span>
+            </h3>
+            <span class="text-xs text-slate-500">Scan QR nota pelanggan untuk mencari cepat</span>
           </div>
 
-          <!-- Pencarian Pesanan -->
-          <div class="relative w-full md:w-72">
-            <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-            <input 
-              type="text" 
-              id="orderSearchInput"
-              oninput="handleOrderSearch(this.value)"
-              placeholder="Cari No. Nota, Nama, No. WA..." 
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
-            />
+          <!-- Filter & Search Bar Antrean -->
+          <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+            
+            <!-- Filter Status Pesanan -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold">
+              <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
+              <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Menunggu</button>
+              <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Diproses</button>
+              <button onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Siap Ambil</button>
+              <button onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
+            </div>
+
+            <!-- Pencarian Pesanan -->
+            <div class="relative w-full md:w-72">
+              <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="orderSearchInput"
+                oninput="handleOrderSearch(this.value)"
+                placeholder="Cari No. Nota, Nama, No. WA..." 
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+              />
+            </div>
+
           </div>
 
-        </div>
-
-        <!-- Daftar Kartu Pesanan -->
-        <div id="ordersCardsContainer" class="space-y-3">
-          <!-- Diisi otomatis oleh JavaScript -->
+          <!-- Daftar Kartu Pesanan -->
+          <div id="ordersCardsContainer" class="space-y-3">
+            <!-- Diisi otomatis oleh JavaScript -->
+          </div>
         </div>
 
       </section>
@@ -547,13 +683,27 @@
             />
           </div>
 
-          <button 
-            onclick="openAddProductModal()" 
-            class="admin-only-feature w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
-          >
-            <i class="bi bi-plus-lg"></i>
-            <span>Tambah Barang Baru</span>
-          </button>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <!-- Tombol Scan Barcode Barang (Katalog) -->
+            <button 
+              type="button"
+              onclick="openProductBarcodeScannerModal()" 
+              class="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+              title="Pindai barcode kemasan barang menggunakan kamera HP/tablet untuk cek stok atau tambah barang baru"
+            >
+              <i class="bi bi-camera text-amber-400"></i>
+              <span>📷 Scan Barcode Barang</span>
+            </button>
+
+            <!-- Tombol Tambah Barang Baru -->
+            <button 
+              onclick="openAddProductModal()" 
+              class="admin-only-feature flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <i class="bi bi-plus-lg"></i>
+              <span>Tambah Barang Baru</span>
+            </button>
+          </div>
         </div>
 
         <!-- Tabel Daftar Produk & Quick Stock Edit -->
@@ -593,11 +743,21 @@
               <!-- Diisi dinamis oleh JavaScript -->
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex justify-end">
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <button 
+                type="button" 
+                onclick="printLembarSaktiBarcode()" 
+                class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+                title="Cetak lembar kertas kode batang barcode jasa fotokopi & jilid untuk meja kasir"
+              >
+                <i class="bi bi-upc-scan text-amber-400"></i>
+                <span>🖨️ Cetak Lembar Sakti Barcode Kasir</span>
+              </button>
+
               <button 
                 type="submit" 
                 id="btnSaveRates"
-                class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2"
+                class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
               >
                 <i class="bi bi-check2-circle"></i>
                 <span>Simpan Perubahan Tarif</span>
@@ -862,11 +1022,15 @@
         </div>
       </div>
 
-      <div class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
-        <button onclick="closeReceiptModal()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">Tutup</button>
-        <button onclick="window.print()" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+      <div class="p-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center gap-2">
+        <button onclick="closeReceiptModal()" class="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">Tutup</button>
+        <button onclick="printAdminActiveReceiptBluetooth()" class="w-full sm:flex-1 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+          <i class="bi bi-bluetooth"></i>
+          <span>Cetak Bluetooth</span>
+        </button>
+        <button onclick="window.print()" class="w-full sm:w-auto py-2.5 px-3.5 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
           <i class="bi bi-printer-fill text-amber-400"></i>
-          <span>Cetak Sekarang (58mm/80mm)</span>
+          <span>Driver/PDF</span>
         </button>
       </div>
     </div>
@@ -923,6 +1087,124 @@
 
   <!-- AREA KHUSUS CETAK LABEL RAK (HANYA MUNCUL SAAT PRINT) -->
   <div id="label-print-sheet" class="hidden"></div>
+
+  <!-- =========================================================================
+       6. MODAL SCANNER BARCODE BARANG (UNTUK TAB KATALOG & STOK)
+       ========================================================================= -->
+  <div id="productBarcodeScannerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 text-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-500/50 flex flex-col animate-fadeIn">
+      <div class="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
+            <i class="bi bi-camera"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm text-emerald-400">Scan Barcode Barang</h3>
+            <p class="text-[11px] text-slate-400">Arahkan kamera ke barcode kemasan ATK</p>
+          </div>
+        </div>
+        <button onclick="closeProductBarcodeScannerModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-3 text-center">
+        <div id="product-qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center"></div>
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-left text-xs space-y-1">
+          <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Logika Cerdas:</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • Jika barcode <strong>belum ada</strong>: Langsung buka form "Tambah Produk" dengan SKU terisi otomatis.<br>
+            • Jika barcode <strong>sudah ada</strong>: Langsung buka form cepat "Tambah Stok Masuk (+N)".
+          </p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button type="button" onclick="closeProductBarcodeScannerModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer">
+          Batal & Tutup Kamera
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. MODAL CEPAT TAMBAH STOK MASUK (RESTOCK BARANG SUDAH ADA)
+       ========================================================================= -->
+  <div id="quickRestockModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col animate-fadeIn">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
+            <i class="bi bi-box-arrow-in-down"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm text-amber-300">Tambah Stok Masuk</h3>
+            <p class="text-[11px] text-slate-400">Barcode Cocok! Masukkan jumlah barang restock</p>
+          </div>
+        </div>
+        <button onclick="closeQuickRestockModal()" class="text-slate-400 hover:text-white cursor-pointer">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Info Barang -->
+        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+          <img id="restockProductImg" src="" class="w-14 h-14 object-cover rounded-xl border border-slate-300" />
+          <div class="flex-1">
+            <strong id="restockProductName" class="text-xs sm:text-sm text-slate-800 block line-clamp-2">Nama Barang</strong>
+            <span class="text-[11px] text-slate-500 font-mono">Barcode: <strong id="restockProductBarcode" class="text-emerald-700">ATK-001</strong></span>
+            <div class="text-xs font-bold text-slate-700 mt-1">
+              Stok Saat Ini: <span id="restockCurrentStock" class="text-emerald-700 font-black">0</span> <span id="restockProductUnit">Pcs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Tambah Stok -->
+        <div class="space-y-2">
+          <label class="block text-xs font-extrabold text-slate-700">Jumlah Barang Masuk (+Qty):</label>
+          <div class="flex items-center gap-2">
+            <input 
+              type="number" 
+              id="restockQtyInput" 
+              value="10" 
+              min="1" 
+              max="9999" 
+              oninput="calculateRestockTotal()"
+              class="w-full bg-slate-50 border-2 border-emerald-500 rounded-xl px-4 py-2.5 text-base font-black text-center text-slate-900 focus:outline-none focus:bg-white"
+            />
+          </div>
+          <!-- Preset Buttons -->
+          <div class="grid grid-cols-5 gap-1.5 pt-1">
+            <button type="button" onclick="setRestockQty(5)" class="py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 font-bold text-xs text-slate-600 transition-all cursor-pointer">+5</button>
+            <button type="button" onclick="setRestockQty(10)" class="py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 font-bold text-xs text-slate-600 transition-all cursor-pointer">+10</button>
+            <button type="button" onclick="setRestockQty(25)" class="py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 font-bold text-xs text-slate-600 transition-all cursor-pointer">+25</button>
+            <button type="button" onclick="setRestockQty(50)" class="py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 font-bold text-xs text-slate-600 transition-all cursor-pointer">+50</button>
+            <button type="button" onclick="setRestockQty(100)" class="py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 font-bold text-xs text-slate-600 transition-all cursor-pointer">+100</button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs flex justify-between items-center">
+          <span class="text-emerald-800 font-bold">Total Stok Setelah Restock:</span>
+          <strong id="restockCalculatedTotal" class="text-sm font-black text-emerald-800">0 Pcs</strong>
+        </div>
+      </div>
+
+      <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button type="button" onclick="closeQuickRestockModal()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer">Batal</button>
+        <button type="button" id="btnSaveRestock" onclick="submitQuickRestock()" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+          <i class="bi bi-check2-circle text-base"></i>
+          <span>Simpan Stok Masuk</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AREA KHUSUS CETAK LEMBAR SAKTI BARCODE KASIR (HANYA MUNCUL SAAT PRINT) -->
+  <div id="lembar-sakti-print-sheet" class="hidden"></div>
 
   <!-- NOTIFIKASI TOAST -->
   <div id="toastAdmin" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
@@ -2120,123 +2402,783 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     // =========================================================
-    // 13. SCANNER BARCODE POS & EXPRESS PICK-UP (HTML5-QRCODE)
+    // 13. WEB AUDIO API SYNTHESIZER SUARA KASIR (100% CLIENT-SIDE)
     // =========================================================
-    let html5QrScanner = null;
-    let isScannerRunning = false;
+    let audioContextInstance = null;
 
-    // Sintesis Bunyi Beep Kasir Elektronik (1400Hz Sine Wave)
-    function playScannerBeep() {
+    function getAudioContext() {
+      if (!audioContextInstance) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioContextInstance = new AudioContextClass();
+        }
+      }
+      if (audioContextInstance && audioContextInstance.state === "suspended") {
+        audioContextInstance.resume();
+      }
+      return audioContextInstance;
+    }
+
+    /**
+     * beepSuccess(): nada frekuensi 1200Hz selama 0.08 detik saat barcode berhasil terbaca
+     */
+    function beepSuccess() {
       try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.setValueAtTime(1400, ctx.currentTime);
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        gain.gain.setValueAtTime(0.28, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.09);
+        osc.stop(ctx.currentTime + 0.085);
       } catch (e) {
-        console.warn("AudioContext beep failed:", e);
+        console.warn("beepSuccess audio error:", e);
       }
     }
 
-    function toggleBarcodeScanner() {
-      const container = document.getElementById("scannerContainer");
-      const btn = document.getElementById("btnToggleScanner");
+    /**
+     * beepError(): nada frekuensi 300Hz selama 0.2 detik saat barcode tidak dikenal
+     */
+    function beepError() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        gain.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.21);
+      } catch (e) {
+        console.warn("beepError audio error:", e);
+      }
+    }
+
+    // =========================================================
+    // 14. SCANNER BARCODE TAB "KATALOG & STOK" (KAMERA HP & TABLET)
+    // =========================================================
+    let productBarcodeScanner = null;
+    let isProductScannerRunning = false;
+    let activeRestockProduct = null;
+
+    function openProductBarcodeScannerModal() {
+      const modal = document.getElementById("productBarcodeScannerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+
+      if (typeof Html5Qrcode === "undefined") {
+        alert("Pustaka Html5Qrcode belum siap. Mohon periksa koneksi internet Anda.");
+        return;
+      }
+
+      // Bersihkan instance sebelumnya jika ada
+      if (productBarcodeScanner) {
+        try { productBarcodeScanner.clear(); } catch (e) {}
+      }
+
+      productBarcodeScanner = new Html5Qrcode("product-qr-reader");
+      const scanConfig = {
+        fps: 12,
+        qrbox: { width: 280, height: 160 },
+        aspectRatio: 1.777778
+      };
+
+      // Selalu panggil kamera belakang ({ facingMode: "environment" })
+      productBarcodeScanner.start(
+        { facingMode: "environment" },
+        scanConfig,
+        (decodedText) => {
+          handleProductBarcodeDetected(decodedText);
+        },
+        (errorMessage) => {
+          // ignore scan noise
+        }
+      ).then(() => {
+        isProductScannerRunning = true;
+      }).catch(err => {
+        console.error("Gagal membuka kamera:", err);
+        alert(
+          "⚠️ Tidak dapat mengakses kamera perangkat.\n\n" +
+          "Pastikan izin kamera telah disetujui di browser (Google Chrome / Samsung Internet) tablet Anda."
+        );
+        closeProductBarcodeScannerModal();
+      });
+    }
+
+    function closeProductBarcodeScannerModal() {
+      const modal = document.getElementById("productBarcodeScannerModal");
+      if (modal) modal.classList.add("hidden");
+
+      if (productBarcodeScanner && isProductScannerRunning) {
+        productBarcodeScanner.stop().then(() => {
+          productBarcodeScanner.clear();
+          isProductScannerRunning = false;
+        }).catch(err => {
+          console.warn("Error stopping product scanner:", err);
+          isProductScannerRunning = false;
+        });
+      }
+    }
+
+    function handleProductBarcodeDetected(barcodeText) {
+      const barcode = barcodeText.trim();
+      if (!barcode) return;
+
+      // Hentikan kamera dan bunyikan beepSuccess
+      beepSuccess();
+      closeProductBarcodeScannerModal();
+
+      // Cek apakah barcode sudah ada di database produk
+      const existingProduct = (adminData.products || []).find(p => 
+        String(p.id).toUpperCase() === barcode.toUpperCase() ||
+        (p.barcode && String(p.barcode).toUpperCase() === barcode.toUpperCase())
+      );
+
+      if (existingProduct) {
+        // SUDAH ADA: Buka Modal Cepat "Tambah Stok Masuk"
+        openQuickRestockModal(existingProduct);
+      } else {
+        // BELUM ADA: Buka Modal "Tambah Produk Baru", isi Barcode/SKU, dan fokus ke Nama Produk
+        openAddProductModal();
+        const idInput = document.getElementById("prodEditId");
+        const nameInput = document.getElementById("prodEditName");
+        if (idInput) idInput.value = barcode;
+        setTimeout(() => {
+          if (nameInput) {
+            nameInput.focus();
+            nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 300);
+        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi nama barang.`);
+      }
+    }
+
+    // Modal Cepat Tambah Stok Masuk (+N)
+    function openQuickRestockModal(product) {
+      activeRestockProduct = product;
+      const modal = document.getElementById("quickRestockModal");
+      const imgEl = document.getElementById("restockProductImg");
+      const nameEl = document.getElementById("restockProductName");
+      const barcodeEl = document.getElementById("restockProductBarcode");
+      const currentStockEl = document.getElementById("restockCurrentStock");
+      const unitEl = document.getElementById("restockProductUnit");
+      const qtyInput = document.getElementById("restockQtyInput");
+
+      if (imgEl) imgEl.src = product.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200";
+      if (nameEl) nameEl.innerText = product.name;
+      if (barcodeEl) barcodeEl.innerText = product.id;
+      if (currentStockEl) currentStockEl.innerText = String(product.stock || 0);
+      if (unitEl) unitEl.innerText = product.unit || "Pcs";
+      if (qtyInput) qtyInput.value = "10";
+
+      calculateRestockTotal();
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeQuickRestockModal() {
+      activeRestockProduct = null;
+      const modal = document.getElementById("quickRestockModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function setRestockQty(n) {
+      const qtyInput = document.getElementById("restockQtyInput");
+      if (qtyInput) {
+        qtyInput.value = String(n);
+        calculateRestockTotal();
+      }
+    }
+
+    function calculateRestockTotal() {
+      if (!activeRestockProduct) return;
+      const current = Number(activeRestockProduct.stock || 0);
+      const add = Number(document.getElementById("restockQtyInput").value || 0);
+      const totalEl = document.getElementById("restockCalculatedTotal");
+      if (totalEl) {
+        totalEl.innerText = `${current + add} ${activeRestockProduct.unit || 'Pcs'}`;
+      }
+    }
+
+    async function submitQuickRestock() {
+      if (!activeRestockProduct) return;
+      const addQty = parseInt(document.getElementById("restockQtyInput").value, 10);
+      if (isNaN(addQty) || addQty <= 0) {
+        alert("Masukkan jumlah stok masuk yang valid.");
+        return;
+      }
+
+      const current = Number(activeRestockProduct.stock || 0);
+      const newStock = current + addQty;
+      const btn = document.getElementById("btnSaveRestock");
+      if (btn) btn.disabled = true;
+
+      showToastAdmin(`Menambahkan +${addQty} stok ${activeRestockProduct.name}...`);
+
+      try {
+        await updateQuickStock(activeRestockProduct.id, newStock);
+        closeQuickRestockModal();
+        showToastAdmin(`✅ Stok ${activeRestockProduct.name} berhasil diperbarui menjadi ${newStock} pcs!`);
+      } catch (err) {
+        alert("Gagal memperbarui stok: " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // =========================================================
+    // 15. KASIR POS CONTINUOUS SCAN & LIVE CART TRANSAKSI
+    // =========================================================
+    let posContinuousScanner = null;
+    let isPosCameraActive = false;
+    let posLiveCart = [];
+    let posSelectedPayMethod = "Tunai"; // "Tunai" | "QRIS"
+
+    // Cooldown debouncing 1.5 detik per barcode
+    let posLastScannedCode = null;
+    let posLastScanTime = 0;
+    const POS_SCAN_COOLDOWN_MS = 1500;
+
+    function togglePosContinuousCamera() {
+      const container = document.getElementById("posCameraContainer");
+      const badge = document.getElementById("posCameraStatusBadge");
+      const btnText = document.getElementById("btnTogglePosCameraText");
       if (!container) return;
 
-      if (isScannerRunning) {
-        if (html5QrScanner) {
-          html5QrScanner.stop().then(() => {
-            html5QrScanner.clear();
-            isScannerRunning = false;
+      if (isPosCameraActive) {
+        // Matikan kamera
+        if (posContinuousScanner) {
+          posContinuousScanner.stop().then(() => {
+            posContinuousScanner.clear();
+            isPosCameraActive = false;
             container.classList.add("hidden");
-            if (btn) btn.innerHTML = '<i class="bi bi-camera"></i> <span>Kamera Scanner</span>';
+            if (badge) {
+              badge.innerText = "Kamera Nonaktif";
+              badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600";
+            }
+            if (btnText) btnText.innerText = "📷 Buka Kamera Kasir";
           }).catch(err => {
-            console.error("Gagal stop scanner:", err);
+            console.warn("Gagal matikan kamera kasir:", err);
             container.classList.add("hidden");
-            isScannerRunning = false;
+            isPosCameraActive = false;
           });
         }
       } else {
+        // Nyalakan kamera Continuous Mode
         container.classList.remove("hidden");
-        if (btn) btn.innerHTML = '<i class="bi bi-camera-video-off"></i> <span>Tutup Kamera</span>';
+        if (badge) {
+          badge.innerText = "● Kamera Live";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 animate-pulse";
+        }
+        if (btnText) btnText.innerText = "⏹ Tutup Kamera Kasir";
 
         if (typeof Html5Qrcode === "undefined") {
-          alert("Pustaka Html5Qrcode belum dimuat. Periksa koneksi internet.");
+          alert("Pustaka Html5Qrcode belum siap. Periksa koneksi internet.");
           return;
         }
 
-        html5QrScanner = new Html5Qrcode("qr-reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        posContinuousScanner = new Html5Qrcode("pos-continuous-qr-reader");
+        const scanConfig = {
+          fps: 12,
+          qrbox: { width: 300, height: 180 },
+          aspectRatio: 1.777778
+        };
 
-        html5QrScanner.start(
+        // Selalu gunakan kamera belakang HP/tablet
+        posContinuousScanner.start(
           { facingMode: "environment" },
-          config,
+          scanConfig,
           (decodedText) => {
-            handleScanSuccess(decodedText);
+            handlePosContinuousScan(decodedText);
           },
           (errorMessage) => {
             // ignore scan noise
           }
         ).then(() => {
-          isScannerRunning = true;
+          isPosCameraActive = true;
         }).catch(err => {
-          alert("Tidak dapat mengakses kamera. Pastikan izin kamera telah disetujui di browser/tablet.");
-          console.error("Kamera error:", err);
+          console.error("Gagal membuka kamera kasir:", err);
+          alert(
+            "⚠️ Tidak dapat mengakses kamera kasir.\n\n" +
+            "Pastikan izin kamera telah disetujui di Google Chrome / tablet Anda."
+          );
           container.classList.add("hidden");
-          if (btn) btn.innerHTML = '<i class="bi bi-camera"></i> <span>Kamera Scanner</span>';
+          isPosCameraActive = false;
+          if (btnText) btnText.innerText = "📷 Buka Kamera Kasir";
         });
       }
     }
 
-    function handleScanSuccess(scannedCode) {
-      playScannerBeep();
-      const cleaned = scannedCode.trim();
-      const searchInput = document.getElementById("orderSearchInput");
-      if (searchInput) {
-        searchInput.value = cleaned;
-        handleOrderSearch(cleaned);
-      }
-      showToastAdmin(`✅ Barcode / QR Terdeteksi: ${cleaned}`);
+    /**
+     * Handler Continuous Scan Barcode:
+     * - Cooldown 1.5 detik per pembacaan
+     * - beepSuccess() & tambah ke keranjang jika cocok
+     * - beepError() & toast jika barcode tidak dikenal (kamera tetap hidup)
+     */
+    function handlePosContinuousScan(decodedText) {
+      const now = Date.now();
+      const code = decodedText.trim();
+      if (!code) return;
 
-      const container = document.getElementById("ordersCardsContainer");
-      if (container) {
-        container.classList.add("ring-4", "ring-emerald-400");
-        setTimeout(() => container.classList.remove("ring-4", "ring-emerald-400"), 1200);
+      // Jeda 1.5 detik jika barcode sama di-scan berulang tanpa jeda
+      if (code === posLastScannedCode && (now - posLastScanTime) < POS_SCAN_COOLDOWN_MS) {
+        return;
+      }
+
+      posLastScannedCode = code;
+      posLastScanTime = now;
+
+      // Update text cooldown status
+      const cooldownText = document.getElementById("posScanCooldownText");
+      if (cooldownText) {
+        cooldownText.innerText = "⏳ Sedang memproses item...";
+        setTimeout(() => {
+          if (cooldownText) cooldownText.innerText = "Siap Scan (Jeda 1.5s per item)";
+        }, POS_SCAN_COOLDOWN_MS);
+      }
+
+      // 1. Cek apakah ini Barcode Jasa Cetak & Fotokopi dari Lembar Sakti
+      if (code.startsWith("JASA-")) {
+        const serviceItem = resolveServiceBarcode(code);
+        if (serviceItem) {
+          beepSuccess(); // 1200Hz, 0.08s
+          addItemToPosLiveCart(serviceItem);
+          showToastAdmin(`✅ +1 Jasa: ${serviceItem.name}`);
+        } else {
+          beepError(); // 300Hz, 0.2s
+          showToastAdmin(`⚠️ Kode jasa "${code}" tidak dikenal.`);
+        }
+        return;
+      }
+
+      // 2. Cek apakah ini QR Nota Pelanggan (#DLN-XXXX)
+      if (code.startsWith("#DLN-") || code.startsWith("DLN-")) {
+        beepSuccess();
+        const searchInput = document.getElementById("orderSearchInput");
+        if (searchInput) {
+          searchInput.value = code;
+          handleOrderSearch(code);
+        }
+        showToastAdmin(`⚡ Nota Express Pick-up Ditemukan: ${code}`);
+        return;
+      }
+
+      // 3. Cek di Database Katalog Produk ATK
+      const product = (adminData.products || []).find(p => 
+        String(p.id).toUpperCase() === code.toUpperCase() ||
+        (p.barcode && String(p.barcode).toUpperCase() === code.toUpperCase())
+      );
+
+      if (product) {
+        beepSuccess(); // 1200Hz, 0.08s
+        addItemToPosLiveCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          unit: product.unit || "Pcs",
+          image: product.image
+        });
+        showToastAdmin(`✅ +1 ${product.name}`);
+      } else {
+        // TIDAK DIKENAL: Kamera TIDAK mati, berikan beepError()
+        beepError(); // 300Hz, 0.2s
+        showToastAdmin(`⚠️ Barcode "${code}" tidak terdaftar di katalog!`);
       }
     }
 
-    // Shortcut Tes Scan Dummy: Mensimulasikan scan barcode nota dengan audio beep
-    function simulateBarcodeScan() {
-      playScannerBeep();
-      if (!adminData.orders || adminData.orders.length === 0) {
-        showToastAdmin("Belum ada data pesanan untuk di-scan.");
+    // Resolusi Kode Jasa dari Lembar Sakti ke Rincian Harga
+    function resolveServiceBarcode(code) {
+      const rates = adminData.rates || {};
+      const map = {
+        "JASA-FOTO-A4-BW": {
+          name: "Fotokopi HVS A4 (Hitam Putih)",
+          price: (rates.PRINT_BW_A4 && rates.PRINT_BW_A4.harga) || 250,
+          unit: "Lembar"
+        },
+        "JASA-FOTO-A4-COL": {
+          name: "Fotokopi HVS A4 (Warna Teks/Grafik)",
+          price: (rates.PRINT_COLOR_A4 && rates.PRINT_COLOR_A4.harga) || 1000,
+          unit: "Lembar"
+        },
+        "JASA-FOTO-F4-BW": {
+          name: "Fotokopi HVS F4 Folio (Hitam Putih)",
+          price: (rates.PRINT_BW_F4 && rates.PRINT_BW_F4.harga) || 300,
+          unit: "Lembar"
+        },
+        "JASA-FOTO-F4-COL": {
+          name: "Fotokopi HVS F4 Folio (Warna)",
+          price: (rates.PRINT_COLOR_F4 && rates.PRINT_COLOR_F4.harga) || 1200,
+          unit: "Lembar"
+        },
+        "JASA-PRINT-FOTO": {
+          name: "Cetak Full Foto Mengkilap A4",
+          price: (rates.PRINT_COLOR_FULL && rates.PRINT_COLOR_FULL.harga) || 2500,
+          unit: "Lembar"
+        },
+        "JASA-JILID-LAKBAN": {
+          name: "Jilid Lakban Mika Bening",
+          price: (rates.JILID_LAKBAN && rates.JILID_LAKBAN.harga) || 3000,
+          unit: "Buku"
+        },
+        "JASA-JILID-SPIRAL": {
+          name: "Jilid Spiral Kawat Modern",
+          price: (rates.JILID_SPIRAL && rates.JILID_SPIRAL.harga) || 12000,
+          unit: "Buku"
+        },
+        "JASA-JILID-HARD": {
+          name: "Jilid Hardcover Skripsi Foil Emas",
+          price: (rates.JILID_HARDCOVER && rates.JILID_HARDCOVER.harga) || 35000,
+          unit: "Buku"
+        },
+        "JASA-LAMINATING": {
+          name: "Laminating Panas Anti Air",
+          price: (rates.LAMINATING_A4 && rates.LAMINATING_A4.harga) || 4000,
+          unit: "Lembar"
+        },
+        "JASA-ONGKIR": {
+          name: "Ongkos Kirim Kurir Toko",
+          price: (rates.ONGKIR_KURIR && rates.ONGKIR_KURIR.harga) || 5000,
+          unit: "Trip"
+        }
+      };
+
+      if (map[code]) {
+        return {
+          id: code,
+          name: map[code].name,
+          price: map[code].price,
+          unit: map[code].unit,
+          isService: true
+        };
+      }
+      return null;
+    }
+
+    // Manajemen Keranjang Kasir POS
+    function addItemToPosLiveCart(item) {
+      const existing = posLiveCart.find(i => i.id === item.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        posLiveCart.push({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price || 0),
+          qty: 1,
+          unit: item.unit || "Pcs",
+          image: item.image || ""
+        });
+      }
+      renderPosLiveCart();
+    }
+
+    function updatePosCartItemQty(id, delta) {
+      const idx = posLiveCart.findIndex(i => i.id === id);
+      if (idx > -1) {
+        posLiveCart[idx].qty += delta;
+        if (posLiveCart[idx].qty <= 0) {
+          posLiveCart.splice(idx, 1);
+        }
+      }
+      renderPosLiveCart();
+    }
+
+    function removePosCartItem(id) {
+      posLiveCart = posLiveCart.filter(i => i.id !== id);
+      renderPosLiveCart();
+    }
+
+    function clearPosLiveCart() {
+      if (posLiveCart.length === 0) return;
+      if (confirm("Kosongkan seluruh keranjang belanja kasir saat ini?")) {
+        posLiveCart = [];
+        renderPosLiveCart();
+      }
+    }
+
+    function renderPosLiveCart() {
+      const tbody = document.getElementById("posLiveCartTableBody");
+      const totalEl = document.getElementById("posLiveTotalText");
+      const badgeEl = document.getElementById("posCartItemCountBadge");
+      if (!tbody) return;
+
+      const totalItems = posLiveCart.reduce((sum, i) => sum + i.qty, 0);
+      const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+      if (badgeEl) badgeEl.innerText = `${totalItems} Item`;
+      if (totalEl) totalEl.innerText = formatRupiah(totalPrice);
+
+      if (posLiveCart.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
+              Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
+            </td>
+          </tr>
+        `;
+        calculatePosChange();
         return;
       }
-      const randomOrder = adminData.orders[Math.floor(Math.random() * adminData.orders.length)];
-      const searchInput = document.getElementById("orderSearchInput");
-      if (searchInput) {
-        searchInput.value = randomOrder.orderId;
-        handleOrderSearch(randomOrder.orderId);
-      }
-      showToastAdmin(`⚡ Tes Scan Barcode Berhasil: ${randomOrder.orderId} (${randomOrder.customerName})`);
 
-      const container = document.getElementById("ordersCardsContainer");
-      if (container) {
-        container.classList.add("ring-4", "ring-amber-400");
-        setTimeout(() => container.classList.remove("ring-4", "ring-amber-400"), 1200);
+      tbody.innerHTML = posLiveCart.map(item => {
+        const sub = item.price * item.qty;
+        return `
+          <tr class="hover:bg-slate-100/70 transition-colors">
+            <td class="p-2.5">
+              <strong class="text-xs text-slate-800 block">${escapeHtml(item.name)}</strong>
+              <span class="text-[10px] text-slate-400 font-mono">${item.id}</span>
+            </td>
+            <td class="p-2.5 text-center text-slate-600 font-bold">${formatRupiah(item.price)}</td>
+            <td class="p-2.5 text-center">
+              <div class="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+                <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">-</button>
+                <span class="w-8 text-center text-xs font-black text-slate-800">${item.qty}</span>
+                <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">+</button>
+              </div>
+            </td>
+            <td class="p-2.5 text-right font-black text-emerald-800">${formatRupiah(sub)}</td>
+            <td class="p-2.5 text-center">
+              <button type="button" onclick="removePosCartItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs cursor-pointer p-1" title="Hapus">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      calculatePosChange();
+    }
+
+    function setPosPayMethod(method) {
+      posSelectedPayMethod = method;
+      const btnCash = document.getElementById("btnPosPayCash");
+      const btnQris = document.getElementById("btnPosPayQris");
+      const cashBox = document.getElementById("posCashCalculationBox");
+
+      if (method === "Tunai") {
+        if (btnCash) {
+          btnCash.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        }
+        if (btnQris) {
+          btnQris.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        }
+        if (cashBox) cashBox.classList.remove("hidden");
+      } else {
+        if (btnCash) {
+          btnCash.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        }
+        if (btnQris) {
+          btnQris.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        }
+        if (cashBox) cashBox.classList.add("hidden");
+      }
+    }
+
+    function calculatePosChange() {
+      const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const cashInput = document.getElementById("posCashReceivedInput");
+      const changeEl = document.getElementById("posCashChangeText");
+      if (!changeEl) return;
+
+      const received = parseFloat(cashInput ? cashInput.value : 0) || 0;
+      const change = received - totalPrice;
+
+      if (change >= 0) {
+        changeEl.innerText = formatRupiah(change);
+        changeEl.className = "font-black text-emerald-700";
+      } else {
+        changeEl.innerText = `Kurang ${formatRupiah(Math.abs(change))}`;
+        changeEl.className = "font-black text-red-600";
+      }
+    }
+
+    // Shortcut Tes Scan untuk Tablet / PC tanpa kamera fisik
+    function simulatePosContinuousBarcodeScan() {
+      if (!adminData.products || adminData.products.length === 0) {
+        showToastAdmin("Belum ada katalog produk untuk disimulasikan.");
+        return;
+      }
+      const randomProd = adminData.products[Math.floor(Math.random() * adminData.products.length)];
+      handlePosContinuousScan(randomProd.id);
+    }
+
+    function simulatePosServiceScan() {
+      const services = [
+        "JASA-FOTO-A4-BW",
+        "JASA-FOTO-A4-COL",
+        "JASA-FOTO-F4-BW",
+        "JASA-JILID-LAKBAN",
+        "JASA-JILID-SPIRAL",
+        "JASA-LAMINATING"
+      ];
+      const randomSvc = services[Math.floor(Math.random() * services.length)];
+      handlePosContinuousScan(randomSvc);
+    }
+
+    // Cetak Struk Bluetooth Thermal dari Keranjang Kasir
+    function printPosCartBluetooth() {
+      if (posLiveCart.length === 0) {
+        alert("Keranjang kasir masih kosong. Scan barang terlebih dahulu.");
+        return;
+      }
+
+      const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const orderData = {
+        orderId: `#POS-${Date.now().toString().slice(-4)}`,
+        orderTime: new Date().toLocaleString("id-ID"),
+        customerName: "Pelanggan Kasir Toko",
+        deliveryMethod: "Langsung di Toko",
+        items: posLiveCart.map(i => ({
+          name: i.name,
+          qty: i.qty,
+          price: i.price
+        })),
+        total: totalPrice,
+        discountAmount: 0,
+        paymentMethod: posSelectedPayMethod === "Tunai" ? "Tunai Kasir" : "QRIS Toko"
+      };
+
+      if (typeof printReceiptViaBluetooth === "function") {
+        printReceiptViaBluetooth(orderData);
+      } else {
+        alert("Modul printer Bluetooth belum terpasang.");
+      }
+    }
+
+    // Selesaikan Transaksi Kasir
+    function submitPosDirectTransaction() {
+      if (posLiveCart.length === 0) {
+        alert("Keranjang kasir masih kosong.");
+        return;
+      }
+
+      const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const totalItems = posLiveCart.reduce((sum, i) => sum + i.qty, 0);
+
+      const confirmDone = confirm(
+        `Selesaikan transaksi kasir?\n\n` +
+        `• Total Item: ${totalItems} pcs\n` +
+        `• Total Tagihan: ${formatRupiah(totalPrice)}\n` +
+        `• Pembayaran: ${posSelectedPayMethod}\n\n` +
+        `Klik OK untuk menyimpan & mencetak struk.`
+      );
+      if (!confirmDone) return;
+
+      beepSuccess();
+      showToastAdmin(`Alhamdulillah, transaksi ${formatRupiah(totalPrice)} selesai!`);
+
+      // Cetak Bluetooth otomatis jika diinginkan
+      printPosCartBluetooth();
+
+      // Kosongkan keranjang
+      posLiveCart = [];
+      const cashInput = document.getElementById("posCashReceivedInput");
+      if (cashInput) cashInput.value = "";
+      renderPosLiveCart();
+    }
+
+    // =========================================================
+    // 16. CETAK LEMBAR SAKTI BARCODE KASIR (JSBARCODE)
+    // =========================================================
+    function printLembarSaktiBarcode() {
+      const sheet = document.getElementById("lembar-sakti-print-sheet");
+      if (!sheet) return;
+
+      const services = [
+        { code: "JASA-FOTO-A4-BW", name: "Fotokopi HVS A4 B/W", rate: "Rp 250 / lbr" },
+        { code: "JASA-FOTO-A4-COL", name: "Fotokopi HVS A4 Warna", rate: "Rp 1.000 / lbr" },
+        { code: "JASA-FOTO-F4-BW", name: "Fotokopi HVS F4 B/W", rate: "Rp 300 / lbr" },
+        { code: "JASA-FOTO-F4-COL", name: "Fotokopi HVS F4 Warna", rate: "Rp 1.200 / lbr" },
+        { code: "JASA-PRINT-FOTO", name: "Cetak Full Foto A4", rate: "Rp 2.500 / lbr" },
+        { code: "JASA-JILID-LAKBAN", name: "Jilid Lakban Mika", rate: "Rp 3.000 / buku" },
+        { code: "JASA-JILID-SPIRAL", name: "Jilid Spiral Kawat", rate: "Rp 12.000 / buku" },
+        { code: "JASA-JILID-HARD", name: "Jilid Hardcover Skripsi", rate: "Rp 35.000 / buku" },
+        { code: "JASA-LAMINATING", name: "Laminating Panas A4/F4", rate: "Rp 4.000 / lbr" },
+        { code: "JASA-ONGKIR", name: "Ongkos Kirim Kurir", rate: "Rp 5.000 / trip" }
+      ];
+
+      sheet.innerHTML = `
+        <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #000; padding: 10px;">
+          <!-- Header Lembar Sakti -->
+          <div style="text-align: center; border-bottom: 2px solid #065f46; padding-bottom: 8px; margin-bottom: 12px;">
+            <h1 style="font-size: 18px; font-weight: 900; margin: 0; color: #065f46;">LEMBAR SAKTI BARCODE KASIR - TOKO DELINA</h1>
+            <p style="font-size: 10px; color: #475569; margin: 4px 0 0 0;">
+              Tempel lembar ini di meja kasir. Arahkan kamera tablet/smartphone kasir ke kode batang untuk memasukkan jasa fotokopi ke transaksi POS secara otomatis.
+            </p>
+          </div>
+
+          <!-- Grid Barcode 2 Kolom -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            ${services.map((s, idx) => `
+              <div style="border: 1.5px solid #065f46; border-radius: 8px; padding: 8px; text-align: center; background: #fff; page-break-inside: avoid;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                  <strong style="font-size: 11px; color: #065f46;">${s.name}</strong>
+                  <span style="font-size: 11px; font-weight: 800; color: #d97706;">${s.rate}</span>
+                </div>
+                <svg id="barcode-sakti-${idx}" style="width: 100%; max-height: 50px;"></svg>
+              </div>
+            `).join("")}
+          </div>
+
+          <!-- Footer -->
+          <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #64748b; border-top: 1px dashed #cbd5e1; pt: 6px;">
+            Sistem Kasir Pintar Toko Delina ATK & Fotokopi • Format Barcode CODE128 Standar Scanner Kamera
+          </div>
+        </div>
+      `;
+
+      // Render barcode SVG menggunakan JsBarcode
+      setTimeout(() => {
+        services.forEach((s, idx) => {
+          if (typeof JsBarcode !== "undefined") {
+            try {
+              JsBarcode(`#barcode-sakti-${idx}`, s.code, {
+                format: "CODE128",
+                width: 2.2,
+                height: 40,
+                displayValue: true,
+                fontSize: 11,
+                font: "Plus Jakarta Sans",
+                margin: 2
+              });
+            } catch (err) {
+              console.warn("JsBarcode render error:", err);
+            }
+          }
+        });
+
+        // Jalankan print
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      }, 100);
+    }
+
+    // =========================================================
+    // 17. CETAK STRUK BLUETOOTH DARI MODAL ADMIN
+    // =========================================================
+    function printAdminActiveReceiptBluetooth() {
+      if (!activeReceiptOrder) {
+        alert("Pilih pesanan dari antrean kasir terlebih dahulu.");
+        return;
+      }
+      if (typeof printReceiptViaBluetooth === "function") {
+        printReceiptViaBluetooth(activeReceiptOrder);
+      } else {
+        alert("Modul printer Bluetooth belum terpasang.");
       }
     }
 
     // =========================================================
-    // 14. MODAL CETAK LABEL RAK / BARCODE STIKER ETALASE
+    // 18. MODAL CETAK LABEL RAK / BARCODE STIKER ETALASE
     // =========================================================
     let selectedLabelProductIds = new Set();
 
