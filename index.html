@@ -146,9 +146,27 @@
 
         </div>
 
-        <!-- Sisi Kanan: 2 Ikon Aksi Minimalis PERSISTENT (Lonceng & Keranjang) -->
+        <!-- Sisi Kanan: 3 Ikon Aksi Minimalis PERSISTENT (Tema, Lonceng & Keranjang) -->
         <div id="headerActionIcons" class="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 self-start transition-all duration-300 pt-0.5">
           
+          <!-- Tombol Saklar Tema Mini -->
+          <button 
+            type="button" 
+            id="btnHeaderTheme" 
+            onclick="openThemeModal()" 
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 hover:text-delina-emerald dark:text-gray-300 dark:hover:text-emerald-400 border border-gray-200/80 dark:border-slate-700 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+            title="Saklar Mode Terang / Gelap"
+          >
+            <!-- Ikon Matahari (Tampil saat Light Mode) -->
+            <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-500 dark:hidden" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+            </svg>
+            <!-- Ikon Bulan (Tampil saat Dark Mode) -->
+            <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-400 hidden dark:block" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
+            </svg>
+          </button>
+
           <!-- 1. Ikon Lonceng Notifikasi & Promo -->
           <button 
             type="button" 
@@ -1392,15 +1410,18 @@
     <div class="max-w-md sm:max-w-lg md:max-w-xl mx-auto pointer-events-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t sm:border border-gray-200/90 dark:border-slate-800 sm:rounded-2xl shadow-[0_-2px_15px_rgba(0,0,0,0.06)] sm:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
       <div class="grid grid-cols-5 h-16 sm:h-17 items-center px-1 sm:px-2">
         
-        <!-- 1. Beranda (Active pill gaya GoPay: bg-emerald-100 text-emerald-700 font-semibold rounded-2xl py-1 px-4) -->
+        <!-- 1. Beranda (Active pill hijau muda: bg-emerald-100 text-emerald-700 font-bold rounded-2xl py-1.5 px-4) -->
         <button 
           data-nav="home"
           onclick="handleBottomNav('home')" 
           class="bottom-nav-btn active flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-400 transition-all py-1 focus:outline-none cursor-pointer"
           title="Beranda"
         >
-          <div class="nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-semibold rounded-2xl py-1 px-3 sm:px-4 flex flex-col items-center justify-center transition-all">
-            <i class="fa-solid fa-house bi bi-house-door-fill text-base sm:text-lg"></i>
+          <div class="nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-bold rounded-2xl py-1.5 px-4 flex flex-col items-center justify-center transition-all">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.47 3.841a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.061l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 101.061 1.06l8.69-8.689z" />
+              <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.432z" />
+            </svg>
             <span class="text-[10px] sm:text-xs font-bold mt-0.5">Beranda</span>
           </div>
         </button>
@@ -1412,48 +1433,64 @@
           class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 focus:outline-none cursor-pointer"
           title="Kategori Produk"
         >
-          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
-            <i class="fa-solid fa-th-large bi bi-grid-fill text-base sm:text-lg"></i>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all">
+            <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 4a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 11a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H4a1 1 0 01-1-1v-5zm11-11a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1V4zm0 11a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5z"/>
+            </svg>
             <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kategori</span>
           </div>
         </button>
 
-        <!-- 3. Hadiah (TOMBOL TENGAH HERO ACTION MENGAMBANG) -->
+        <!-- 3. Hadiah (TOMBOL TENGAH MENGAMBANG SEPERTI TOMBOL QRIS) -->
         <button 
           data-nav="hadiah"
           onclick="handleBottomNav('hadiah')" 
           class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all py-1 relative focus:outline-none group cursor-pointer"
-          title="Kartu Member & Hadiah Gratis (30x Belanja)"
+          title="Kartu Member VIP & 30 Stempel Hadiah"
         >
-          <div class="w-[52px] h-[52px] rounded-3xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 border-4 border-emerald-100 dark:border-slate-800 -mt-5 flex items-center justify-center transition-transform active:scale-95 group-hover:scale-105">
-            <i class="fa-solid fa-gift bi bi-gift-fill text-xl text-white"></i>
+          <div class="-mt-5 w-[52px] h-[52px] rounded-full bg-emerald-600 hover:bg-emerald-700 border-4 border-white dark:border-slate-800 shadow-lg shadow-emerald-600/30 flex items-center justify-center transition active:scale-95 group-hover:scale-105">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 7h-2.087A4.985 4.985 0 0018 5c0-2.206-1.794-4-4-4-1.298 0-2.457.62-3.2 1.573A4.27 4.27 0 007.6 1C5.394 1 3.6 2.794 3.6 5c0 .724.197 1.403.535 1.988L4 7a2 2 0 00-2 2v2a2 2 0 001 1.732V20a2 2 0 002 2h14a2 2 0 002-2v-7.268A2 2 0 0022 11V9a2 2 0 00-2-2zM14 3c1.103 0 2 .897 2 2s-.897 2-2 2h-2.18c.112-.663.498-2.002 2.18-4zm-6.4 0c1.682 1.998 2.068 3.337 2.18 4H7.6c-1.103 0-2-.897-2-2s.897-2 2-2zM4 9h7v3H4V9zm9 11v-6h7v6H13zm0-8V9h7v3h-7zM5 14h6v6H5v-6z"/>
+            </svg>
           </div>
-          <span class="text-[10px] sm:text-xs text-emerald-700 dark:text-emerald-400 font-bold mt-0.5">Hadiah</span>
+          <span class="text-emerald-700 dark:text-emerald-400 font-bold text-xs mt-1">Hadiah</span>
         </button>
 
-        <!-- 4. Riwayat (Nota Kuitansi & Lacak Pesanan) -->
+        <!-- 4. Lacak (Lacak Nota & Status Pesanan) -->
         <button 
-          data-nav="riwayat"
-          onclick="handleBottomNav('riwayat')" 
+          data-nav="lacak"
+          onclick="handleBottomNav('lacak')" 
           class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 relative focus:outline-none cursor-pointer"
-          title="Riwayat Pesanan & Lacak Nota"
+          title="Lacak Status Pesanan & Ambil Tanpa Antre"
         >
-          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
-            <i class="fa-solid fa-receipt bi bi-receipt text-base sm:text-lg"></i>
-            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Riwayat</span>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all">
+            <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/>
+              <line x1="8" y1="7" x2="16" y2="7"/>
+              <line x1="8" y1="11" x2="16" y2="11"/>
+              <line x1="8" y1="15" x2="13" y2="15"/>
+            </svg>
+            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Lacak</span>
           </div>
         </button>
 
-        <!-- 5. Akun (Menu Member & Saklar Tema) -->
+        <!-- 5. Keranjang (Drawer Keranjang Belanja dengan Badge Counter) -->
         <button 
-          data-nav="account"
-          onclick="handleBottomNav('account')" 
+          data-nav="cart"
+          onclick="handleBottomNav('cart')" 
           class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 relative focus:outline-none cursor-pointer"
-          title="Akun & Saklar Tema"
+          title="Keranjang Belanja"
         >
-          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
-            <i class="fa-solid fa-user-circle bi bi-person-circle text-base sm:text-lg"></i>
-            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Akun</span>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all">
+            <div class="relative">
+              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              <span id="cartCountBadge" class="cart-badge absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs" style="display: none;">0</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Keranjang</span>
           </div>
         </button>
 
@@ -1765,6 +1802,26 @@
             </div>
           </div>
 
+          <!-- Pengaturan Tema Tampilan Toko -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-slate-600 font-medium flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+              </svg>
+              Mode Tampilan:
+            </span>
+            <button 
+              type="button" 
+              onclick="openThemeModal()" 
+              class="px-3 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Ubah Terang/Gelap</span>
+              <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
           <!-- Tombol Keluar Akun Member -->
           <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
             <span class="text-slate-400">Terdaftar sejak: <strong id="memberRegisteredDateText" class="text-slate-600">-</strong></span>
@@ -1918,24 +1975,27 @@
   </div>
 
   <!-- =========================================================================
-       MODAL SAKLAR "MAU MODE TERANG ATAU GELAP?" (THEME TOGGLE MODAL)
+       MODAL SAKLAR MODE TERANG / GELAP (PERSIS GAMBAR REFERENSI DENGAN HIJAU DELINA)
        ========================================================================= -->
   <div id="modalThemeToggle" onclick="if(event.target === this) closeThemeModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
-    <div class="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-3xl w-full max-w-sm sm:max-w-md shadow-2xl border border-gray-150 dark:border-slate-800 p-6 sm:p-8 relative overflow-hidden transition-colors duration-300">
+    <div class="bg-[#f8f9fa] dark:bg-slate-900 text-gray-900 dark:text-white rounded-[32px] w-full max-w-sm sm:max-w-md shadow-2xl border border-gray-200/80 dark:border-slate-800 p-6 sm:p-8 relative overflow-hidden transition-colors duration-300">
       
       <!-- Tombol Tutup Silang -->
       <button 
         type="button" 
         onclick="closeThemeModal()" 
-        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-400 hover:text-gray-700 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90"
-        title="Tutup Saklar"
+        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white dark:bg-slate-800 text-gray-400 hover:text-gray-700 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 border border-gray-150 dark:border-slate-700"
+        title="Tutup"
       >
-        <i class="bi bi-x-lg text-sm"></i>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
 
       <!-- Header Modal -->
       <div class="text-center pt-2">
-        <h3 class="text-2xl font-bold text-gray-900 tracking-tight dark:text-white">
+        <h3 class="text-2xl font-bold text-gray-900 tracking-tight dark:text-white mt-4">
           Mau mode terang atau gelap?
         </h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -1943,61 +2003,43 @@
         </p>
       </div>
 
-      <!-- Kartu Saklar Besar 3D di Tengah -->
+      <!-- Kartu Saklar Besar 3D di Tengah (Persis Gambar Referensi) -->
       <div 
         id="themeSwitchCard" 
         onclick="toggleDelinaTheme()" 
-        class="w-56 h-56 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-150 dark:border-slate-700 flex flex-col items-center justify-center mx-auto my-8 relative cursor-pointer select-none group transition-all duration-300 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-600"
+        class="w-56 h-56 bg-white dark:bg-slate-800 rounded-3xl shadow-xs border border-gray-150 dark:border-slate-700 flex items-center justify-center mx-auto my-10 relative cursor-pointer select-none transition-all duration-300 hover:shadow-md"
+        title="Ketuk saklar untuk beralih mode"
       >
-        <!-- Indikator Status Mini -->
-        <div id="themeSwitchStatusLabel" class="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-1.5 transition-colors">
-          <i id="themeSwitchIconMini" class="bi bi-sun-fill text-amber-500"></i>
-          <span id="themeSwitchTextMini">Mode Terang Aktif</span>
-        </div>
-
-        <!-- Rel Saklar Vertikal (Vertical Switch Track) -->
-        <div class="w-14 h-26 rounded-full bg-slate-100 dark:bg-slate-900/90 border-2 border-slate-200 dark:border-emerald-700/50 p-1.5 flex flex-col justify-between relative shadow-inner transition-colors duration-300">
+        <!-- Slot Rel Saklar Vertikal (Capsule Track) -->
+        <div class="w-[80px] h-[136px] rounded-full bg-[#f1f3f5] dark:bg-slate-900/90 border border-gray-200/90 dark:border-slate-700 p-[6px] relative shadow-inner flex flex-col justify-between transition-colors duration-300">
           
-          <!-- Ikon Matahari (Atas) -->
-          <div class="w-full flex justify-center text-xs text-amber-500 font-bold py-0.5 pointer-events-none">
-            <i class="bi bi-sun-fill"></i>
+          <!-- Ikon Mini Matahari (Atas) -->
+          <div class="w-full flex justify-center text-xs text-amber-500/70 font-bold py-1 pointer-events-none">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+            </svg>
           </div>
 
-          <!-- Knob Saklar Vertikal (Bisa Bergeser ke Bawah) -->
+          <!-- Kenop Saklar Rocker (Bisa Bergeser ke Bawah) -->
           <div 
             id="themeSwitchKnob" 
-            class="w-11 h-11 rounded-full bg-gradient-to-b from-white to-emerald-50 text-emerald-600 shadow-md border border-emerald-100 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5 group-hover:scale-105"
+            class="w-[68px] h-[68px] rounded-[22px] bg-gradient-to-b from-white to-[#e4e7eb] shadow-md border border-white/90 flex items-center justify-center text-gray-600 transition-all duration-300 ease-in-out absolute top-[6px] left-[6px]"
           >
-            <i id="themeKnobIcon" class="bi bi-sun-fill"></i>
+            <div id="themeKnobIndicator" class="w-8 h-1 rounded-full bg-gray-300 dark:bg-emerald-200/90 transition-colors"></div>
           </div>
 
-          <!-- Ikon Bulan (Bawah) -->
-          <div class="w-full flex justify-center text-xs text-emerald-400 font-bold py-0.5 pointer-events-none">
-            <i class="bi bi-moon-stars-fill"></i>
+          <!-- Ikon Mini Bulan (Bawah) -->
+          <div class="w-full flex justify-center text-xs text-emerald-500/70 font-bold py-1 pointer-events-none">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/>
+            </svg>
           </div>
 
         </div>
-
-        <!-- Hint Text -->
-        <span class="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-3.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-          Ketuk untuk beralih mode
-        </span>
       </div>
 
-      <!-- Tombol Aksi Akses Kartu Member -->
-      <div class="flex justify-center mb-5">
-        <button 
-          type="button"
-          onclick="closeThemeModal(); openMemberModal();" 
-          class="px-4 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-200/80 dark:border-emerald-800 transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-95"
-        >
-          <i class="fa-solid fa-crown bi bi-award-fill text-amber-500"></i>
-          <span>Buka Akun & Kartu Member</span>
-        </button>
-      </div>
-
-      <!-- Teks Kepercayaan di Bawah -->
-      <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-center font-medium leading-relaxed">
+      <!-- Teks Kepercayaan di Bawah (Trust Badge) -->
+      <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-center font-medium leading-relaxed mb-2">
         100% Produk Halal & Berkualitas. Belanja Berkah, Hemat, dan Nyaman di Delina.store.
       </p>
 

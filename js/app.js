@@ -1919,7 +1919,7 @@ function sendConfirmationWhatsApp() {
 function setActiveBottomNav(menu) {
   // Alias normalizer
   if (menu === "member") menu = "hadiah";
-  if (menu === "lacak") menu = "riwayat";
+  if (menu === "riwayat") menu = "lacak";
   activeBottomNav = menu;
 
   const navBtns = document.querySelectorAll(".bottom-nav-btn");
@@ -1933,7 +1933,7 @@ function setActiveBottomNav(menu) {
       btn.classList.add("active", "text-emerald-700");
       btn.classList.remove("text-gray-500", "dark:text-gray-400");
       if (pill) {
-        pill.className = "nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-semibold rounded-2xl py-1 px-3 sm:px-4 flex flex-col items-center justify-center transition-all";
+        pill.className = "nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-bold rounded-2xl py-1.5 px-4 flex flex-col items-center justify-center transition-all";
       }
       if (label) {
         label.classList.add("font-bold");
@@ -1943,7 +1943,7 @@ function setActiveBottomNav(menu) {
       btn.classList.remove("active", "text-emerald-700");
       btn.classList.add("text-gray-500", "dark:text-gray-400");
       if (pill) {
-        pill.className = "nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all text-gray-500 dark:text-gray-400";
+        pill.className = "nav-pill-wrapper flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all text-gray-500 dark:text-gray-400";
       }
       if (label && btnNav !== "hadiah") {
         label.classList.remove("font-bold");
@@ -1972,22 +1972,22 @@ function handleBottomNav(menu) {
     case "hadiah":
     case "member":
       setActiveBottomNav("hadiah");
-      openMemberModal("rewards");
+      openMemberModal();
       break;
 
-    case "riwayat":
     case "lacak":
-      setActiveBottomNav("riwayat");
+    case "riwayat":
+      setActiveBottomNav("lacak");
       openLacakPesananModal();
       break;
 
-    case "account":
-      setActiveBottomNav("account");
-      openThemeModal();
+    case "cart":
+      setActiveBottomNav("cart");
+      toggleCartDrawer(true);
       break;
 
-    case "cart":
-      toggleCartDrawer(true);
+    case "account":
+      openThemeModal();
       break;
 
     case "kiko":
@@ -3234,7 +3234,7 @@ function closeMemberModal() {
   modal.classList.add("hidden");
   modal.classList.remove("flex");
   document.body.style.overflow = "";
-  if (activeBottomNav === "member") {
+  if (activeBottomNav === "member" || activeBottomNav === "hadiah") {
     setActiveBottomNav("home");
   }
   if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
@@ -4029,31 +4029,26 @@ function applyDelinaTheme(theme) {
 
   const html = document.documentElement;
   const knob = document.getElementById("themeSwitchKnob");
-  const knobIcon = document.getElementById("themeKnobIcon");
-  const statusLabel = document.getElementById("themeSwitchStatusLabel");
-  const iconMini = document.getElementById("themeSwitchIconMini");
-  const textMini = document.getElementById("themeSwitchTextMini");
+  const indicator = document.getElementById("themeKnobIndicator");
 
   if (currentTheme === "dark") {
     html.classList.add("dark");
     if (knob) {
-      knob.style.transform = "translateY(44px)";
-      knob.className = "w-11 h-11 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/40 text-white border border-emerald-400 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5";
+      knob.style.transform = "translateY(56px)";
+      knob.className = "w-[68px] h-[68px] rounded-[22px] bg-emerald-500 shadow-md shadow-emerald-500/40 text-white border border-emerald-400 flex items-center justify-center transition-all duration-300 ease-in-out absolute top-[6px] left-[6px]";
     }
-    if (knobIcon) knobIcon.className = "bi bi-moon-stars-fill";
-    if (statusLabel) statusLabel.className = "text-xs font-bold text-emerald-400 mb-3 flex items-center gap-1.5 transition-colors";
-    if (iconMini) iconMini.className = "bi bi-moon-stars-fill text-emerald-400";
-    if (textMini) textMini.textContent = "Mode Gelap Aktif";
+    if (indicator) {
+      indicator.className = "w-8 h-1 rounded-full bg-emerald-200/90 transition-colors";
+    }
   } else {
     html.classList.remove("dark");
     if (knob) {
       knob.style.transform = "translateY(0px)";
-      knob.className = "w-11 h-11 rounded-full bg-gradient-to-b from-white to-emerald-50 text-emerald-600 shadow-md border border-emerald-100 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5";
+      knob.className = "w-[68px] h-[68px] rounded-[22px] bg-gradient-to-b from-white to-[#e4e7eb] shadow-md border border-white/90 flex items-center justify-center text-gray-600 transition-all duration-300 ease-in-out absolute top-[6px] left-[6px]";
     }
-    if (knobIcon) knobIcon.className = "bi bi-sun-fill";
-    if (statusLabel) statusLabel.className = "text-xs font-bold text-emerald-700 mb-3 flex items-center gap-1.5 transition-colors";
-    if (iconMini) iconMini.className = "bi bi-sun-fill text-amber-500";
-    if (textMini) textMini.textContent = "Mode Terang Aktif";
+    if (indicator) {
+      indicator.className = "w-8 h-1 rounded-full bg-gray-300 transition-colors";
+    }
   }
 }
 
@@ -4094,11 +4089,18 @@ if (document.readyState === "complete" || document.readyState === "interactive")
   applyDelinaTheme(currentTheme);
 }
 
-// Export fungsi tema ke window
+// Export fungsi tema & navigasi ke window
 window.applyDelinaTheme = applyDelinaTheme;
 window.toggleDelinaTheme = toggleDelinaTheme;
 window.openThemeModal = openThemeModal;
 window.closeThemeModal = closeThemeModal;
+window.openCart = function() {
+  if (typeof toggleCartDrawer === "function") {
+    toggleCartDrawer(true);
+  }
+};
+window.setActiveBottomNav = setActiveBottomNav;
+window.handleBottomNav = handleBottomNav;
 
 
 

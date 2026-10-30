@@ -71,7 +71,8 @@ html.dark .bottom-nav-btn.active {
   color: #34d399;
 }
 
-.bottom-nav-btn.active i {
+.bottom-nav-btn.active i,
+.bottom-nav-btn.active svg {
   transform: scale(1.05);
   transition: transform 0.2s ease-in-out;
 }
