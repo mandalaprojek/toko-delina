@@ -155,102 +155,356 @@ function fileToBase64(file) {
   });
 }
 
-// 5. Render Daftar Produk ke Grid
+// Helper Deteksi Kategori Fleksibel
+function isProductInCategory(product, targetCategory) {
+  if (!product || !targetCategory) return false;
+  if (targetCategory === "Semua Produk") return true;
+
+  const pCat = String(product.category || "").toLowerCase();
+  const tCat = String(targetCategory).toLowerCase();
+
+  if (pCat === tCat) return true;
+
+  if (tCat.includes("atk") || tCat.includes("kantor")) {
+    return pCat.includes("atk") || pCat.includes("kantor") || pCat.includes("kertas") || pCat.includes("buku") || pCat.includes("tulis") || pCat.includes("sekolah");
+  }
+
+  if (tCat.includes("kosmetik") || tCat.includes("cantik") || tCat.includes("perawatan")) {
+    return pCat.includes("kosmetik") || pCat.includes("perawatan") || pCat.includes("cantik") || pCat.includes("skincare") || pCat.includes("kecantikan");
+  }
+
+  if (tCat.includes("sembako") || tCat.includes("kelontong") || tCat.includes("dapur")) {
+    return pCat.includes("sembako") || pCat.includes("kelontong") || pCat.includes("dapur") || pCat.includes("minyak") || pCat.includes("beras");
+  }
+
+  if (tCat.includes("makan") || tCat.includes("minum") || tCat.includes("snack")) {
+    return pCat.includes("makan") || pCat.includes("minum") || pCat.includes("snack") || pCat.includes("fnb") || pCat.includes("kuliner");
+  }
+
+  return false;
+}
+
+// Helper Badge Strip Merah Ala Alfagift (Pita Merah Sub-Kategori)
+function getProductRedBadge(product) {
+  if (!product) return "Pilihan Hemat";
+  if (product.subCategory) return product.subCategory;
+  if (product.type) return product.type;
+  if (product.badge && product.badge.length <= 15 && !product.badge.toLowerCase().includes("terlaris")) {
+    return product.badge;
+  }
+  
+  const name = String(product.name || "").trim();
+  const lower = name.toLowerCase();
+
+  if (lower.includes("kertas hvs") || lower.includes("paperone") || lower.includes("sidu")) return "Kertas HVS";
+  if (lower.includes("buku tulis") || lower.includes("buku gambar") || lower.includes("kiky")) return "Buku Tulis";
+  if (lower.includes("pulpen") || lower.includes("bolpoint") || lower.includes("sarasa") || lower.includes("ae7")) return "Pulpen Gel";
+  if (lower.includes("spidol") || lower.includes("snowman") || lower.includes("marker")) return "Spidol";
+  if (lower.includes("pensil") || lower.includes("faber")) return "Pensil 2B";
+  if (lower.includes("gunting") || lower.includes("cutter")) return "Gunting Kantor";
+  if (lower.includes("lem") || lower.includes("glukol")) return "Lem Kertas";
+  if (lower.includes("dove") || lower.includes("deodorant") || lower.includes("roll on")) return "Deodorant";
+  if (lower.includes("serum") || lower.includes("garnier")) return "Serum Wajah";
+  if (lower.includes("lip cream") || lower.includes("lipstik") || lower.includes("wardah")) return "Lip Cream";
+  if (lower.includes("micellar") || lower.includes("cleanser") || lower.includes("facial")) return "Pembersih Muka";
+  if (lower.includes("sunscreen") || lower.includes("tabir")) return "Sunscreen";
+  if (lower.includes("minyak") || lower.includes("sania") || lower.includes("bimoli")) return "Minyak Goreng";
+  if (lower.includes("beras") || lower.includes("ramos") || lower.includes("pulen")) return "Beras Pilihan";
+  if (lower.includes("gula") || lower.includes("gulaku")) return "Gula Pasir";
+  if (lower.includes("indomie") || lower.includes("mie") || lower.includes("sedap")) return "Mi Instan";
+  if (lower.includes("teh") || lower.includes("sariwangi")) return "Teh Celup";
+  if (lower.includes("kopi") || lower.includes("kapal api")) return "Kopi";
+  if (lower.includes("susu") || lower.includes("bear brand") || lower.includes("ultra")) return "Susu Cair";
+  if (lower.includes("air") || lower.includes("mineral") || lower.includes("aqua") || lower.includes("le minerale")) return "Air Mineral";
+  if (lower.includes("snack") || lower.includes("chitato") || lower.includes("biskuit")) return "Snack Ringan";
+
+  const words = name.split(/\s+/).filter(w => w.length > 1);
+  if (words.length >= 2) {
+    return `${words[0]} ${words[1]}`.slice(0, 16);
+  }
+  return product.unit || "Pilihan Hemat";
+}
+
+// 5a. Render Kartu Produk Tunggal (Persis Gambar Referensi Alfagift 1)
+function renderAlfagiftCard(product) {
+  if (!product) return "";
+  const prodId = product.id;
+  const prodName = product.name || "Produk Delina";
+  const prodImage = formatImageUrl(product.image);
+  const prodPrice = Number(product.price || 0);
+  const origPrice = product.originalPrice ? Number(product.originalPrice) : Math.round(prodPrice * 1.15);
+  const redBadge = getProductRedBadge(product);
+  
+  // Hitung diskon persentase
+  let discPct = 0;
+  if (origPrice > prodPrice) {
+    discPct = Math.round(((origPrice - prodPrice) / origPrice) * 100);
+  }
+
+  return `
+    <div class="alfagift-card w-[155px] sm:w-[165px] shrink-0 snap-start bg-white rounded-2xl border border-gray-200 p-2.5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group select-none">
+      
+      <!-- Bagian Atas: Gambar, Pita Merah Sub-kategori, & Nama Produk -->
+      <div>
+        <!-- Area Gambar: Foto produk dengan rasio bersih persegi, latar putih, tinggi ~115px -->
+        <div 
+          class="relative w-full h-[115px] bg-white rounded-xl overflow-hidden flex items-center justify-center cursor-pointer p-1"
+          onclick="openProductDetailModal('${prodId}')"
+          title="${escapeHtml(prodName)}"
+        >
+          <img 
+            src="${prodImage}" 
+            alt="${escapeHtml(prodName)}" 
+            class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300';"
+          />
+        </div>
+
+        <!-- Badge Strip Merah di Bawah Gambar (Pita Merah Sub-Kategori / Tipe Produk) -->
+        <div class="bg-red-600 text-white text-[11px] font-bold py-0.5 px-2 rounded-md text-center mt-1.5 truncate shadow-xs w-full" title="${escapeHtml(redBadge)}">
+          ${escapeHtml(redBadge)}
+        </div>
+
+        <!-- Nama Produk (Teks 2 Baris Rapi, min-height) -->
+        <h4 
+          class="text-xs font-semibold text-gray-800 line-clamp-2 mt-1.5 leading-snug min-h-[32px] cursor-pointer hover:text-blue-700 transition-colors"
+          onclick="openProductDetailModal('${prodId}')"
+          title="${escapeHtml(prodName)}"
+        >
+          ${escapeHtml(prodName)}
+        </h4>
+      </div>
+
+      <!-- Bagian Bawah: Harga, Promo Diskon, Pengiriman Instan, & Tombol Aksi -->
+      <div class="mt-2 pt-1 border-t border-gray-100 flex flex-col">
+        <!-- Harga Produk (Teks tebal hitam pekat) -->
+        <div class="text-base font-extrabold text-gray-900 leading-tight">
+          ${formatRupiah(prodPrice)}
+        </div>
+
+        <!-- Baris Promo & Diskon (Diskon % + Harga Coret) -->
+        <div class="flex items-center gap-1.5 mt-0.5 min-h-[18px]">
+          ${discPct > 0 ? `
+            <span class="bg-red-100 text-red-700 text-[10px] font-black px-1.5 py-0.2 rounded">
+              ${discPct}%
+            </span>
+            <span class="text-[10px] text-gray-400 line-through">
+              ${formatRupiah(origPrice)}
+            </span>
+          ` : `
+            <span class="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.2 rounded">
+              Beli 2 Lebih Hemat
+            </span>
+          `}
+        </div>
+
+        <!-- Baris Pengiriman: Ikon Jam Oranye Mini + Pengiriman Instan -->
+        <div class="text-[10px] text-gray-600 font-medium flex items-center gap-1 mt-1">
+          <i class="bi bi-clock-fill text-amber-500 text-[11px]"></i>
+          <span>Pengiriman Instan</span>
+        </div>
+
+        <!-- Tombol Aksi Bawah: + Keranjang (Biru Alfagift #0066b2) -->
+        <button 
+          type="button" 
+          onclick="addToCart('${prodId}')"
+          class="w-full bg-[#0066b2] hover:bg-[#00528e] text-white text-xs font-bold py-2 rounded-xl mt-2 flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer"
+        >
+          <i class="bi bi-cart-plus text-xs"></i>
+          <span>+ Keranjang</span>
+        </button>
+      </div>
+
+    </div>
+  `;
+}
+
+// 5b. Kartu Ke-11: "Lihat Produk Lainnya" (Persis Gambar Referensi Alfagift 2)
+function renderLihatLainnyaCard(categoryName) {
+  return `
+    <div 
+      onclick="selectCategory('${escapeHtml(categoryName)}')"
+      class="alfagift-more-card w-[155px] sm:w-[165px] min-h-[295px] shrink-0 snap-start bg-white rounded-2xl border-2 border-blue-500 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50/50 hover:shadow-md transition-all active:scale-95 group select-none"
+      title="Lihat semua produk ${escapeHtml(categoryName)}"
+    >
+      <div class="w-12 h-12 rounded-full border-2 border-blue-600 flex items-center justify-center text-blue-600 text-xl font-black mb-3 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
+        <i class="bi bi-arrow-right"></i>
+      </div>
+      <div class="text-blue-700 font-bold text-sm leading-snug group-hover:underline">
+        Lihat produk lainnya
+      </div>
+      <span class="text-[10px] text-gray-400 mt-1 block">
+        Kategori ${escapeHtml(categoryName)}
+      </span>
+    </div>
+  `;
+}
+
+// 5c. Render Deret Rel Horizontal Scroll Per Kategori
+function renderHorizontalRail(railTitle, categoryFilterName, products) {
+  if (!products || products.length === 0) return "";
+  
+  // Batasi setiap baris horizontal hanya merender maksimal 10 produk pertama
+  const displayProducts = products.slice(0, 10);
+  const hasMore = products.length > 10 || categoryFilterName !== "Semua Produk";
+
+  return `
+    <div class="category-rail space-y-2.5">
+      <!-- Header Setiap Deret Kategori -->
+      <div class="flex items-center justify-between px-1">
+        <h3 class="text-gray-900 font-bold text-base sm:text-lg tracking-tight">
+          ${escapeHtml(railTitle)}
+        </h3>
+        <button 
+          type="button" 
+          onclick="selectCategory('${escapeHtml(categoryFilterName)}')"
+          class="text-blue-600 font-semibold text-xs sm:text-sm hover:underline cursor-pointer flex items-center gap-0.5"
+        >
+          <span>Lihat Semua</span>
+          <i class="bi bi-chevron-right text-[10px]"></i>
+        </button>
+      </div>
+
+      <!-- Kontainer Rel: flex overflow-x-auto gap-3 pb-3 scrollbar-none snap-x snap-mandatory px-1 -->
+      <div class="alfagift-rail-track flex overflow-x-auto gap-3 pb-3 scrollbar-none snap-x snap-mandatory px-1 -mx-1">
+        ${displayProducts.map(p => renderAlfagiftCard(p)).join("")}
+        ${hasMore ? renderLihatLainnyaCard(categoryFilterName) : ""}
+      </div>
+    </div>
+  `;
+}
+
+// 5d. Render Daftar Produk ke Etalase Modern Retail (Horizontal Scroll Rails & Full Grid)
 function renderProducts() {
   const container = document.getElementById("productGrid");
   if (!container) return;
 
-  const filtered = DUMMY_PRODUCTS.filter(product => {
-    const matchesCategory =
-      currentCategory === "Semua Produk" || product.category === currentCategory;
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const q = (searchQuery || "").toLowerCase().trim();
 
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="col-span-full py-16 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 mb-4">
-          <i class="bi bi-search text-2xl"></i>
+  // KONDISI 1: JIKA KATEGORI TERTENTU DIPILIH ATAU PENCARIAN AKTIF (TAMPILKAN FULL GRID)
+  if (currentCategory !== "Semua Produk" || q) {
+    const filtered = DUMMY_PRODUCTS.filter(product => {
+      const matchesCategory =
+        currentCategory === "Semua Produk" || isProductInCategory(product, currentCategory);
+      const matchesSearch =
+        !q ||
+        (product.name || "").toLowerCase().includes(q) ||
+        (product.category || "").toLowerCase().includes(q) ||
+        String(product.id || "").toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="py-16 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+            <i class="bi bi-search text-2xl"></i>
+          </div>
+          <h3 class="text-base font-bold text-gray-800">Barang Belum Ditemukan</h3>
+          <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+            Afwan kak, produk "${searchQuery || currentCategory}" tidak ditemukan. Coba ketik kata kunci lain atau tampilkan seluruh deret katalog.
+          </p>
+          <button 
+            type="button" 
+            onclick="selectCategory('Semua Produk')" 
+            class="mt-4 px-4 py-2 rounded-xl bg-[#0066b2] hover:bg-[#00528e] text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
+          >
+            ← Tampilkan Semua Deret
+          </button>
         </div>
-        <h3 class="text-base font-bold text-gray-800">Barang Belum Ditemukan</h3>
-        <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
-          Afwan kak, produk "${searchQuery}" tidak tersedia di kategori ini. Coba ketik kata kunci lain atau tanya Kiko.
-        </p>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="space-y-4">
+        <!-- Header Filter Aktif -->
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 border border-blue-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-[#0066b2] text-white flex items-center justify-center text-sm font-bold shadow-xs">
+              <i class="bi bi-tag-fill"></i>
+            </span>
+            <div>
+              <h3 class="font-extrabold text-sm sm:text-base text-blue-950 leading-tight">
+                ${q ? `Hasil Pencarian: "${searchQuery}"` : currentCategory}
+              </h3>
+              <p class="text-[11px] text-blue-700">Ditemukan ${filtered.length} produk pilihan</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onclick="selectCategory('Semua Produk')" 
+            class="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-100 text-[#0066b2] border border-blue-300 font-extrabold text-xs shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+          >
+            <span>Semua Deret</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Grid Produk Penuh (Alfagift Card Grid) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          ${filtered.map(p => renderAlfagiftCard(p)).join("")}
+        </div>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = filtered
-    .map(product => {
-      return `
-      <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 card-shadow flex flex-col justify-between group">
-        <!-- Foto Produk -->
-        <div class="relative bg-gray-50 aspect-square overflow-hidden cursor-pointer" onclick="openProductDetailModal('${product.id}')">
-          <img 
-            src="${formatImageUrl(product.image)}" 
-            alt="${product.name}" 
-            class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-            onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'"
-            loading="lazy"
-          />
-          <!-- Badge Promosi -->
-          <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-            ${product.badge}
-          </span>
-          <span class="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-gray-600 text-[10px] font-semibold px-2 py-0.5 rounded-md">
-            Stok: ${product.stock} ${product.unit}
-          </span>
-        </div>
+  // KONDISI 2: TAMPILAN BERANDA (SEMUA PRODUK) -> RANGKAIAN DERET HORIZONTAL SCROLL PER KATEGORI
+  let htmlRails = "";
 
-        <!-- Detail Konten -->
-        <div class="p-3.5 flex-1 flex flex-col justify-between">
-          <div>
-            <span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-1.5">
-              ${product.category}
-            </span>
-            <h4 class="text-xs md:text-sm font-semibold text-gray-800 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors cursor-pointer" onclick="openProductDetailModal('${product.id}')" title="${product.name}">
-              ${product.name}
-            </h4>
-          </div>
+  // Deret 1: "Rekomendasi Untuk Kamu" (10 produk pilihan terlaris / rekomendasi)
+  const rekomendasiList = [...DUMMY_PRODUCTS]
+    .sort((a, b) => (Number(b.sold || 0) - Number(a.sold || 0)))
+    .slice(0, 10);
+  if (rekomendasiList.length > 0) {
+    htmlRails += renderHorizontalRail("Rekomendasi Untuk Kamu", "Semua Produk", rekomendasiList);
+  }
 
-          <div class="mt-3 pt-2 border-t border-gray-50">
-            <!-- Harga -->
-            <div class="flex items-baseline gap-1.5">
-              <span class="text-sm md:text-base font-extrabold text-emerald-800">
-                ${formatRupiah(product.price)}
-              </span>
-              <span class="text-[10px] text-gray-400 line-through">
-                ${formatRupiah(product.originalPrice)}
-              </span>
-            </div>
+  // Deret 2: "ATK & Alat Kantor"
+  const atkList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "ATK & Perlengkapan Kantor"));
+  if (atkList.length > 0) {
+    htmlRails += renderHorizontalRail("ATK & Alat Kantor", "ATK & Perlengkapan Kantor", atkList);
+  }
 
-            <!-- Rating & Terjual -->
-            <div class="flex items-center gap-2 mt-1.5 text-[11px] text-gray-500">
-              <span class="flex items-center text-amber-500 font-bold">
-                <i class="bi bi-star-fill text-[10px] mr-1"></i>${product.rating}
-              </span>
-              <span class="text-gray-300">•</span>
-              <span>Terjual ${product.sold}+</span>
-            </div>
+  // Deret 3: "Kosmetik & Cantik"
+  const kosmetikList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Kosmetik & Perawatan Diri"));
+  if (kosmetikList.length > 0) {
+    htmlRails += renderHorizontalRail("Kosmetik & Cantik", "Kosmetik & Perawatan Diri", kosmetikList);
+  }
 
-            <!-- Tombol Tambah ke Keranjang -->
-            <button 
-              onclick="addToCart('${product.id}')"
-              class="mt-3 w-full py-2 px-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-emerald-200"
-            >
-              <i class="bi bi-cart-plus text-sm"></i>
-              <span>+ Keranjang</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-    })
-    .join("");
+  // Deret 4: "Sembako & Kelontongan"
+  const sembakoList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Sembako & Kelontongan"));
+  if (sembakoList.length > 0) {
+    htmlRails += renderHorizontalRail("Sembako & Kelontongan", "Sembako & Kelontongan", sembakoList);
+  }
+
+  // Deret 5: "Makanan & Minuman Segar"
+  const fnbList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Makanan & Minuman"));
+  if (fnbList.length > 0) {
+    htmlRails += renderHorizontalRail("Makanan & Minuman Segar", "Makanan & Minuman", fnbList);
+  }
+
+  // Deret Kategori Lainnya (Dinamis jika admin menambahkan kategori baru di Google Sheets)
+  const standardCats = [
+    "ATK & Perlengkapan Kantor",
+    "Kosmetik & Perawatan Diri",
+    "Sembako & Kelontongan",
+    "Makanan & Minuman"
+  ];
+
+  const uniqueCustomCats = [...new Set(DUMMY_PRODUCTS.map(p => p.category).filter(Boolean))]
+    .filter(cat => !standardCats.some(sc => isProductInCategory({ category: cat }, sc)));
+
+  uniqueCustomCats.forEach(cat => {
+    const list = DUMMY_PRODUCTS.filter(p => p.category === cat);
+    if (list.length > 0) {
+      htmlRails += renderHorizontalRail(cat, cat, list);
+    }
+  });
+
+  container.innerHTML = htmlRails;
 }
 
 // 6. Logika Keranjang Belanja (Cart)
@@ -480,9 +734,9 @@ function selectCategory(categoryName) {
 
   renderProducts();
 
-  // Scroll halus ke katalog jika sedang berada di atas
+  // Scroll halus ke katalog produk
   const katalogEl = document.getElementById("katalogProduk");
-  if (katalogEl && window.scrollY > 150) {
+  if (katalogEl && (categoryName !== "Semua Produk" || window.scrollY > 150)) {
     katalogEl.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
@@ -2093,8 +2347,9 @@ function generateLocalKikoReply(userText) {
 }
 
 function escapeHtml(text) {
+  if (!text) return "";
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 function formatMarkdown(text) {
