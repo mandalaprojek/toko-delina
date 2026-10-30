@@ -626,9 +626,15 @@ function toggleCartDrawer(open = true) {
     renderCartDrawer();
     drawer.classList.remove("translate-x-full");
     overlay.classList.remove("hidden");
+    if (typeof pushModalState === "function") pushModalState("cartDrawer");
   } else {
+    const wasOpen = !drawer.classList.contains("translate-x-full");
     drawer.classList.add("translate-x-full");
     overlay.classList.add("hidden");
+    if (activeBottomNav === "cart") {
+      setActiveBottomNav("home");
+    }
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -789,14 +795,17 @@ function openProductDetailModal(productId) {
   if (modal) {
     modal.classList.remove("hidden");
     document.body.classList.add("overflow-hidden");
+    if (typeof pushModalState === "function") pushModalState("productDetailModal");
   }
 }
 
 function closeProductDetailModal() {
   const modal = document.getElementById("productDetailModal");
   if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
     document.body.classList.remove("overflow-hidden");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -1198,14 +1207,17 @@ function openPromoInfoModal() {
   if (modal) {
     modal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
+    if (typeof pushModalState === "function") pushModalState("modalPromoInfo");
   }
 }
 
 function closePromoInfoModal() {
   const modal = document.getElementById("modalPromoInfo");
   if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
     document.body.style.overflow = "";
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -1244,13 +1256,16 @@ function openCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
   if (modal) {
     modal.classList.remove("hidden");
+    if (typeof pushModalState === "function") pushModalState("checkoutModal");
   }
 }
 
 function closeCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
   if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -1867,11 +1882,16 @@ function openSuccessModal(order) {
   document.getElementById("successOrderTotal").textContent = order.totalAkhir;
 
   modal.classList.remove("hidden");
+  if (typeof pushModalState === "function") pushModalState("orderSuccessModal");
 }
 
 function closeSuccessModal() {
   const modal = document.getElementById("orderSuccessModal");
-  if (modal) modal.classList.add("hidden");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
 }
 
 function copyOrderId() {
@@ -1989,13 +2009,19 @@ function openLacakPesananModal(presetNota) {
 
   modal.classList.remove("hidden");
   document.body.classList.add("overflow-hidden");
+  if (typeof pushModalState === "function") pushModalState("lacakPesananModal");
 }
 
 function closeLacakPesananModal() {
   const modal = document.getElementById("lacakPesananModal");
   if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
     document.body.classList.remove("overflow-hidden");
+    if (activeBottomNav === "lacak") {
+      setActiveBottomNav("home");
+    }
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -2143,21 +2169,31 @@ function updateLacakProgressSteps(status) {
 // Modal Kiko Chat
 function openKikoChat() {
   const modal = document.getElementById("kikoChatModal");
-  if (modal) modal.classList.remove("hidden");
+  if (modal) {
+    modal.classList.remove("hidden");
+    if (typeof pushModalState === "function") pushModalState("kikoChatModal");
+  }
 }
 
 function closeKikoChat() {
   const modal = document.getElementById("kikoChatModal");
-  if (modal) modal.classList.add("hidden");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    if (activeBottomNav === "kiko") {
+      setActiveBottomNav("home");
+    }
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
 }
 
 function toggleKikoChat() {
   const modal = document.getElementById("kikoChatModal");
   if (!modal) return;
   if (modal.classList.contains("hidden")) {
-    modal.classList.remove("hidden");
+    openKikoChat();
   } else {
-    modal.classList.add("hidden");
+    closeKikoChat();
   }
 }
 
@@ -2931,12 +2967,19 @@ ${escapeHtml(order.itemsText || "-")}
 
 function openQrisInfoModal() {
   const modal = document.getElementById("qrisInfoModal");
-  if (modal) modal.classList.remove("hidden");
+  if (modal) {
+    modal.classList.remove("hidden");
+    if (typeof pushModalState === "function") pushModalState("qrisInfoModal");
+  }
 }
 
 function closeQrisInfoModal() {
   const modal = document.getElementById("qrisInfoModal");
-  if (modal) modal.classList.add("hidden");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
 }
 
 function copyModalRekening() {
@@ -3138,6 +3181,7 @@ function openMemberModal(initialTab) {
   modal.classList.remove("hidden");
   modal.classList.add("flex");
   document.body.style.overflow = "hidden";
+  if (typeof pushModalState === "function") pushModalState("memberModal");
 
   if (currentMemberSession) {
     // Pengguna sudah login -> Tampilkan Dashboard Member
@@ -3165,9 +3209,14 @@ function openMemberModal(initialTab) {
 function closeMemberModal() {
   const modal = document.getElementById("memberModal");
   if (!modal) return;
+  const wasOpen = !modal.classList.contains("hidden");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
   document.body.style.overflow = "";
+  if (activeBottomNav === "member") {
+    setActiveBottomNav("home");
+  }
+  if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
 }
 
 function switchMemberAuthMode(mode) {
@@ -3742,4 +3791,197 @@ function triggerCustomerPwaInstall() {
 document.addEventListener("DOMContentLoaded", () => {
   updatePwaButtons(false, false);
 });
+
+// =========================================================================
+// PWA NAVIGATION & ANTI-KELUAR MODAL HISTORY (POPSTATE HANDLER)
+// =========================================================================
+let isHandlingPopstate = false;
+let modalHistoryCount = 0;
+
+function pushModalState(modalId) {
+  modalHistoryCount++;
+  try {
+    history.pushState({ modalOpen: true, modalId: modalId, count: modalHistoryCount }, "");
+  } catch (err) {
+    console.warn("pushModalState error:", err);
+  }
+}
+
+function notifyModalClosed() {
+  if (isHandlingPopstate) {
+    if (modalHistoryCount > 0) modalHistoryCount--;
+    return;
+  }
+  if (modalHistoryCount > 0) {
+    modalHistoryCount--;
+    if (history.state && history.state.modalOpen) {
+      try {
+        history.back();
+      } catch (err) {}
+    }
+  }
+}
+
+function isAnyModalOpen() {
+  const drawer = document.getElementById("cartDrawer");
+  if (drawer && !drawer.classList.contains("translate-x-full")) return true;
+
+  const modalIds = [
+    "productDetailModal",
+    "memberModal",
+    "modalPromoInfo",
+    "lacakPesananModal",
+    "checkoutModal",
+    "orderSuccessModal",
+    "kikoChatModal",
+    "qrisInfoModal"
+  ];
+  for (const id of modalIds) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains("hidden")) return true;
+  }
+  return false;
+}
+
+function closeAllModals(isFromPopState = false) {
+  let closedAny = false;
+
+  // 1. Cart Drawer
+  const drawer = document.getElementById("cartDrawer");
+  if (drawer && !drawer.classList.contains("translate-x-full")) {
+    toggleCartDrawer(false);
+    closedAny = true;
+  }
+
+  // 2. Checkout Modal
+  const checkout = document.getElementById("checkoutModal");
+  if (checkout && !checkout.classList.contains("hidden")) {
+    closeCheckoutModal();
+    closedAny = true;
+  }
+
+  // 3. Order Success Modal
+  const success = document.getElementById("orderSuccessModal");
+  if (success && !success.classList.contains("hidden")) {
+    closeSuccessModal();
+    closedAny = true;
+  }
+
+  // 4. Product Detail Modal
+  const prodDetail = document.getElementById("productDetailModal");
+  if (prodDetail && !prodDetail.classList.contains("hidden")) {
+    closeProductDetailModal();
+    closedAny = true;
+  }
+
+  // 5. Member Modal
+  const member = document.getElementById("memberModal");
+  if (member && !member.classList.contains("hidden")) {
+    closeMemberModal();
+    closedAny = true;
+  }
+
+  // 6. Promo Info Modal
+  const promo = document.getElementById("modalPromoInfo");
+  if (promo && !promo.classList.contains("hidden")) {
+    closePromoInfoModal();
+    closedAny = true;
+  }
+
+  // 7. Lacak Pesanan Modal
+  const lacak = document.getElementById("lacakPesananModal");
+  if (lacak && !lacak.classList.contains("hidden")) {
+    closeLacakPesananModal();
+    closedAny = true;
+  }
+
+  // 8. QRIS Modal
+  const qris = document.getElementById("qrisInfoModal");
+  if (qris && !qris.classList.contains("hidden")) {
+    closeQrisInfoModal();
+    closedAny = true;
+  }
+
+  // 9. Kiko Chat Modal
+  const kiko = document.getElementById("kikoChatModal");
+  if (kiko && !kiko.classList.contains("hidden")) {
+    closeKikoChat();
+    closedAny = true;
+  }
+
+  return closedAny;
+}
+
+window.addEventListener("popstate", (e) => {
+  isHandlingPopstate = true;
+  try {
+    // 1. Jika ada modal / drawer terbuka, tutup modal tersebut terlebih dahulu dan tahan agar PWA tidak keluar
+    const wasClosed = closeAllModals(true);
+    if (wasClosed) {
+      if (e && e.preventDefault) e.preventDefault();
+      return;
+    }
+
+    // 2. Jika tidak ada modal terbuka dan sedang di tab selain Beranda, kembalikan ke Beranda
+    if (activeBottomNav && activeBottomNav !== "home") {
+      handleBottomNav("home");
+      if (e && e.preventDefault) e.preventDefault();
+      return;
+    }
+
+    // 3. Hanya jika sudah di tab Beranda tanpa modal terbuka, biarkan back default browser
+  } finally {
+    setTimeout(() => { isHandlingPopstate = false; }, 60);
+  }
+});
+
+// =========================================================================
+// AUTO-CLOSE KEYBOARD (AUTO-BLUR VIRTUAL KEYBOARD ON MOBILE SCROLL/SWIPE)
+// =========================================================================
+function initAutoCloseKeyboard() {
+  let touchStartY = 0;
+  let touchStartX = 0;
+  let isTouching = false;
+
+  window.addEventListener("touchstart", (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+      isTouching = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchmove", (e) => {
+    if (!isTouching || !e.touches || e.touches.length === 0) return;
+    const active = document.activeElement;
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+      const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+      const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+      if (deltaY > 12 || deltaX > 12) {
+        active.blur();
+      }
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchend", () => {
+    isTouching = false;
+  }, { passive: true });
+
+  window.addEventListener("scroll", () => {
+    const active = document.activeElement;
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+      active.blur();
+    }
+  }, { passive: true });
+}
+
+// Inisialisasi auto-close keyboard
+initAutoCloseKeyboard();
+
+// Export fungsi ke window agar dapat dipanggil global
+window.pushModalState = pushModalState;
+window.notifyModalClosed = notifyModalClosed;
+window.closeAllModals = closeAllModals;
+window.isAnyModalOpen = isAnyModalOpen;
+
 

@@ -11,8 +11,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kasir Delina" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="./assets/logo.png" />
+  <link rel="apple-touch-icon" href="./assets/logo.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./assets/icon-512.png" />
   <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
 
   <!-- PWA Service Worker Registration -->
@@ -181,11 +183,11 @@
     <!-- Kotak Login PIN -->
     <div id="loginSection" class="w-full max-w-sm bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/40 flex flex-col items-center animate-fadeIn">
       
-      <!-- Icon Toko & Judul -->
-      <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-700 border-2 border-emerald-200 flex items-center justify-center text-3xl shadow-inner mb-3">
-        <i class="bi bi-shield-lock-fill"></i>
+      <!-- Icon Toko Resmi & Judul -->
+      <div class="w-16 h-16 rounded-2xl bg-white p-1 border-2 border-emerald-100 flex items-center justify-center shadow-md mb-3 overflow-hidden">
+        <img src="assets/logo.png" alt="Delina Logo" class="w-full h-full object-contain rounded-xl" />
       </div>
-      <h2 class="text-xl font-extrabold text-slate-900 tracking-tight text-center">Portal Manajemen Toko</h2>
+      <h2 class="text-xl font-extrabold text-slate-900 tracking-tight text-center">Sistem Kasir Pintar Toko Delina</h2>
       <p class="text-xs text-slate-500 text-center mt-1">Delina.store - ATK, Kosmetik dan Kelontongan</p>
       
       <!-- Titik Indikator PIN (4 Digit) -->
@@ -237,9 +239,9 @@
         
         <!-- Logo & Nama Toko -->
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 text-lg border border-white/15 overflow-hidden">
-            <img id="headerLogoImg" src="" alt="Logo" class="w-full h-full object-contain hidden" />
-            <i id="headerLogoIcon" class="bi bi-shop"></i>
+          <div class="w-9 h-9 rounded-xl bg-white p-0.5 flex items-center justify-center text-amber-300 text-lg border border-white/20 overflow-hidden shadow-xs">
+            <img id="headerLogoImg" src="assets/logo.png" alt="Logo" class="w-full h-full object-contain" />
+            <i id="headerLogoIcon" class="bi bi-shop hidden"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
@@ -2212,6 +2214,7 @@
       if (userRole === "kasir" && ["dashboard", "coupons", "settings"].includes(tabId)) {
         tabId = "pos";
       }
+      currentAdminTab = tabId;
 
       const tabs = ["dashboard", "pos", "products", "members", "coupons", "settings"];
       tabs.forEach(t => {
@@ -2964,11 +2967,15 @@ ${escapeHtml(order.itemsText || "-")}
       if (printArea) printArea.innerHTML = html;
 
       document.getElementById("receiptModal").classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("receiptModal");
     }
 
     function closeReceiptModal() {
-      document.getElementById("receiptModal").classList.add("hidden");
+      const modal = document.getElementById("receiptModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
+      if (modal) modal.classList.add("hidden");
       activeReceiptOrder = null;
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function generateReceiptHtml(order) {
@@ -3291,6 +3298,7 @@ ${escapeHtml(order.itemsText || "-")}
 
       document.getElementById("productModalTitle").innerText = "Tambah Produk Baru";
       document.getElementById("productModal").classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("productModal");
     }
 
     function openEditProductModal(prodId) {
@@ -3337,11 +3345,15 @@ ${escapeHtml(order.itemsText || "-")}
 
       document.getElementById("productModalTitle").innerText = `Edit Produk (${p.id})`;
       document.getElementById("productModal").classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("productModal");
     }
 
     function closeProductModal() {
-      document.getElementById("productModal").classList.add("hidden");
+      const modal = document.getElementById("productModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
+      if (modal) modal.classList.add("hidden");
       tempProdImageBase64 = null;
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function handleProductHdImageUpload(input) {
@@ -3447,12 +3459,15 @@ ${escapeHtml(order.itemsText || "-")}
       if (!modal) return;
       renderManageCategoriesList();
       modal.classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("modalManageCategories");
     }
 
     function closeManageCategoriesModal() {
       const modal = document.getElementById("modalManageCategories");
       if (!modal) return;
+      const wasOpen = !modal.classList.contains("hidden");
       modal.classList.add("hidden");
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function renderManageCategoriesList() {
@@ -4191,6 +4206,7 @@ ${escapeHtml(order.itemsText || "-")}
       const modal = document.getElementById("productBarcodeScannerModal");
       if (!modal) return;
       modal.classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("productBarcodeScannerModal");
 
       if (typeof Html5Qrcode === "undefined") {
         alert("Pustaka Html5Qrcode belum siap. Mohon periksa koneksi internet Anda.");
@@ -4251,6 +4267,7 @@ ${escapeHtml(order.itemsText || "-")}
 
     function closeProductBarcodeScannerModal() {
       const modal = document.getElementById("productBarcodeScannerModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
       if (modal) modal.classList.add("hidden");
 
       // Reset flash state
@@ -4271,6 +4288,7 @@ ${escapeHtml(order.itemsText || "-")}
           isProductScannerRunning = false;
         });
       }
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function showBarcodeLookupModal(barcode) {
@@ -4638,13 +4656,18 @@ ${escapeHtml(order.itemsText || "-")}
       if (qtyInput) qtyInput.value = "10";
 
       calculateRestockTotal();
-      if (modal) modal.classList.remove("hidden");
+      if (modal) {
+        modal.classList.remove("hidden");
+        if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("quickRestockModal");
+      }
     }
 
     function closeQuickRestockModal() {
       activeRestockProduct = null;
       const modal = document.getElementById("quickRestockModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
       if (modal) modal.classList.add("hidden");
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function setRestockQty(n) {
@@ -5313,6 +5336,7 @@ ${escapeHtml(order.itemsText || "-")}
       if (!modal) return;
       modal.classList.remove("hidden");
       modal.classList.add("flex");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("lembarSaktiModal");
       renderLembarSaktiFilterPills();
       renderLembarSaktiCards();
     }
@@ -5320,8 +5344,10 @@ ${escapeHtml(order.itemsText || "-")}
     function closeLembarSaktiModal() {
       const modal = document.getElementById("lembarSaktiModal");
       if (modal) {
+        const wasOpen = !modal.classList.contains("hidden");
         modal.classList.add("hidden");
         modal.classList.remove("flex");
+        if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
       }
     }
 
@@ -5565,6 +5591,7 @@ ${escapeHtml(order.itemsText || "-")}
       if (!modal) return;
       modal.classList.remove("hidden");
       modal.classList.add("flex");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("manualPosItemModal");
       const nameInput = document.getElementById("manualPosItemName");
       if (nameInput) {
         nameInput.value = "";
@@ -5579,8 +5606,10 @@ ${escapeHtml(order.itemsText || "-")}
     function closeManualPosItemModal() {
       const modal = document.getElementById("manualPosItemModal");
       if (modal) {
+        const wasOpen = !modal.classList.contains("hidden");
         modal.classList.add("hidden");
         modal.classList.remove("flex");
+        if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
       }
     }
 
@@ -5660,11 +5689,14 @@ ${escapeHtml(order.itemsText || "-")}
 
       renderLabelProductChecklist();
       modal.classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("labelPrintModal");
     }
 
     function closeLabelPrintModal() {
       const modal = document.getElementById("labelPrintModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
       if (modal) modal.classList.add("hidden");
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     function renderLabelProductChecklist() {
@@ -5992,11 +6024,14 @@ ${escapeHtml(order.itemsText || "-")}
       document.getElementById("editRewardDesc").value = r.description || "";
 
       document.getElementById("modalEditReward").classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("modalEditReward");
     }
 
     function closeEditRewardModal() {
       const modal = document.getElementById("modalEditReward");
+      const wasOpen = modal && !modal.classList.contains("hidden");
       if (modal) modal.classList.add("hidden");
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
     }
 
     async function handleSaveRewardSubmit(event) {
@@ -6095,6 +6130,177 @@ ${escapeHtml(order.itemsText || "-")}
         if (infoBox) infoBox.classList.remove("hidden");
       }
     }
+
+    // =========================================================
+    // 20. PWA NAVIGATION & ANTI-KELUAR MODAL HISTORY (ADMIN & KASIR POS)
+    // =========================================================
+    let currentAdminTab = "dashboard";
+    let isHandlingAdminPopstate = false;
+    let adminModalHistoryCount = 0;
+
+    function pushAdminModalHistory(modalId) {
+      adminModalHistoryCount++;
+      try {
+        history.pushState({ modalOpen: true, modalId: modalId, count: adminModalHistoryCount }, "");
+      } catch (e) {
+        console.warn("pushAdminModalHistory error:", e);
+      }
+    }
+
+    function notifyAdminModalClosed() {
+      if (isHandlingAdminPopstate) {
+        if (adminModalHistoryCount > 0) adminModalHistoryCount--;
+        return;
+      }
+      if (adminModalHistoryCount > 0) {
+        adminModalHistoryCount--;
+        if (history.state && history.state.modalOpen) {
+          try {
+            history.back();
+          } catch (e) {}
+        }
+      }
+    }
+
+    function closeAllAdminModals(isFromPopState = false) {
+      let anyClosed = false;
+
+      // 1. Lembar Sakti Modal
+      const lembar = document.getElementById("lembarSaktiModal");
+      if (lembar && !lembar.classList.contains("hidden")) {
+        closeLembarSaktiModal();
+        anyClosed = true;
+      }
+
+      // 2. Manual POS Item Modal
+      const manual = document.getElementById("manualPosItemModal");
+      if (manual && !manual.classList.contains("hidden")) {
+        closeManualPosItemModal();
+        anyClosed = true;
+      }
+
+      // 3. Quick Restock Modal
+      const restock = document.getElementById("quickRestockModal");
+      if (restock && !restock.classList.contains("hidden")) {
+        closeQuickRestockModal();
+        anyClosed = true;
+      }
+
+      // 4. Barcode Scanner Modal
+      const scanner = document.getElementById("productBarcodeScannerModal");
+      if (scanner && !scanner.classList.contains("hidden")) {
+        closeProductBarcodeScannerModal();
+        anyClosed = true;
+      }
+
+      // 5. Thermal Receipt Modal
+      const receipt = document.getElementById("receiptModal");
+      if (receipt && !receipt.classList.contains("hidden")) {
+        closeReceiptModal();
+        anyClosed = true;
+      }
+
+      // 6. Label Print Modal
+      const label = document.getElementById("labelPrintModal");
+      if (label && !label.classList.contains("hidden")) {
+        closeLabelPrintModal();
+        anyClosed = true;
+      }
+
+      // 7. Product Modal (Add/Edit)
+      const prod = document.getElementById("productModal");
+      if (prod && !prod.classList.contains("hidden")) {
+        closeProductModal();
+        anyClosed = true;
+      }
+
+      // 8. Manage Categories Modal
+      const cat = document.getElementById("modalManageCategories");
+      if (cat && !cat.classList.contains("hidden")) {
+        closeManageCategoriesModal();
+        anyClosed = true;
+      }
+
+      // 9. Edit Reward Modal
+      const rew = document.getElementById("modalEditReward");
+      if (rew && !rew.classList.contains("hidden")) {
+        closeEditRewardModal();
+        anyClosed = true;
+      }
+
+      // 10. Lookup Loading Modal
+      const lookup = document.getElementById("barcodeLookupLoadingModal");
+      if (lookup && !lookup.classList.contains("hidden")) {
+        lookup.classList.add("hidden");
+        anyClosed = true;
+      }
+
+      return anyClosed;
+    }
+
+    window.addEventListener("popstate", (e) => {
+      isHandlingAdminPopstate = true;
+      try {
+        // 1. Jika ada modal yang terbuka, tutup modal tersebut terlebih dahulu dan jangan keluar
+        const closed = closeAllAdminModals(true);
+        if (closed) {
+          if (e && e.preventDefault) e.preventDefault();
+          return;
+        }
+
+        // 2. Jika tidak ada modal dan bukan di tab default, kembali ke tab default
+        const defaultTab = (userRole === "kasir") ? "pos" : "dashboard";
+        if (currentAdminTab && currentAdminTab !== defaultTab) {
+          switchTab(defaultTab);
+          if (e && e.preventDefault) e.preventDefault();
+          return;
+        }
+
+        // 3. Jika sudah di tab default tanpa modal terbuka, biarkan back browser normal
+      } finally {
+        setTimeout(() => { isHandlingAdminPopstate = false; }, 60);
+      }
+    });
+
+    // =========================================================
+    // 21. AUTO-CLOSE KEYBOARD (AUTO-BLUR VIRTUAL KEYBOARD ON MOBILE SCROLL/SWIPE)
+    // =========================================================
+    (function initAdminAutoCloseKeyboard() {
+      let touchStartY = 0;
+      let touchStartX = 0;
+      let isTouching = false;
+
+      window.addEventListener("touchstart", (e) => {
+        if (e.touches && e.touches.length > 0) {
+          touchStartY = e.touches[0].clientY;
+          touchStartX = e.touches[0].clientX;
+          isTouching = true;
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (e) => {
+        if (!isTouching || !e.touches || e.touches.length === 0) return;
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+          const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+          const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+          if (deltaY > 12 || deltaX > 12) {
+            active.blur();
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchend", () => {
+        isTouching = false;
+      }, { passive: true });
+
+      window.addEventListener("scroll", () => {
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+          active.blur();
+        }
+      }, { passive: true });
+    })();
 </script>
 </body>
 </html>

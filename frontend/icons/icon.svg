@@ -23,3 +23,4 @@
   <circle cx="360" cy="150" r="32" fill="#F59E0B" filter="url(#shadow)" />
   <path d="M 360 134 L 364 146 L 376 150 L 364 154 L 360 166 L 356 154 L 344 150 L 356 146 Z" fill="#FFFFFF" />
 </svg>
+
