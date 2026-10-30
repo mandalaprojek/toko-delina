@@ -467,13 +467,6 @@ function selectCategory(categoryName) {
     }
   });
 
-  if (categoryName === "Jasa Cetak & Fotokopi") {
-    const fotokopiSection = document.getElementById("fotokopiCalculatorSection");
-    if (fotokopiSection) {
-      fotokopiSection.scrollIntoView({ behavior: "smooth" });
-    }
-  }
-
   renderProducts();
 }
 
@@ -914,30 +907,16 @@ function initHeroCarousel() {
   }, { passive: true });
 }
 
-// Modal Fotokopi & Slide Action Handlers
-function openFotokopiCalculatorModal() {
-  const modal = document.getElementById("fotokopiCalculatorModal");
-  if (modal) {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    calculateFotokopi();
-  }
-}
-
-function closeFotokopiCalculatorModal() {
-  const modal = document.getElementById("fotokopiCalculatorModal");
-  if (modal) {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  }
-}
-
-function submitFotokopiAndCloseModal() {
-  addFotokopiToCart();
-  closeFotokopiCalculatorModal();
-}
-
 function handleSlideBelanja() {
+  selectCategory("Semua Produk");
+  const categorySection = document.getElementById("categorySection");
+  if (categorySection) {
+    categorySection.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function handleSlideAtk() {
+  selectCategory("ATK & Perlengkapan Kantor");
   const categorySection = document.getElementById("categorySection");
   if (categorySection) {
     categorySection.scrollIntoView({ behavior: "smooth" });
@@ -3365,15 +3344,11 @@ if (typeof window !== "undefined") {
   window.claimSelectedReward = claimSelectedReward;
   window.formatImageUrl = formatImageUrl;
 
-  // Hero Carousel & Fotokopi Handlers
+  // Hero Carousel Handlers
   window.initHeroCarousel = initHeroCarousel;
   window.goToHeroSlide = goToHeroSlide;
   window.nextHeroSlide = nextHeroSlide;
   window.prevHeroSlide = prevHeroSlide;
-  window.openFotokopiCalculatorModal = openFotokopiCalculatorModal;
-  window.closeFotokopiCalculatorModal = closeFotokopiCalculatorModal;
-  window.submitFotokopiAndCloseModal = submitFotokopiAndCloseModal;
   window.handleSlideBelanja = handleSlideBelanja;
-  window.setPrintType = updatePrintTypeUI;
-  window.updatePrintTypeUI = updatePrintTypeUI;
+  window.handleSlideAtk = handleSlideAtk;
 }

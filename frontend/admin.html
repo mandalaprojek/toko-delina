@@ -414,13 +414,13 @@
             </div>
           </button>
 
-          <button onclick="switchTab('rates')" class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-300 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left">
+          <button onclick="openLembarSaktiModal()" class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-300 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left cursor-pointer">
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
-              <i class="bi bi-sliders"></i>
+              <i class="bi bi-upc-scan"></i>
             </div>
             <div>
-              <div class="font-extrabold text-sm text-slate-800">Atur Tarif Fotokopi</div>
-              <p class="text-xs text-slate-500">Sesuaikan harga HVS & jilid.</p>
+              <div class="font-extrabold text-sm text-slate-800">Lembar Sakti Kasir</div>
+              <p class="text-xs text-slate-500">Barcode cheat sheet & cetak A4.</p>
             </div>
           </button>
 
@@ -577,21 +577,11 @@
 
               <button 
                 type="button" 
-                onclick="simulatePosServiceScan()" 
-                class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-                title="Simulasi scan jasa fotokopi dari Lembar Sakti Barcode"
+                onclick="openLembarSaktiModal()" 
+                class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                title="Buka Lembar Barcode Kasir Cepat (Cheat Sheet) untuk scan/klik cepat dan cetak A4"
               >
-                <i class="bi bi-printer"></i>
-                <span>Tes Scan Fotokopi</span>
-              </button>
-
-              <button 
-                type="button" 
-                onclick="printLembarSaktiBarcode()" 
-                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Cetak lembar kode batang jasa fotokopi untuk ditempel di meja kasir"
-              >
-                <i class="bi bi-upc"></i>
+                <i class="bi bi-upc-scan"></i>
                 <span>Lembar Sakti</span>
               </button>
             </div>
@@ -604,7 +594,20 @@
                 <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
                 <strong class="text-xs text-emerald-400 uppercase tracking-wider font-extrabold">Continuous Scan Aktif</strong>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <!-- Toggle Sakelar Mode Kasir Cepat -->
+                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700" title="Kamera tetap menyala untuk scan barang berturut-turut tanpa jeda manual">
+                  <input 
+                    type="checkbox" 
+                    id="toggleContinuousScanMode" 
+                    checked 
+                    onchange="setPosContinuousScanMode(this.checked)" 
+                    class="sr-only peer"
+                  />
+                  <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 relative"></div>
+                  <span class="text-[11px] font-bold text-slate-200">⚡ Kasir Cepat</span>
+                </label>
+
                 <!-- Tombol Flash Kasir POS -->
                 <button 
                   type="button" 
@@ -616,7 +619,7 @@
                   <i id="posTorchIcon" class="bi bi-lightning-charge"></i>
                   <span id="posTorchText">Flash</span>
                 </button>
-                <span id="posScanCooldownText" class="text-[11px] font-mono text-amber-300">Siap Scan (Jeda 1.5s)</span>
+                <span id="posScanCooldownText" class="text-[11px] font-mono text-amber-300">Siap Scan (Jeda 1.2s)</span>
               </div>
             </div>
             <div id="pos-continuous-qr-reader" class="w-full max-w-md mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black aspect-video flex items-center justify-center"></div>
@@ -671,16 +674,29 @@
                     <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Katalog Cepat Kasir POS</h4>
                     <span id="posProductCountBadge" class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200">0 Produk</span>
                   </div>
-                  <!-- Kolom Pencarian Instan POS -->
-                  <div class="relative w-full sm:w-64">
-                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input 
-                      type="text" 
-                      id="posProductSearchInput" 
-                      oninput="handlePosProductSearch(this.value)" 
-                      placeholder="Cari nama barang / barcode..." 
-                      class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600"
-                    />
+                  
+                  <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <!-- Tombol + Barang Manual -->
+                    <button 
+                      type="button" 
+                      onclick="openManualPosItemModal()" 
+                      class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap"
+                      title="Tambah transaksi barang kilat tanpa barcode / non-katalog"
+                    >
+                      <i class="bi bi-plus-circle-fill"></i>
+                      <span>+ Barang Manual</span>
+                    </button>
+                    <!-- Kolom Pencarian Instan POS -->
+                    <div class="relative w-full sm:w-56">
+                      <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                      <input 
+                        type="text" 
+                        id="posProductSearchInput" 
+                        oninput="handlePosProductSearch(this.value)" 
+                        placeholder="Cari nama / barcode..." 
+                        class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1683,6 +1699,184 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       MODAL LEMBAR SAKTI BARCODE KASIR (CASHIER CHEAT SHEET)
+       ========================================================= -->
+  <div id="lembarSaktiModal" onclick="if(event.target === this) closeLembarSaktiModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden">
+      
+      <!-- Header Modal -->
+      <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xl shadow-md">
+            📑
+          </div>
+          <div>
+            <h3 class="font-black text-base sm:text-lg tracking-tight flex items-center gap-2">
+              <span>Lembar Barcode Kasir Cepat</span>
+              <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Cheat Sheet</span>
+            </h3>
+            <p class="text-xs text-emerald-200">Klik kartu untuk langsung masukkan ke keranjang kasir, atau cetak A4 untuk meja kasir.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Tombol Cetak A4 -->
+          <button 
+            type="button" 
+            onclick="printLembarSaktiSheet()" 
+            class="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Cetak lembar barcode ke format A4 untuk meja kasir"
+          >
+            <i class="bi bi-printer-fill"></i>
+            <span class="hidden sm:inline">Cetak Lembar Sakti (A4)</span>
+            <span class="sm:hidden">Cetak A4</span>
+          </button>
+          
+          <!-- Tombol Tutup -->
+          <button 
+            type="button" 
+            onclick="closeLembarSaktiModal()" 
+            class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Kategori & Pencarian Instan -->
+      <div class="p-3 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 flex-shrink-0">
+        
+        <!-- Filter Kategori Pills -->
+        <div id="lembarSaktiCategoryPills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <!-- Diisi dinamis -->
+        </div>
+
+        <!-- Kolom Pencarian Cepat -->
+        <div class="relative w-full sm:w-64">
+          <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input 
+            type="text" 
+            id="lembarSaktiSearchInput" 
+            oninput="handleLembarSaktiSearch(this.value)" 
+            placeholder="Cari barang / barcode..." 
+            class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+          />
+        </div>
+      </div>
+
+      <!-- Grid Kartu Barcode (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100/60">
+        <div id="lembarSaktiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <!-- Diisi dinamis oleh JavaScript menggunakan JsBarcode SVG -->
+        </div>
+        <div id="lembarSaktiEmptyState" class="hidden text-center py-12 text-slate-400">
+          <i class="bi bi-upc-scan text-4xl block mb-2 text-slate-300"></i>
+          <p class="text-xs font-semibold">Tidak ada barcode produk yang cocok dengan pencarian.</p>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="p-3 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0">
+        <span class="flex items-center gap-1">
+          <i class="bi bi-hand-index-thumb text-emerald-600"></i>
+          <span>Tips Kasir: <strong>Sentuh/klik kartu</strong> untuk langsung menambah +1 ke keranjang kasir POS.</span>
+        </span>
+        <span id="lembarSaktiCountText" class="font-bold text-slate-700">0 Produk</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL INPUT BARANG MANUAL KASIR POS
+       ========================================================= -->
+  <div id="manualPosItemModal" onclick="if(event.target === this) closeManualPosItemModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      
+      <!-- Header Modal -->
+      <div class="p-4 bg-gradient-to-r from-emerald-800 to-teal-800 text-white flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">
+            <i class="bi bi-plus-circle-fill"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-sm sm:text-base leading-tight">+ Barang Manual Kasir</h3>
+            <p class="text-[11px] text-emerald-200">Untuk transaksi barang tanpa barcode / non-katalog</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeManualPosItemModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="formManualPosItem" onsubmit="submitManualPosItem(event)" class="p-4 sm:p-5 space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Barang / Transaksi Manual: <span class="text-red-500">*</span></label>
+          <input 
+            type="text" 
+            id="manualPosItemName" 
+            required 
+            placeholder="Contoh: Kerupuk Kaleng, Gorengan, Jasa Tambahan..." 
+            class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Harga Satuan (Rp): <span class="text-red-500">*</span></label>
+            <input 
+              type="number" 
+              id="manualPosItemPrice" 
+              required 
+              min="0" 
+              step="100" 
+              placeholder="Contoh: 2000" 
+              class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Jumlah / Qty: <span class="text-red-500">*</span></label>
+            <input 
+              type="number" 
+              id="manualPosItemQty" 
+              required 
+              min="1" 
+              value="1" 
+              class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-center"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Satuan:</label>
+          <select id="manualPosItemUnit" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+            <option value="Pcs" selected>Pcs</option>
+            <option value="Biji">Biji</option>
+            <option value="Lembar">Lembar</option>
+            <option value="Bungkus">Bungkus</option>
+            <option value="Porsi">Porsi</option>
+            <option value="Kg">Kg</option>
+            <option value="Paket">Paket</option>
+          </select>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeManualPosItemModal()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <i class="bi bi-cart-plus-fill"></i>
+            <span>Tambah ke Keranjang Kasir</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
   <!-- AREA KHUSUS CETAK LEMBAR SAKTI BARCODE KASIR (HANYA MUNCUL SAAT PRINT) -->
   <div id="lembar-sakti-print-sheet" class="hidden"></div>
 
@@ -1704,7 +1898,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbxZvRbhjuaa-Xyz6z_BC2UFOgGEC3Kc59fgeBY4s7dQpaahzDxLbr9AUpZ-XqBrzyj5Iw/exec";
+      : "https://script.google.com/macros/s/AKfycbyVqqi4L76V3YS0MnfqVRwWFoG4cWAk0ZfWQG3RE90Xz8lghE0PLxNbJ6_Bkt6rzi8dGg/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -1993,9 +2187,6 @@
 
       // 4. Modul Produk & Stok
       renderProductsTable();
-
-      // 5. Modul Tarif Fotokopi
-      renderRatesForm();
 
       // 6. Modul Kupon Diskon
       renderCouponsTable();
@@ -3359,81 +3550,6 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     // =========================================================
-    // 8. MODUL TARIF FOTOKOPI & CETAK KILAT
-    // =========================================================
-    function renderRatesForm() {
-      const container = document.getElementById("ratesFieldsContainer");
-      if (!container) return;
-
-      const rates = adminData.rates || {};
-      const rateKeys = Object.keys(rates);
-
-      if (rateKeys.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 py-3">Tidak ada data tarif.</p>`;
-        return;
-      }
-
-      container.innerHTML = rateKeys.map(k => {
-        const item = rates[k];
-        return `
-          <div class="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div>
-              <div class="font-extrabold text-slate-800 text-xs">${escapeHtml(item.nama)}</div>
-              <span class="text-[10px] text-slate-400 font-mono">${k}</span>
-            </div>
-            <div class="flex items-center gap-1 w-32 sm:w-36">
-              <span class="text-xs font-bold text-slate-500">Rp</span>
-              <input 
-                type="number" 
-                data-rate-key="${k}" 
-                value="${item.harga}" 
-                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-right font-black text-xs focus:outline-none focus:border-emerald-600"
-              />
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    async function handleSaveRates(e) {
-      e.preventDefault();
-      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
-      const btn = document.getElementById("btnSaveRates");
-      btn.disabled = true;
-      btn.innerText = "Menyimpan ke Google Sheets...";
-
-      const newRates = {};
-      document.querySelectorAll("[data-rate-key]").forEach(input => {
-        const k = input.getAttribute("data-rate-key");
-        newRates[k] = Number(input.value) || 0;
-      });
-
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "updateRates",
-            pin: pin,
-            rates: newRates
-          })
-        });
-        const json = await res.json();
-        if (json.status === "success") {
-          showToastAdmin("Alhamdulillah, tarif fotokopi berhasil disimpan.");
-          fetchDashboardData();
-        } else {
-          showToastAdmin("Gagal: " + json.message);
-        }
-      } catch (err) {
-        showToastAdmin("Koneksi gagal.");
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Simpan Perubahan Tarif";
-      }
-    }
-
-    // =========================================================
     // 9. MODUL KUPON DISKON PROMO
     // =========================================================
     function renderCouponsTable() {
@@ -3824,7 +3940,7 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     /**
-     * beepError(): nada frekuensi 300Hz selama 0.2 detik saat barcode tidak dikenal
+     * beepError(): nada frekuensi peringatan 400Hz selama 0.2 detik saat barcode tidak dikenal
      */
     function beepError() {
       try {
@@ -3833,7 +3949,7 @@ ${escapeHtml(order.itemsText || "-")}
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.setValueAtTime(400, ctx.currentTime);
         gain.gain.setValueAtTime(0.35, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
         osc.connect(gain);
@@ -4466,10 +4582,16 @@ ${escapeHtml(order.itemsText || "-")}
     let posLiveCart = [];
     let posSelectedPayMethod = "Tunai"; // "Tunai" | "QRIS"
 
-    // Cooldown debouncing 1.5 detik per barcode
+    // Mode Kasir Cepat (Continuous Scan) & Cooldown Debounce
+    let isPosContinuousMode = true;
     let posLastScannedCode = null;
     let posLastScanTime = 0;
-    const POS_SCAN_COOLDOWN_MS = 1500;
+    const POS_SCAN_COOLDOWN_MS = 1200; // 1.2 detik jeda per kode barcode
+
+    function setPosContinuousScanMode(val) {
+      isPosContinuousMode = Boolean(val);
+      showToastAdmin(isPosContinuousMode ? "⚡ Mode Kasir Cepat (Continuous Scan) Aktif" : "Mode Sekali Scan (Single) Aktif");
+    }
 
     function togglePosContinuousCamera() {
       const container = document.getElementById("posCameraContainer");
@@ -4569,16 +4691,16 @@ ${escapeHtml(order.itemsText || "-")}
 
     /**
      * Handler Continuous Scan Barcode:
-     * - Cooldown 1.5 detik per pembacaan
+     * - Cooldown 1.2 detik per pembacaan
      * - beepSuccess() & tambah ke keranjang jika cocok
-     * - beepError() & toast jika barcode tidak dikenal (kamera tetap hidup)
+     * - beepError() (400Hz) & toast peringatan kuning jika barcode tidak dikenal (kamera tetap hidup)
      */
     function handlePosContinuousScan(decodedText) {
       const now = Date.now();
-      const code = decodedText.trim();
+      const code = (decodedText || "").trim();
       if (!code) return;
 
-      // Jeda 1.5 detik jika barcode sama di-scan berulang tanpa jeda
+      // Jeda 1.2 detik jika barcode sama di-scan berulang tanpa jeda
       if (code === posLastScannedCode && (now - posLastScanTime) < POS_SCAN_COOLDOWN_MS) {
         return;
       }
@@ -4589,39 +4711,29 @@ ${escapeHtml(order.itemsText || "-")}
       // Update text cooldown status
       const cooldownText = document.getElementById("posScanCooldownText");
       if (cooldownText) {
-        cooldownText.innerText = "⏳ Sedang memproses item...";
+        cooldownText.innerText = "⏳ Memproses item...";
         setTimeout(() => {
-          if (cooldownText) cooldownText.innerText = "Siap Scan (Jeda 1.5s per item)";
+          if (cooldownText) cooldownText.innerText = "Siap Scan (Jeda 1.2s)";
         }, POS_SCAN_COOLDOWN_MS);
       }
 
-      // 1. Cek apakah ini Barcode Jasa Cetak & Fotokopi dari Lembar Sakti
-      if (code.startsWith("JASA-")) {
-        const serviceItem = resolveServiceBarcode(code);
-        if (serviceItem) {
-          beepSuccess(); // 1200Hz, 0.08s
-          addItemToPosLiveCart(serviceItem);
-          showToastAdmin(`✅ +1 Jasa: ${serviceItem.name}`);
-        } else {
-          beepError(); // 300Hz, 0.2s
-          showToastAdmin(`⚠️ Kode jasa "${code}" tidak dikenal.`);
-        }
-        return;
-      }
-
-      // 2. Cek apakah ini QR Nota Pelanggan (#DLN-XXXX)
+      // 1. Cek apakah ini QR Nota Pelanggan (#DLN-XXXX)
       if (code.startsWith("#DLN-") || code.startsWith("DLN-")) {
-        beepSuccess();
         const searchInput = document.getElementById("orderSearchInput");
-        if (searchInput) {
+        const orderFound = (adminData.orders || []).find(o => 
+          String(o.orderId).toUpperCase() === code.toUpperCase() || 
+          String(o.orderId).toUpperCase() === ("#" + code).toUpperCase()
+        );
+        if (orderFound && searchInput) {
+          beepSuccess();
           searchInput.value = code;
           handleOrderSearch(code);
+          showToastAdmin(`⚡ Nota Express Pick-up Ditemukan: ${code}`);
+          return;
         }
-        showToastAdmin(`⚡ Nota Express Pick-up Ditemukan: ${code}`);
-        return;
       }
 
-      // 3. Cek di Database Katalog Produk ATK
+      // 2. Cek di Database Katalog Produk ATK & Toko
       const product = (adminData.products || []).find(p => 
         String(p.id).toUpperCase() === code.toUpperCase() ||
         (p.barcode && String(p.barcode).toUpperCase() === code.toUpperCase())
@@ -4637,84 +4749,14 @@ ${escapeHtml(order.itemsText || "-")}
           image: product.image
         });
         showToastAdmin(`✅ +1 ${product.name}`);
-      } else {
-        // TIDAK DIKENAL: Kamera tetap standby (Continuous Scan), bunyikan error dan konfirmasi daftarkan
-        beepError(); // 300Hz, 0.2s
-        showToastAdmin(`⚠️ Barcode "${code}" belum terdaftar!`);
-        setTimeout(() => {
-          if (confirm(`⚠️ Barang dengan Barcode "${code}" belum terdaftar di katalog.\n\nApakah Anda ingin mendaftarkan produk ini sekarang?`)) {
-            handleProductBarcodeDetected(code);
-          }
-        }, 120);
-      }
-    }
-
-    // Resolusi Kode Jasa dari Lembar Sakti ke Rincian Harga
-    function resolveServiceBarcode(code) {
-      const rates = adminData.rates || {};
-      const map = {
-        "JASA-FOTO-A4-BW": {
-          name: "Fotokopi HVS A4 (Hitam Putih)",
-          price: (rates.PRINT_BW_A4 && rates.PRINT_BW_A4.harga) || 250,
-          unit: "Lembar"
-        },
-        "JASA-FOTO-A4-COL": {
-          name: "Fotokopi HVS A4 (Warna Teks/Grafik)",
-          price: (rates.PRINT_COLOR_A4 && rates.PRINT_COLOR_A4.harga) || 1000,
-          unit: "Lembar"
-        },
-        "JASA-FOTO-F4-BW": {
-          name: "Fotokopi HVS F4 Folio (Hitam Putih)",
-          price: (rates.PRINT_BW_F4 && rates.PRINT_BW_F4.harga) || 300,
-          unit: "Lembar"
-        },
-        "JASA-FOTO-F4-COL": {
-          name: "Fotokopi HVS F4 Folio (Warna)",
-          price: (rates.PRINT_COLOR_F4 && rates.PRINT_COLOR_F4.harga) || 1200,
-          unit: "Lembar"
-        },
-        "JASA-PRINT-FOTO": {
-          name: "Cetak Full Foto Mengkilap A4",
-          price: (rates.PRINT_COLOR_FULL && rates.PRINT_COLOR_FULL.harga) || 2500,
-          unit: "Lembar"
-        },
-        "JASA-JILID-LAKBAN": {
-          name: "Jilid Lakban Mika Bening",
-          price: (rates.JILID_LAKBAN && rates.JILID_LAKBAN.harga) || 3000,
-          unit: "Buku"
-        },
-        "JASA-JILID-SPIRAL": {
-          name: "Jilid Spiral Kawat Modern",
-          price: (rates.JILID_SPIRAL && rates.JILID_SPIRAL.harga) || 12000,
-          unit: "Buku"
-        },
-        "JASA-JILID-HARD": {
-          name: "Jilid Hardcover Skripsi Foil Emas",
-          price: (rates.JILID_HARDCOVER && rates.JILID_HARDCOVER.harga) || 35000,
-          unit: "Buku"
-        },
-        "JASA-LAMINATING": {
-          name: "Laminating Panas Anti Air",
-          price: (rates.LAMINATING_A4 && rates.LAMINATING_A4.harga) || 4000,
-          unit: "Lembar"
-        },
-        "JASA-ONGKIR": {
-          name: "Ongkos Kirim Kurir Toko",
-          price: (rates.ONGKIR_KURIR && rates.ONGKIR_KURIR.harga) || 5000,
-          unit: "Trip"
+        if (!isPosContinuousMode) {
+          togglePosContinuousCamera();
         }
-      };
-
-      if (map[code]) {
-        return {
-          id: code,
-          name: map[code].name,
-          price: map[code].price,
-          unit: map[code].unit,
-          isService: true
-        };
+      } else {
+        // TIDAK DIKENAL: Kamera tetap standby (Continuous Scan), bunyikan nada peringatan 400Hz
+        beepError(); // 400Hz, 0.2s
+        showToastAdmin(`⚠️ Barcode "${code}" tidak ditemukan di katalog produk.`);
       }
-      return null;
     }
 
     // Manajemen Keranjang Kasir POS
@@ -4990,19 +5032,6 @@ ${escapeHtml(order.itemsText || "-")}
       handlePosContinuousScan(randomProd.id);
     }
 
-    function simulatePosServiceScan() {
-      const services = [
-        "JASA-FOTO-A4-BW",
-        "JASA-FOTO-A4-COL",
-        "JASA-FOTO-F4-BW",
-        "JASA-JILID-LAKBAN",
-        "JASA-JILID-SPIRAL",
-        "JASA-LAMINATING"
-      ];
-      const randomSvc = services[Math.floor(Math.random() * services.length)];
-      handlePosContinuousScan(randomSvc);
-    }
-
     // Cetak Struk Bluetooth Thermal dari Keranjang Kasir
     function printPosCartBluetooth(memberPhoneArg) {
       if (posLiveCart.length === 0) {
@@ -5145,80 +5174,330 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     // =========================================================
-    // 16. CETAK LEMBAR SAKTI BARCODE KASIR (JSBARCODE)
+    // 16. MODUL LEMBAR SAKTI BARCODE KASIR (CHEAT SHEET)
     // =========================================================
-    function printLembarSaktiBarcode() {
+    let lembarSaktiActiveCategory = "all";
+    let lembarSaktiSearchQuery = "";
+
+    function openLembarSaktiModal() {
+      const modal = document.getElementById("lembarSaktiModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      renderLembarSaktiFilterPills();
+      renderLembarSaktiCards();
+    }
+
+    function closeLembarSaktiModal() {
+      const modal = document.getElementById("lembarSaktiModal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    function setLembarSaktiCategory(cat) {
+      lembarSaktiActiveCategory = cat;
+      renderLembarSaktiFilterPills();
+      renderLembarSaktiCards();
+    }
+
+    function handleLembarSaktiSearch(q) {
+      lembarSaktiSearchQuery = (q || "").trim().toLowerCase();
+      renderLembarSaktiCards();
+    }
+
+    function renderLembarSaktiFilterPills() {
+      const container = document.getElementById("lembarSaktiCategoryPills");
+      if (!container) return;
+      const categories = [
+        "all",
+        "ATK & Perlengkapan Kantor",
+        "Kosmetik & Perawatan Diri",
+        "Sembako & Kelontongan",
+        "Makanan & Minuman"
+      ];
+      container.innerHTML = categories.map(cat => {
+        const isAll = cat === "all";
+        const label = isAll ? "Semua Produk" : cat.replace(" & ", " / ");
+        const active = lembarSaktiActiveCategory === cat;
+        return `
+          <button 
+            type="button" 
+            onclick="setLembarSaktiCategory('${cat}')" 
+            class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              active 
+                ? 'bg-emerald-700 text-white shadow-xs' 
+                : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-400 hover:text-emerald-700'
+            }"
+          >
+            ${label}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderLembarSaktiCards() {
+      const grid = document.getElementById("lembarSaktiGrid");
+      const emptyEl = document.getElementById("lembarSaktiEmptyState");
+      const countEl = document.getElementById("lembarSaktiCountText");
+      if (!grid) return;
+
+      const products = (adminData.products || []).filter(p => {
+        if (lembarSaktiActiveCategory !== "all" && p.category !== lembarSaktiActiveCategory) {
+          return false;
+        }
+        if (lembarSaktiSearchQuery) {
+          const q = lembarSaktiSearchQuery;
+          const matchName = (p.name || "").toLowerCase().includes(q);
+          const matchId = String(p.id || "").toLowerCase().includes(q);
+          const matchCat = (p.category || "").toLowerCase().includes(q);
+          if (!matchName && !matchId && !matchCat) return false;
+        }
+        return true;
+      });
+
+      if (countEl) countEl.innerText = `${products.length} Produk`;
+
+      if (products.length === 0) {
+        grid.innerHTML = "";
+        if (emptyEl) emptyEl.classList.remove("hidden");
+        return;
+      }
+      if (emptyEl) emptyEl.classList.add("hidden");
+
+      grid.innerHTML = products.map((p, idx) => {
+        const safeId = String(p.id || "").trim();
+        const barcodeCode = safeId || `DLN-${idx}`;
+        return `
+          <div 
+            onclick="handleLembarSaktiCardClick('${p.id}')" 
+            class="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative active:scale-95"
+            title="Klik untuk +1 ${escapeHtml(p.name)} ke keranjang kasir"
+          >
+            <div class="space-y-1">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded truncate max-w-[100px] border border-emerald-200">
+                  ${escapeHtml(p.category || 'Umum')}
+                </span>
+                <span class="text-[9px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                  +1 Kasir
+                </span>
+              </div>
+              <h4 class="font-extrabold text-xs text-slate-800 line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors" title="${escapeHtml(p.name)}">
+                ${escapeHtml(p.name)}
+              </h4>
+              <div class="text-[11px] font-black text-slate-900">
+                ${formatRupiah(p.price || 0)} <span class="text-[10px] font-normal text-slate-400">/${escapeHtml(p.unit || 'Pcs')}</span>
+              </div>
+            </div>
+
+            <!-- Wadah SVG Barcode Code128 -->
+            <div class="mt-2 pt-2 border-t border-slate-100 flex flex-col items-center justify-center bg-slate-50/60 rounded-xl p-1">
+              <svg id="sakti-svg-${idx}" class="w-full max-h-11"></svg>
+              <span class="font-mono text-[9px] text-slate-600 font-bold tracking-wider mt-0.5 truncate max-w-full">
+                ${barcodeCode}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Render barcode SVG JsBarcode setelah elemen DOM terpasang
+      setTimeout(() => {
+        products.forEach((p, idx) => {
+          const svgEl = document.getElementById(`sakti-svg-${idx}`);
+          if (!svgEl) return;
+          const safeCode = String(p.id || `DLN-${idx}`).trim();
+          try {
+            if (typeof JsBarcode !== "undefined") {
+              JsBarcode(svgEl, safeCode, {
+                format: "CODE128",
+                width: 1.25,
+                height: 32,
+                displayValue: false,
+                margin: 0
+              });
+            }
+          } catch (err) {
+            try {
+              JsBarcode(svgEl, safeCode.replace(/[^A-Za-z0-9_-]/g, ""), {
+                format: "CODE128",
+                width: 1.25,
+                height: 32,
+                displayValue: false,
+                margin: 0
+              });
+            } catch (e2) {}
+          }
+        });
+      }, 50);
+    }
+
+    function handleLembarSaktiCardClick(prodId) {
+      const prod = (adminData.products || []).find(p => String(p.id) === String(prodId));
+      if (!prod) return;
+      addItemToPosLiveCart(prod);
+      beepSuccess();
+      showToastAdmin(`✅ +1 ${prod.name} (Lembar Sakti)`);
+    }
+
+    // Cetak Lembar Sakti Barcode ke Kertas A4 (Print Friendly)
+    function printLembarSaktiSheet() {
       const sheet = document.getElementById("lembar-sakti-print-sheet");
       if (!sheet) return;
 
-      const services = [
-        { code: "JASA-FOTO-A4-BW", name: "Fotokopi HVS A4 B/W", rate: "Rp 250 / lbr" },
-        { code: "JASA-FOTO-A4-COL", name: "Fotokopi HVS A4 Warna", rate: "Rp 1.000 / lbr" },
-        { code: "JASA-FOTO-F4-BW", name: "Fotokopi HVS F4 B/W", rate: "Rp 300 / lbr" },
-        { code: "JASA-FOTO-F4-COL", name: "Fotokopi HVS F4 Warna", rate: "Rp 1.200 / lbr" },
-        { code: "JASA-PRINT-FOTO", name: "Cetak Full Foto A4", rate: "Rp 2.500 / lbr" },
-        { code: "JASA-JILID-LAKBAN", name: "Jilid Lakban Mika", rate: "Rp 3.000 / buku" },
-        { code: "JASA-JILID-SPIRAL", name: "Jilid Spiral Kawat", rate: "Rp 12.000 / buku" },
-        { code: "JASA-JILID-HARD", name: "Jilid Hardcover Skripsi", rate: "Rp 35.000 / buku" },
-        { code: "JASA-LAMINATING", name: "Laminating Panas A4/F4", rate: "Rp 4.000 / lbr" },
-        { code: "JASA-ONGKIR", name: "Ongkos Kirim Kurir", rate: "Rp 5.000 / trip" }
-      ];
+      const products = (adminData.products || []).filter(p => {
+        if (lembarSaktiActiveCategory !== "all" && p.category !== lembarSaktiActiveCategory) {
+          return false;
+        }
+        return true;
+      });
+
+      if (products.length === 0) {
+        alert("Tidak ada barcode produk untuk dicetak pada kategori ini.");
+        return;
+      }
 
       sheet.innerHTML = `
-        <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #000; padding: 10px;">
-          <!-- Header Lembar Sakti -->
+        <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #000; padding: 10px;">
+          <!-- Header Lembar Sakti A4 -->
           <div style="text-align: center; border-bottom: 2px solid #065f46; padding-bottom: 8px; margin-bottom: 12px;">
-            <h1 style="font-size: 18px; font-weight: 900; margin: 0; color: #065f46;">LEMBAR SAKTI BARCODE KASIR - TOKO DELINA</h1>
-            <p style="font-size: 10px; color: #475569; margin: 4px 0 0 0;">
-              Tempel lembar ini di meja kasir. Arahkan kamera tablet/smartphone kasir ke kode batang untuk memasukkan jasa fotokopi ke transaksi POS secara otomatis.
+            <h1 style="font-size: 18px; font-weight: 900; margin: 0; color: #065f46;">LEMBAR SAKTI BARCODE KASIR - DELINA.STORE</h1>
+            <p style="font-size: 11px; color: #334155; margin: 4px 0 0 0;">
+              Katalog Barcode Siap Scan untuk Meja Kasir • ${lembarSaktiActiveCategory === 'all' ? 'Seluruh Produk Toko' : lembarSaktiActiveCategory} (${products.length} Item)
             </p>
           </div>
 
-          <!-- Grid Barcode 2 Kolom -->
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-            ${services.map((s, idx) => `
-              <div style="border: 1.5px solid #065f46; border-radius: 8px; padding: 8px; text-align: center; background: #fff; page-break-inside: avoid;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                  <strong style="font-size: 11px; color: #065f46;">${s.name}</strong>
-                  <span style="font-size: 11px; font-weight: 800; color: #d97706;">${s.rate}</span>
+          <!-- Grid Barcode Cetak 3 Kolom A4 -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            ${products.map((p, idx) => `
+              <div style="border: 1px solid #0f766e; border-radius: 6px; padding: 6px; text-align: center; background: #fff; page-break-inside: avoid;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                  <strong style="font-size: 10px; color: #065f46; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">${escapeHtml(p.name)}</strong>
+                  <span style="font-size: 10px; font-weight: 800; color: #b45309;">${formatRupiah(p.price || 0)}</span>
                 </div>
-                <svg id="barcode-sakti-${idx}" style="width: 100%; max-height: 50px;"></svg>
+                <svg id="print-sakti-svg-${idx}" style="width: 100%; max-height: 38px;"></svg>
+                <div style="font-family: monospace; font-size: 9px; color: #334155; font-weight: bold; margin-top: 2px;">
+                  ${p.id}
+                </div>
               </div>
             `).join("")}
           </div>
 
           <!-- Footer -->
-          <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #64748b; border-top: 1px dashed #cbd5e1; pt: 6px;">
-            Sistem Kasir Pintar Delina.store • ATK, Kosmetik dan Kelontongan
+          <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+            Delina.store • ATK, Kosmetik dan Kelontongan • Dicetak otomatis untuk meja kasir
           </div>
         </div>
       `;
 
-      // Render barcode SVG menggunakan JsBarcode
+      // Render barcode SVG cetak menggunakan JsBarcode
       setTimeout(() => {
-        services.forEach((s, idx) => {
-          if (typeof JsBarcode !== "undefined") {
-            try {
-              JsBarcode(`#barcode-sakti-${idx}`, s.code, {
+        products.forEach((p, idx) => {
+          const svgEl = document.getElementById(`print-sakti-svg-${idx}`);
+          if (!svgEl) return;
+          const safeCode = String(p.id || `DLN-${idx}`).trim();
+          try {
+            if (typeof JsBarcode !== "undefined") {
+              JsBarcode(svgEl, safeCode, {
                 format: "CODE128",
-                width: 2.2,
-                height: 40,
-                displayValue: true,
-                fontSize: 11,
-                font: "Plus Jakarta Sans",
-                margin: 2
+                width: 1.25,
+                height: 34,
+                displayValue: false,
+                margin: 0
               });
-            } catch (err) {
-              console.warn("JsBarcode render error:", err);
             }
+          } catch (err) {
+            try {
+              JsBarcode(svgEl, safeCode.replace(/[^A-Za-z0-9_-]/g, ""), {
+                format: "CODE128",
+                width: 1.25,
+                height: 34,
+                displayValue: false,
+                margin: 0
+              });
+            } catch (e2) {}
           }
         });
 
-        // Jalankan print
+        // Panggil dialog print browser setelah rendering selesai
         setTimeout(() => {
           window.print();
-        }, 300);
-      }, 100);
+        }, 350);
+      }, 80);
+    }
+
+    // =========================================================
+    // 16.B MODUL INPUT BARANG MANUAL KASIR POS
+    // =========================================================
+    function openManualPosItemModal() {
+      const modal = document.getElementById("manualPosItemModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      const nameInput = document.getElementById("manualPosItemName");
+      if (nameInput) {
+        nameInput.value = "";
+        setTimeout(() => nameInput.focus(), 100);
+      }
+      const priceInput = document.getElementById("manualPosItemPrice");
+      if (priceInput) priceInput.value = "";
+      const qtyInput = document.getElementById("manualPosItemQty");
+      if (qtyInput) qtyInput.value = "1";
+    }
+
+    function closeManualPosItemModal() {
+      const modal = document.getElementById("manualPosItemModal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    function submitManualPosItem(e) {
+      if (e) e.preventDefault();
+      const nameInput = document.getElementById("manualPosItemName");
+      const priceInput = document.getElementById("manualPosItemPrice");
+      const qtyInput = document.getElementById("manualPosItemQty");
+      const unitInput = document.getElementById("manualPosItemUnit");
+
+      const name = nameInput ? nameInput.value.trim() : "";
+      const price = Number(priceInput ? priceInput.value : 0);
+      const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+      const unit = unitInput ? unitInput.value.trim() : "Pcs";
+
+      if (!name) {
+        alert("Mohon masukkan nama barang / jasa manual.");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      if (isNaN(price) || price < 0) {
+        alert("Mohon masukkan harga yang valid.");
+        if (priceInput) priceInput.focus();
+        return;
+      }
+
+      const manualItem = {
+        id: `MANUAL-${Date.now().toString().slice(-6)}`,
+        name: name,
+        price: price,
+        unit: unit || "Pcs",
+        qty: qty,
+        image: ""
+      };
+
+      const existing = posLiveCart.find(i => i.id === manualItem.id);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        posLiveCart.push(manualItem);
+      }
+
+      renderPosLiveCart();
+      beepSuccess();
+      showToastAdmin(`✅ +${qty} ${name} masuk ke keranjang kasir`);
+      closeManualPosItemModal();
     }
 
     // =========================================================
