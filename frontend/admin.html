@@ -730,6 +730,17 @@
               <span>📷 Scan Barcode Barang</span>
             </button>
 
+            <!-- Tombol Kelola Kategori -->
+            <button 
+              type="button"
+              onclick="openManageCategoriesModal()" 
+              class="admin-only-feature px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-1.5 border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
+              title="Kelola daftar kategori produk toko (tambah atau hapus kategori)"
+            >
+              <i class="bi bi-tags-fill text-emerald-700"></i>
+              <span>Kelola Kategori</span>
+            </button>
+
             <!-- Tombol Tambah Barang Baru -->
             <button 
               onclick="openAddProductModal()" 
@@ -1050,56 +1061,87 @@
         </button>
       </div>
 
-      <form id="formProduct" onsubmit="handleSaveProduct(event)" class="p-5 overflow-y-auto space-y-3 text-xs">
+      <form id="formProduct" onsubmit="handleSaveProduct(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs">
         <input type="hidden" id="prodEditId" value="" />
         
         <div>
           <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
-          <input type="text" id="prodEditName" placeholder="Contoh: Kertas HVS / Sunscreen / Beras" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+          <input type="text" id="prodEditName" oninput="handleProductNameInput()" placeholder="Contoh: Kertas HVS / Sunscreen / Beras" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Kategori Produk</label>
-            <input type="text" id="prodEditCategory" list="categoriesListDatalist" placeholder="Pilih atau ketik kategori..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
-            <datalist id="categoriesListDatalist">
-              <option value="ATK & Perlengkapan Kantor"></option>
-              <option value="Kosmetik & Perawatan Diri"></option>
-              <option value="Sembako & Kelontongan"></option>
-              <option value="Makanan & Minuman"></option>
-            </datalist>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block font-bold text-slate-700">Kategori</label>
+              <button type="button" onclick="openManageCategoriesModal()" class="text-[10px] text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-0.5 cursor-pointer">
+                <i class="bi bi-gear-fill"></i> + Kelola
+              </button>
+            </div>
+            <select id="prodEditCategory" onchange="autoGenerateProductDescription()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs">
+              <option value="ATK & Perlengkapan Kantor">ATK & Perlengkapan Kantor</option>
+              <option value="Kosmetik & Perawatan Diri">Kosmetik & Perawatan Diri</option>
+              <option value="Sembako & Kelontongan">Sembako & Kelontongan</option>
+              <option value="Makanan & Minuman">Makanan & Minuman</option>
+            </select>
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Satuan</label>
-            <input type="text" id="prodEditUnit" placeholder="Pcs, Rim, Pack, Lusin, Btl, Pouch" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+            <input type="text" id="prodEditUnit" oninput="autoGenerateProductDescription()" placeholder="Pcs, Rim, Pack, Lusin, Btl, Pouch" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600 text-xs" required />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">Harga (Rp)</label>
-            <input type="number" id="prodEditPrice" placeholder="48000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+            <input type="number" id="prodEditPrice" oninput="autoGenerateProductDescription()" placeholder="48000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Jumlah Stok</label>
-            <input type="number" id="prodEditStock" placeholder="50" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+            <input type="number" id="prodEditStock" oninput="autoGenerateProductDescription()" placeholder="50" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
           </div>
         </div>
 
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Foto Produk</label>
+        <!-- OPSI FOTO PRODUK (KAMERA LANGSUNG HD & GALERI) -->
+        <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <label class="block font-bold text-slate-700 text-xs">Foto Produk (Kualitas HD)</label>
           <div class="flex items-center gap-3">
-            <img id="prodImagePreview" src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500" alt="Preview" class="w-14 h-14 object-cover rounded-xl border border-slate-200" />
-            <div class="flex-1 space-y-1">
-              <input type="file" id="prodImageFile" accept="image/*" onchange="previewProductImageFile(this)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" />
-              <input type="text" id="prodImageUrl" placeholder="Atau tempel URL gambar..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none focus:border-emerald-600" />
+            <div class="relative flex-shrink-0">
+              <img id="prodImagePreview" src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500" alt="Preview" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border-2 border-emerald-600 shadow-sm" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" />
+              <span id="prodImageQualityBadge" class="absolute -bottom-1 -right-1 bg-emerald-700 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-xs">HD</span>
+            </div>
+            
+            <div class="flex-1 space-y-2">
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Opsi 1: Kamera Langsung HP (HD) -->
+                <label class="px-2.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all text-center">
+                  <i class="bi bi-camera-fill text-amber-300"></i>
+                  <span>📸 Foto Kamera HD</span>
+                  <input type="file" id="prodCameraInput" accept="image/*" capture="environment" onchange="handleProductHdImageUpload(this)" class="hidden" />
+                </label>
+                
+                <!-- Opsi 2: Dari Galeri -->
+                <label class="px-2.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all text-center">
+                  <i class="bi bi-folder-fill text-amber-500"></i>
+                  <span>📁 Dari Galeri</span>
+                  <input type="file" id="prodGalleryInput" accept="image/*" onchange="handleProductHdImageUpload(this)" class="hidden" />
+                </label>
+              </div>
+
+              <!-- Opsi 3: Tempel URL Gambar -->
+              <input type="text" id="prodImageUrl" oninput="handleImageUrlInput(this.value)" placeholder="Atau tempel URL gambar (Drive / Web)..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none focus:border-emerald-600" />
             </div>
           </div>
         </div>
 
+        <!-- DESKRIPSI SINGKAT DENGAN AUTO-GENERATE -->
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Deskripsi Singkat</label>
-          <textarea id="prodEditDesc" rows="2" placeholder="Penjelasan kualitas barang..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-bold text-slate-700">Deskripsi Singkat</label>
+            <button type="button" onclick="forceGenerateProductDescription()" class="text-[11px] text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-1 cursor-pointer" title="Otomatis buatkan format deskripsi rapi dan mudah dibaca">
+              <i class="bi bi-stars text-amber-500"></i> ✨ Auto-Generate
+            </button>
+          </div>
+          <textarea id="prodEditDesc" oninput="handleManualDescEdit()" rows="2" placeholder="Ready Stok [Nama] | Kategori: [Kategori] | Tersedia: [Stok] — Dijamin Ori di Delina.store" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-600 min-h-[65px] resize-y"></textarea>
         </div>
 
         <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
@@ -1110,6 +1152,55 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3b. MODAL KELOLA KATEGORI PRODUK (TAMBAH / HAPUS KATEGORI OLEH ADMIN)
+       ========================================================================= -->
+  <div id="modalManageCategories" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[85vh] animate-fadeIn">
+      <div class="p-4 bg-gradient-to-r from-emerald-800 to-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="bi bi-tags-fill text-amber-400"></i>
+          <h4 class="font-extrabold text-sm sm:text-base">Kelola Kategori Produk</h4>
+        </div>
+        <button type="button" onclick="closeManageCategoriesModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 text-xs">
+        <!-- Form Tambah Kategori Baru -->
+        <form onsubmit="handleAddNewCategory(event)" class="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <label class="block font-bold text-slate-700">Tambah Kategori Baru</label>
+          <div class="flex gap-2">
+            <input type="text" id="newCategoryNameInput" placeholder="Contoh: Aksesoris HP / Mainan Anak" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600" required />
+            <button type="submit" id="btnSubmitNewCategory" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-xs cursor-pointer flex items-center gap-1 active:scale-95 transition-all">
+              <i class="bi bi-plus-lg"></i>
+              <span>Tambah</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400">Kategori baru akan otomatis muncul di etalase web, dropdown admin, dan kasir POS.</p>
+        </form>
+
+        <!-- Daftar Kategori Aktif -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-700">Daftar Kategori Tersedia</label>
+            <span id="manageCategoriesCountText" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">4 Kategori</span>
+          </div>
+          <div id="manageCategoriesListContainer" class="space-y-1.5 max-h-56 overflow-y-auto">
+            <!-- Diisi otomatis oleh JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <button type="button" onclick="closeManageCategoriesModal()" class="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer">
+          Selesai & Tutup
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1235,18 +1326,34 @@
 
       <div class="p-4 space-y-3 text-center">
         <div id="product-qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center"></div>
+        
+        <!-- OPSI FOTO BARCODE / KEMASAN BARANG (AI GEMINI VISION MULTIMODAL) -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <label class="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all text-center">
+            <i class="bi bi-camera-fill text-amber-300"></i>
+            <span>📸 Foto Kemasan</span>
+            <input type="file" id="barcodeCameraCaptureInput" accept="image/*" capture="environment" onchange="handleBarcodeImageScan(this)" class="hidden" />
+          </label>
+          
+          <label class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all text-center">
+            <i class="bi bi-image text-amber-400"></i>
+            <span>📁 Unggah Foto</span>
+            <input type="file" id="barcodeGalleryUploadInput" accept="image/*" onchange="handleBarcodeImageScan(this)" class="hidden" />
+          </label>
+        </div>
+
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-left text-xs space-y-1">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
               <i class="bi bi-lightning-charge-fill text-amber-400"></i>
-              <span>Auto-Focus & Flash Aktif</span>
+              <span>Vision AI & Auto-Focus Aktif</span>
             </div>
-            <span class="text-[10px] text-slate-400">Gemini 3.8 Flash AI</span>
+            <span class="text-[10px] text-slate-400">Gemini Vision AI</span>
           </div>
           <p class="text-slate-300 text-[11px] leading-relaxed">
-            • Jika minim cahaya, tekan tombol <strong>Nyalakan Flash</strong> di atas untuk fokus cepat.<br>
-            • Jika barcode <strong>belum ada</strong>: Gemini 3.8 Flash & Open Food Facts otomatis mengisi nama & foto barang.<br>
-            • Jika barcode <strong>sudah ada</strong>: Langsung buka form cepat "Tambah Stok Masuk (+N)".
+            • Arahkan kamera atau jepret tombol <strong>📸 Foto Kemasan</strong> agar Gemini Vision AI membaca angka barcode, nama merek, dan kategori produk otomatis!<br>
+            • Jika barcode <strong>belum ada</strong>: Langsung membuka form Tambah Produk lengkap dengan foto kemasan HD.<br>
+            • Jika barcode <strong>sudah ada</strong>: Langsung membuka pop-up cepat "Tambah Stok Masuk (+N)".
           </p>
         </div>
       </div>
@@ -1262,7 +1369,7 @@
   <!-- =========================================================================
        6b. MODAL LOADING IDENTIFIKASI BARCODE (GEMINI 3.8 FLASH + TIMEOUT)
        ========================================================================= -->
-  <div id="barcodeLookupLoadingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div id="barcodeLookupLoadingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-emerald-500/30 animate-fadeIn">
       <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
         <div class="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
@@ -1275,7 +1382,7 @@
       <div class="text-xs text-slate-500 space-y-1">
         <p class="flex items-center justify-center gap-1.5 text-slate-700 font-bold">
           <i class="bi bi-cpu-fill text-emerald-600"></i>
-          <span>Model Google: <strong>Gemini 3.8 Flash</strong></span>
+          <span>Model AI: <strong>Gemini Multimodal Vision</strong></span>
         </p>
         <p class="text-[11px] text-slate-400">Mencari nama merek, spesifikasi & foto barang...</p>
       </div>
@@ -1380,7 +1487,7 @@
      */
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
-      : "https://script.google.com/macros/s/AKfycbwJIcwvlU2Ysoy4bVRQoGtP2S_EPDWeZ5bq1K9m5QYlPAkutgQqrmAHlyKC9jeDM5h9lQ/exec";
+      : "https://script.google.com/macros/s/AKfycbxuGNjJ9IpZv65_CaX1J_0C8malNlku9fGxgRZIfLm2k4kgxeKrEmhuSdggnQ2j2MYuVA/exec";
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"
@@ -1388,10 +1495,41 @@
       summary: {},
       orders: [],
       products: [],
+      categories: [],
       rates: {},
       coupons: [],
+      members: [],
+      rewards: [],
+      claims: [],
       settings: {}
     };
+
+    function formatImageUrl(url) {
+      if (!url || typeof url !== "string") {
+        return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+      }
+      const clean = url.trim();
+      if (!clean) {
+        return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+      }
+      if (clean.includes("lh3.googleusercontent.com/d/")) {
+        return clean;
+      }
+      let fileId = "";
+      const matchFileD = clean.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (matchFileD && matchFileD[1]) {
+        fileId = matchFileD[1];
+      } else {
+        const matchIdParam = clean.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (matchIdParam && matchIdParam[1]) {
+          fileId = matchIdParam[1];
+        }
+      }
+      if (fileId) {
+        return `https://lh3.googleusercontent.com/d/${fileId}`;
+      }
+      return clean;
+    }
 
     let activeOrderFilter = "all";
     let orderSearchQuery = "";
@@ -1630,6 +1768,10 @@
 
       // 7. Modul Pengaturan Toko
       renderSettingsForm();
+
+      // 8. Modul Kategori Produk
+      populateProductCategoryDropdown();
+      renderManageCategoriesList();
     }
 
     // =========================================================
@@ -2009,7 +2151,7 @@ ${escapeHtml(order.itemsText || "-")}
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="p-3">
               <div class="flex items-center gap-2.5">
-                <img src="${p.image || 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'}" alt="${escapeHtml(p.name)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" />
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(p.name)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" />
                 <div>
                   <div class="font-extrabold text-slate-900 leading-tight">${escapeHtml(p.name)}</div>
                   <span class="text-[10px] text-slate-400 font-mono">${p.id}</span>
@@ -2068,16 +2210,59 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
+    function populateProductCategoryDropdown(selectedVal = "") {
+      const select = document.getElementById("prodEditCategory");
+      if (!select) return;
+
+      const cats = (adminData.categories && adminData.categories.length > 0)
+        ? adminData.categories.map(c => c.nama)
+        : [
+            "ATK & Perlengkapan Kantor",
+            "Kosmetik & Perawatan Diri",
+            "Sembako & Kelontongan",
+            "Makanan & Minuman"
+          ];
+
+      select.innerHTML = "";
+      cats.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        if (c.toLowerCase() === (selectedVal || "").toLowerCase()) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+
+      if (selectedVal && !cats.some(c => c.toLowerCase() === selectedVal.toLowerCase())) {
+        const customOpt = document.createElement("option");
+        customOpt.value = selectedVal;
+        customOpt.textContent = selectedVal;
+        customOpt.selected = true;
+        select.appendChild(customOpt);
+      }
+    }
+
     function openAddProductModal() {
+      populateProductCategoryDropdown("ATK & Perlengkapan Kantor");
       document.getElementById("prodEditId").value = "";
       document.getElementById("prodEditName").value = "";
-      document.getElementById("prodEditCategory").value = "";
       document.getElementById("prodEditPrice").value = "";
       document.getElementById("prodEditStock").value = "";
       document.getElementById("prodEditUnit").value = "Pcs";
-      document.getElementById("prodEditDesc").value = "";
+      
+      const descEl = document.getElementById("prodEditDesc");
+      if (descEl) {
+        descEl.value = "";
+        descEl.dataset.autoGenerated = "true";
+      }
+
       document.getElementById("prodImageUrl").value = "";
       document.getElementById("prodImagePreview").src = "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+      
+      const qualityBadge = document.getElementById("prodImageQualityBadge");
+      if (qualityBadge) qualityBadge.textContent = "HD";
+
       tempProdImageBase64 = null;
 
       document.getElementById("productModalTitle").innerText = "Tambah Produk Baru";
@@ -2088,15 +2273,27 @@ ${escapeHtml(order.itemsText || "-")}
       const p = (adminData.products || []).find(item => item.id === prodId);
       if (!p) return;
 
+      populateProductCategoryDropdown(p.category);
+
       document.getElementById("prodEditId").value = p.id;
       document.getElementById("prodEditName").value = p.name;
       document.getElementById("prodEditCategory").value = p.category;
       document.getElementById("prodEditPrice").value = p.price;
       document.getElementById("prodEditStock").value = p.stock;
       document.getElementById("prodEditUnit").value = p.unit || "Pcs";
-      document.getElementById("prodEditDesc").value = p.description || "";
+      
+      const descEl = document.getElementById("prodEditDesc");
+      if (descEl) {
+        descEl.value = p.description || "";
+        descEl.dataset.autoGenerated = "false";
+      }
+
       document.getElementById("prodImageUrl").value = p.image || "";
-      document.getElementById("prodImagePreview").src = p.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+      document.getElementById("prodImagePreview").src = formatImageUrl(p.image);
+      
+      const qualityBadge = document.getElementById("prodImageQualityBadge");
+      if (qualityBadge) qualityBadge.textContent = "HD";
+
       tempProdImageBase64 = null;
 
       document.getElementById("productModalTitle").innerText = `Edit Produk (${p.id})`;
@@ -2108,16 +2305,252 @@ ${escapeHtml(order.itemsText || "-")}
       tempProdImageBase64 = null;
     }
 
-    function previewProductImageFile(input) {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          tempProdImageBase64 = e.target.result;
-          document.getElementById("prodImagePreview").src = tempProdImageBase64;
+    function handleProductHdImageUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Kompresi ke resolusi HD (Maks 1280px, rasio aspek proporsional)
+          const maxDim = 1280;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // Kualitas JPEG 0.85 untuk ketajaman HD namun ukuran ringan (~250KB)
+          const compressed = canvas.toDataURL("image/jpeg", 0.85);
+          tempProdImageBase64 = compressed;
+
+          const previewEl = document.getElementById("prodImagePreview");
+          if (previewEl) previewEl.src = compressed;
+
+          const qualityBadge = document.getElementById("prodImageQualityBadge");
+          if (qualityBadge) qualityBadge.textContent = "HD 720p";
+
+          showToastAdmin("✅ Foto HD berhasil disiapkan untuk produk!");
         };
-        reader.readAsDataURL(file);
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleImageUrlInput(url) {
+      const previewEl = document.getElementById("prodImagePreview");
+      if (previewEl) {
+        previewEl.src = formatImageUrl(url);
       }
+    }
+
+    function handleProductNameInput() {
+      autoGenerateProductDescription();
+    }
+
+    function handleManualDescEdit() {
+      const descEl = document.getElementById("prodEditDesc");
+      if (descEl) descEl.dataset.autoGenerated = "false";
+    }
+
+    function autoGenerateProductDescription() {
+      const name = (document.getElementById("prodEditName").value || "").trim();
+      const cat = (document.getElementById("prodEditCategory").value || "").trim();
+      const stock = (document.getElementById("prodEditStock").value || "").trim() || "0";
+      const unit = (document.getElementById("prodEditUnit").value || "").trim() || "Pcs";
+      const descEl = document.getElementById("prodEditDesc");
+
+      if (!descEl || !name) return;
+
+      if (descEl.dataset.autoGenerated === "true" || !descEl.value.trim()) {
+        descEl.value = `Ready Stok ${name} | Kategori: ${cat || 'ATK & Umum'} | Tersedia: ${stock} ${unit} — Dijamin Ori & Berkualitas di Delina.store`;
+        descEl.dataset.autoGenerated = "true";
+      }
+    }
+
+    function forceGenerateProductDescription() {
+      const name = (document.getElementById("prodEditName").value || "").trim();
+      const cat = (document.getElementById("prodEditCategory").value || "").trim();
+      const stock = (document.getElementById("prodEditStock").value || "").trim() || "0";
+      const unit = (document.getElementById("prodEditUnit").value || "").trim() || "Pcs";
+      const descEl = document.getElementById("prodEditDesc");
+
+      if (!name) {
+        showToastAdmin("Silakan ketik Nama Produk terlebih dahulu.");
+        document.getElementById("prodEditName").focus();
+        return;
+      }
+
+      if (descEl) {
+        descEl.value = `Ready Stok ${name} | Kategori: ${cat || 'ATK & Umum'} | Tersedia: ${stock} ${unit} — Dijamin Ori & Berkualitas di Delina.store`;
+        descEl.dataset.autoGenerated = "true";
+        showToastAdmin("Deskripsi produk berhasil digenerate otomatis!");
+      }
+    }
+
+    // =========================================================
+    // 7b. MODAL KELOLA KATEGORI PRODUK (TAMBAH / HAPUS)
+    // =========================================================
+    function openManageCategoriesModal() {
+      const modal = document.getElementById("modalManageCategories");
+      if (!modal) return;
+      renderManageCategoriesList();
+      modal.classList.remove("hidden");
+    }
+
+    function closeManageCategoriesModal() {
+      const modal = document.getElementById("modalManageCategories");
+      if (!modal) return;
+      modal.classList.add("hidden");
+    }
+
+    function renderManageCategoriesList() {
+      const container = document.getElementById("manageCategoriesListContainer");
+      const countEl = document.getElementById("manageCategoriesCountText");
+      if (!container) return;
+
+      const cats = (adminData.categories && adminData.categories.length > 0)
+        ? adminData.categories
+        : [
+            { id: "CAT-01", nama: "ATK & Perlengkapan Kantor", icon: "bi-pencil-square" },
+            { id: "CAT-02", nama: "Kosmetik & Perawatan Diri", icon: "bi-heart-pulse-fill" },
+            { id: "CAT-03", nama: "Sembako & Kelontongan", icon: "bi-basket2-fill" },
+            { id: "CAT-04", nama: "Makanan & Minuman", icon: "bi-cup-hot-fill" }
+          ];
+
+      if (countEl) countEl.textContent = `${cats.length} Kategori`;
+
+      let html = "";
+      cats.forEach((c, idx) => {
+        const isCore = ["CAT-01", "CAT-02", "CAT-03", "CAT-04"].includes(c.id);
+        html += `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex items-center gap-2">
+              <i class="bi ${c.icon || 'bi-tag-fill'} text-emerald-700 text-sm"></i>
+              <div>
+                <strong class="text-slate-800 text-xs">${c.nama}</strong>
+                <span class="text-[10px] text-slate-400 block">${c.id || 'CAT-' + (idx+1)}</span>
+              </div>
+            </div>
+            <div>
+              ${isCore ? `
+                <span class="text-[10px] font-bold text-slate-400 px-2 py-0.5 rounded-full bg-slate-200/60">Bawaan</span>
+              ` : `
+                <button 
+                  type="button" 
+                  onclick="handleDeleteCategory('${c.id}', '${c.nama.replace(/'/g, "\\'")}')" 
+                  class="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-all cursor-pointer"
+                  title="Hapus Kategori ${c.nama}"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function handleAddNewCategory(event) {
+      if (event) event.preventDefault();
+      const input = document.getElementById("newCategoryNameInput");
+      const btn = document.getElementById("btnSubmitNewCategory");
+      const categoryName = input ? input.value.trim() : "";
+
+      if (!categoryName) return;
+
+      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="bi bi-arrow-repeat animate-spin"></i>`;
+      }
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "saveCategory",
+            pin: pin,
+            nama: categoryName,
+            icon: "bi-tag-fill"
+          })
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          showToastAdmin(json.message);
+          input.value = "";
+          if (json.categories) {
+            adminData.categories = json.categories;
+          }
+          renderManageCategoriesList();
+          populateProductCategoryDropdown(categoryName);
+        } else {
+          showToastAdmin("Gagal: " + json.message);
+        }
+      } catch (err) {
+        console.error("Add category error:", err);
+        showToastAdmin("Koneksi gagal saat menambah kategori.");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="bi bi-plus-lg"></i> Tambah`;
+        }
+      }
+    }
+
+    async function handleDeleteCategory(catId, catName) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus kategori "${catName}"?`)) return;
+
+      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+      showToastAdmin(`Menghapus kategori "${catName}"...`);
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "deleteCategory",
+            pin: pin,
+            id: catId,
+            nama: catName
+          })
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          showToastAdmin(json.message);
+          if (json.categories) {
+            adminData.categories = json.categories;
+          } else {
+            adminData.categories = (adminData.categories || []).filter(c => c.id !== catId && c.nama !== catName);
+          }
+          renderManageCategoriesList();
+          populateProductCategoryDropdown();
+        } else {
+          showToastAdmin("Gagal: " + json.message);
+        }
+      } catch (err) {
+        console.error("Delete category error:", err);
+        showToastAdmin("Koneksi gagal.");
+      }
+    }
+
+    function previewProductImageFile(input) {
+      handleProductHdImageUpload(input);
     }
 
     async function handleSaveProduct(e) {
@@ -2816,12 +3249,18 @@ ${escapeHtml(order.itemsText || "-")}
       const modal = document.getElementById("barcodeLookupLoadingModal");
       const text = document.getElementById("barcodeLookupCodeText");
       if (text) text.innerText = barcode;
-      if (modal) modal.classList.remove("hidden");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
     }
 
     function hideBarcodeLookupModal() {
       const modal = document.getElementById("barcodeLookupLoadingModal");
-      if (modal) modal.classList.add("hidden");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
     }
 
     function cancelBarcodeLookupAndOpenManual() {
@@ -2829,8 +3268,10 @@ ${escapeHtml(order.itemsText || "-")}
       hideBarcodeLookupModal();
       openAddProductModal();
       const idInput = document.getElementById("prodEditId");
-      if (idInput && currentLookupBarcode) idInput.value = currentLookupBarcode;
-      showToastAdmin(`Barcode ${currentLookupBarcode} siap diisi secara manual.`);
+      if (idInput && currentLookupBarcode && !currentLookupBarcode.includes("Foto Kemasan")) {
+        idInput.value = currentLookupBarcode;
+      }
+      showToastAdmin(`Mode input manual diaktifkan.`);
       setTimeout(() => {
         const nameInput = document.getElementById("prodEditName");
         if (nameInput) nameInput.focus();
@@ -2857,15 +3298,15 @@ ${escapeHtml(order.itemsText || "-")}
         return;
       }
 
-      // Tampilkan Modal Loading Elegan (Gemini 3.8 Flash)
+      // Tampilkan Modal Loading Elegan (Gemini AI Vision & Text)
       showBarcodeLookupModal(barcode);
 
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       let lookupResult = null;
 
-      // Timeout protektif 4 detik agar proses TIDAK PERNAH MACET
+      // Timeout protektif 12 detik agar Gemini AI memiliki waktu respons optimal
       const timeoutPromise = new Promise((resolve) => {
-        setTimeout(() => resolve({ status: "timeout", message: "Timeout" }), 4000);
+        setTimeout(() => resolve({ status: "timeout", message: "Timeout" }), 12000);
       });
 
       const fetchPromise = (async () => {
@@ -2905,19 +3346,24 @@ ${escapeHtml(order.itemsText || "-")}
       if (idInput) idInput.value = barcode;
 
       if (lookupResult && lookupResult.status === "success" && lookupResult.nama) {
-        // Auto-fill Nama Produk resmi dari Gemini 3.8 Flash / OpenFoodFacts
+        // Auto-fill Nama Produk resmi dari Gemini AI / OpenFoodFacts
         if (nameInput) {
           nameInput.value = lookupResult.nama;
         }
 
         // Auto-select Kategori
         if (categoryInput && lookupResult.kategori) {
+          let matched = false;
           for (let opt of categoryInput.options) {
             if (opt.value.toLowerCase().includes(lookupResult.kategori.toLowerCase()) || 
                 lookupResult.kategori.toLowerCase().includes(opt.value.toLowerCase())) {
               categoryInput.value = opt.value;
+              matched = true;
               break;
             }
+          }
+          if (!matched && lookupResult.kategori) {
+            categoryInput.add(new Option(lookupResult.kategori, lookupResult.kategori, true, true));
           }
         }
 
@@ -2926,19 +3372,30 @@ ${escapeHtml(order.itemsText || "-")}
           unitInput.value = lookupResult.satuan;
         }
 
+        // Auto-fill Estimasi Harga
+        if (priceInput && lookupResult.estimasiHarga) {
+          priceInput.value = lookupResult.estimasiHarga;
+        }
+
         // Auto-fill Foto URL jika tersedia
         if (lookupResult.fotoUrl) {
           if (imageUrlInput) imageUrlInput.value = lookupResult.fotoUrl;
-          if (imagePreview) imagePreview.src = lookupResult.fotoUrl;
+          if (imagePreview) imagePreview.src = formatImageUrl(lookupResult.fotoUrl);
         }
 
+        // Auto-fill Deskripsi Cerdas
         if (descInput) {
-          descInput.value = `Produk ${lookupResult.nama || barcode} original berkualitas.`;
+          const selectedCat = categoryInput ? categoryInput.value : (lookupResult.kategori || 'ATK & Umum');
+          descInput.value = lookupResult.deskripsi || `Ready Stok ${lookupResult.nama || barcode} | Kategori: ${selectedCat} | Tersedia: 50 ${lookupResult.satuan || 'Pcs'} — Dijamin Ori & Berkualitas di Delina.store`;
+          descInput.dataset.autoGenerated = "true";
         }
 
-        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}" (${lookupResult.source || 'Gemini 3.8 Flash'})!`);
+        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}" (${lookupResult.source || 'Gemini AI'})!`);
       } else {
         showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi harga & detail.`);
+        if (descInput) {
+          autoGenerateProductDescription();
+        }
       }
 
       // Kursor otomatis FOKUS ke Harga Jual (Rp) sehingga kasir tinggal ketik harga!
@@ -2949,6 +3406,186 @@ ${escapeHtml(order.itemsText || "-")}
           priceInput.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 350);
+    }
+
+    // =========================================================
+    // 6c. FOTO KEMASAN PRODUK & ANALISIS GEMINI MULTIMODAL VISION
+    // =========================================================
+    async function handleBarcodeImageScan(input) {
+      if (!input || !input.files || input.files.length === 0) return;
+      const file = input.files[0];
+
+      // Hentikan scanner video jika sedang aktif
+      closeProductBarcodeScannerModal();
+
+      // Tampilkan modal loading analisis gambar
+      showBarcodeLookupModal("Menganalisis Foto Kemasan...");
+      const textEl = document.getElementById("barcodeLookupCodeText");
+      if (textEl) textEl.innerText = "Membaca Barcode & Kemasan via Gemini AI...";
+
+      try {
+        // 1. Baca gambar & kompres via canvas (max 1024px, JPEG 0.82)
+        const compressedBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const maxDim = 1024;
+              let width = img.width;
+              let height = img.height;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.82));
+            };
+            img.onerror = () => reject(new Error("Gagal membaca file gambar kemasan."));
+            img.src = e.target.result;
+          };
+          reader.onerror = () => reject(new Error("Gagal memuat file gambar."));
+          reader.readAsDataURL(file);
+        });
+
+        // 2. Coba deteksi barcode lokal dari gambar jika pustaka Html5Qrcode tersedia
+        let detectedBarcode = "";
+        try {
+          if (window.Html5Qrcode) {
+            const html5Qr = new Html5Qrcode("product-qr-reader");
+            detectedBarcode = await html5Qr.scanFile(file, true).catch(() => "");
+          }
+        } catch (e) {
+          console.log("Local barcode scan not found on image, relying on Gemini Vision AI:", e);
+        }
+
+        if (detectedBarcode && textEl) {
+          textEl.innerText = `Barcode: ${detectedBarcode} | AI Memproses...`;
+        }
+
+        // 3. Panggil backend GAS (POST lookupBarcode dengan Base64)
+        const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "lookupBarcode",
+            pin: pin,
+            barcode: detectedBarcode || "",
+            imageBase64: compressedBase64
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const result = await res.json();
+        if (isLookupCancelled) return;
+        hideBarcodeLookupModal();
+
+        beepSuccess();
+
+        // 4. Jika produk ternyata sudah ada di tab Produk
+        if (result.status === "existing" && result.product) {
+          openQuickRestockModal(result.product);
+          showToastAdmin(`Produk "${result.product.name}" sudah ada di toko!`);
+          return;
+        }
+
+        // 5. Buka modal Tambah Produk Baru dan isi otomatis
+        openAddProductModal();
+
+        const idInput = document.getElementById("prodEditId");
+        const nameInput = document.getElementById("prodEditName");
+        const categoryInput = document.getElementById("prodEditCategory");
+        const unitInput = document.getElementById("prodEditUnit");
+        const priceInput = document.getElementById("prodEditPrice");
+        const imageUrlInput = document.getElementById("prodImageUrl");
+        const imagePreview = document.getElementById("prodImagePreview");
+        const descInput = document.getElementById("prodEditDesc");
+
+        const finalBarcode = result.barcode || detectedBarcode || ("PRD-" + Date.now().toString().slice(-6));
+        if (idInput) idInput.value = finalBarcode;
+        if (nameInput && result.nama) nameInput.value = result.nama;
+        if (unitInput && result.satuan) unitInput.value = result.satuan;
+        if (priceInput && result.estimasiHarga) priceInput.value = result.estimasiHarga;
+
+        // Kategori
+        if (categoryInput && result.kategori) {
+          let matched = false;
+          for (let opt of categoryInput.options) {
+            if (opt.value.toLowerCase().includes(result.kategori.toLowerCase()) || 
+                result.kategori.toLowerCase().includes(opt.value.toLowerCase())) {
+              categoryInput.value = opt.value;
+              matched = true;
+              break;
+            }
+          }
+          if (!matched && result.kategori) {
+            categoryInput.add(new Option(result.kategori, result.kategori, true, true));
+          }
+        }
+
+        // Set foto kemasan langsung ke input & preview
+        if (imageUrlInput) imageUrlInput.value = compressedBase64;
+        if (imagePreview) {
+          imagePreview.src = compressedBase64;
+          const badge = document.getElementById("prodImageQualityBadge");
+          if (badge) badge.innerText = "FOTO AI";
+        }
+
+        // Deskripsi cerdas
+        if (descInput) {
+          const selectedCat = categoryInput ? categoryInput.value : (result.kategori || 'ATK & Kelontong');
+          descInput.value = result.deskripsi || `Ready Stok ${result.nama || finalBarcode} | Kategori: ${selectedCat} | Tersedia: 50 ${result.satuan || 'Pcs'} — Dijamin Ori & Berkualitas di Delina.store`;
+          descInput.dataset.autoGenerated = "true";
+        }
+
+        showToastAdmin(`✅ Terdeteksi via AI: "${result.nama || finalBarcode}"`);
+
+        // Fokus ke input harga
+        setTimeout(() => {
+          if (priceInput) {
+            priceInput.focus();
+            priceInput.select();
+            priceInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 350);
+
+      } catch (err) {
+        console.error("Gagal analisa foto kemasan via AI:", err);
+        hideBarcodeLookupModal();
+        beepError();
+
+        // Tetap buka modal tambah produk baru agar kasir tidak terhambat
+        openAddProductModal();
+        const imagePreview = document.getElementById("prodImagePreview");
+        const imageUrlInput = document.getElementById("prodImageUrl");
+        try {
+          if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (imagePreview) imagePreview.src = e.target.result;
+              if (imageUrlInput) imageUrlInput.value = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+          }
+        } catch(e) {}
+
+        showToastAdmin("Foto kemasan tersimpan! Silakan lengkapi nama & harga secara manual.");
+      } finally {
+        input.value = "";
+      }
     }
 
     // Modal Cepat Tambah Stok Masuk (+N)
@@ -2962,7 +3599,7 @@ ${escapeHtml(order.itemsText || "-")}
       const unitEl = document.getElementById("restockProductUnit");
       const qtyInput = document.getElementById("restockQtyInput");
 
-      if (imgEl) imgEl.src = product.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200";
+      if (imgEl) imgEl.src = formatImageUrl(product.image);
       if (nameEl) nameEl.innerText = product.name;
       if (barcodeEl) barcodeEl.innerText = product.id;
       if (currentStockEl) currentStockEl.innerText = String(product.stock || 0);
@@ -3842,7 +4479,7 @@ ${escapeHtml(order.itemsText || "-")}
 
       container.innerHTML = adminRewardsList.map(r => `
         <div class="p-3 rounded-2xl border border-slate-200/90 bg-slate-50 hover:bg-white hover:border-amber-400 hover:shadow-md transition-all flex gap-3 items-center">
-          <img src="${r.imageUrl}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" />
+          <img src="${formatImageUrl(r.imageUrl)}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
               <span class="text-[10px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">${r.id}</span>

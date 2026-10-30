@@ -191,9 +191,10 @@ function renderProducts() {
         <!-- Foto Produk -->
         <div class="relative bg-gray-50 aspect-square overflow-hidden cursor-pointer" onclick="openProductDetailModal('${product.id}')">
           <img 
-            src="${product.image}" 
+            src="${formatImageUrl(product.image)}" 
             alt="${product.name}" 
             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+            onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'"
             loading="lazy"
           />
           <!-- Badge Promosi -->
@@ -413,6 +414,45 @@ function toggleCartDrawer(open = true) {
 }
 
 // 10. Filter Kategori
+function renderCategoryPills(categoriesList) {
+  const container = document.getElementById("categoryPillsContainer");
+  if (!container) return;
+
+  const cats = categoriesList && categoriesList.length > 0 
+    ? categoriesList 
+    : [
+        { nama: "ATK & Perlengkapan Kantor", icon: "bi-pencil-square" },
+        { nama: "Kosmetik & Perawatan Diri", icon: "bi-heart-pulse" },
+        { nama: "Sembako & Kelontongan", icon: "bi-shop" },
+        { nama: "Makanan & Minuman", icon: "bi-cup-straw" }
+      ];
+
+  let html = `
+    <button 
+      data-category="Semua Produk"
+      onclick="selectCategory('Semua Produk')" 
+      class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${currentCategory === 'Semua Produk' ? 'bg-emerald-800 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700'} transition-all cursor-pointer"
+    >
+      <i class="bi bi-grid-fill"></i> Semua Produk
+    </button>
+  `;
+
+  cats.forEach(c => {
+    const isSelected = currentCategory === c.nama;
+    html += `
+      <button 
+        data-category="${c.nama}"
+        onclick="selectCategory('${c.nama.replace(/'/g, "\\'")}')" 
+        class="category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${isSelected ? 'bg-emerald-800 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-emerald-500 hover:text-emerald-700'} transition-all cursor-pointer"
+      >
+        <i class="bi ${c.icon || 'bi-tag-fill'}"></i> ${c.nama}
+      </button>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
 function selectCategory(categoryName) {
   currentCategory = categoryName;
 
@@ -1864,12 +1904,28 @@ async function fetchProductsFromGAS() {
     const json = await res.json();
     if (!json || json.status !== "success") return;
 
+    // 0. Sinkron Kategori Produk Dinamis dari Google Sheets
+    if (Array.isArray(json.categories) && json.categories.length > 0) {
+      renderCategoryPills(json.categories);
+    }
+
     // 1. Sinkron Katalog Produk
     if (Array.isArray(json.products) && json.products.length > 0) {
       console.log("Alhamdulillah, produk berhasil dimuat dari Google Sheets:", json.products.length, "barang");
       DUMMY_PRODUCTS.length = 0;
-      json.products.forEach(p => DUMMY_PRODUCTS.push(p));
+      json.products.forEach(p => {
+        p.image = formatImageUrl(p.image);
+        DUMMY_PRODUCTS.push(p);
+      });
       renderProducts();
+    }
+
+    // 1b. Sinkron 10 Hadiah Royalty Member
+    if (Array.isArray(json.rewards) && json.rewards.length > 0) {
+      memberRewardsList = json.rewards;
+      if (currentMemberSession) {
+        renderMemberRewardsCatalog(memberRewardsList, currentMemberSession.belanjaCount || 0);
+      }
     }
 
     // 2. Sinkron Tarif Fotokopi & Jilid
@@ -2542,6 +2598,499 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/**
+ * =========================================================================
+ * 12. SISTEM MEMBER VIP & ROYALTY (30x BELANJA = 1 HADIAH GRATIS) & IMAGE HELPER
+ * =========================================================================
+ */
+let currentMemberSession = null;
+let memberAuthMode = "login";
+let memberRewardsList = [];
+
+function formatImageUrl(url) {
+  if (!url || typeof url !== "string") {
+    return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+  }
+  const clean = url.trim();
+  if (!clean) {
+    return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+  }
+  if (clean.includes("lh3.googleusercontent.com/d/")) {
+    return clean;
+  }
+  let fileId = "";
+  const matchFileD = clean.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (matchFileD && matchFileD[1]) {
+    fileId = matchFileD[1];
+  } else {
+    const matchIdParam = clean.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchIdParam && matchIdParam[1]) {
+      fileId = matchIdParam[1];
+    }
+  }
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+  return clean;
+}
+
+function initMemberSessionFromStorage() {
+  try {
+    const saved = localStorage.getItem("delina_member_session");
+    if (saved) {
+      currentMemberSession = JSON.parse(saved);
+      if (currentMemberSession && currentMemberSession.name) {
+        const textEl = document.getElementById("headerMemberText");
+        if (textEl) {
+          textEl.textContent = currentMemberSession.name.split(" ")[0];
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Notice parsing member session:", e);
+  }
+}
+
+function openMemberModal(initialTab) {
+  const modal = document.getElementById("memberModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  document.body.style.overflow = "hidden";
+
+  if (currentMemberSession) {
+    // Pengguna sudah login -> Tampilkan Dashboard Member
+    const authContainer = document.getElementById("memberAuthContainer");
+    const dashContainer = document.getElementById("memberDashboardContainer");
+    if (authContainer) authContainer.classList.add("hidden");
+    if (dashContainer) dashContainer.classList.remove("hidden");
+
+    renderMemberDashboardUI(currentMemberSession);
+    refreshMemberDataOnline(currentMemberSession.phone);
+
+    if (initialTab === "rewards") {
+      setTimeout(() => scrollToRewardsSection(), 200);
+    }
+  } else {
+    // Pengguna belum login -> Tampilkan Form Auth
+    const authContainer = document.getElementById("memberAuthContainer");
+    const dashContainer = document.getElementById("memberDashboardContainer");
+    if (authContainer) authContainer.classList.remove("hidden");
+    if (dashContainer) dashContainer.classList.add("hidden");
+    switchMemberAuthMode(initialTab === "register" ? "register" : "login");
+  }
+}
+
+function closeMemberModal() {
+  const modal = document.getElementById("memberModal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  document.body.style.overflow = "";
+}
+
+function switchMemberAuthMode(mode) {
+  memberAuthMode = mode;
+  const btnLogin = document.getElementById("tabBtnMemberLogin");
+  const btnRegister = document.getElementById("tabBtnMemberRegister");
+  const nameField = document.getElementById("fieldMemberNameContainer");
+  const nameInput = document.getElementById("memberInputName");
+  const submitText = document.getElementById("btnSubmitMemberAuthText");
+
+  if (mode === "login") {
+    if (btnLogin) {
+      btnLogin.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all";
+    }
+    if (btnRegister) {
+      btnRegister.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all";
+    }
+    if (nameField) nameField.classList.add("hidden");
+    if (nameInput) nameInput.required = false;
+    if (submitText) submitText.textContent = "Masuk ke Akun Member";
+  } else {
+    if (btnRegister) {
+      btnRegister.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all";
+    }
+    if (btnLogin) {
+      btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all";
+    }
+    if (nameField) nameField.classList.remove("hidden");
+    if (nameInput) nameInput.required = true;
+    if (submitText) submitText.textContent = "Daftar Member VIP Delina";
+  }
+}
+
+function switchMemberAuthTab(mode) {
+  switchMemberAuthMode(mode);
+}
+
+async function handleMemberAuthSubmit(event) {
+  if (event) event.preventDefault();
+  const phoneInput = document.getElementById("memberInputPhone");
+  const nameInput = document.getElementById("memberInputName");
+  const passInput = document.getElementById("memberInputPassword");
+  const btnSubmit = document.getElementById("btnSubmitMemberAuth");
+
+  const phone = phoneInput ? phoneInput.value.trim() : "";
+  const name = nameInput ? nameInput.value.trim() : "";
+  const password = passInput ? passInput.value.trim() : "";
+
+  if (!phone) {
+    showToast("Silakan masukkan nomor WhatsApp Anda.", "error");
+    return;
+  }
+  if (!password) {
+    showToast("Silakan masukkan password / PIN Anda.", "error");
+    return;
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add("opacity-60", "cursor-wait");
+  }
+
+  try {
+    if (memberAuthMode === "login") {
+      await handleMemberLogin(phone, password);
+    } else {
+      if (!name) {
+        showToast("Nama lengkap wajib diisi untuk pendaftaran member baru.", "error");
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove("opacity-60", "cursor-wait");
+        }
+        return;
+      }
+      await handleMemberRegister(phone, name, password);
+    }
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.classList.remove("opacity-60", "cursor-wait");
+    }
+  }
+}
+
+async function handleMemberLogin(phone, password) {
+  showToast("Memeriksa akun member Anda...", "info");
+  try {
+    const res = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "loginMember",
+        phone: phone,
+        password: password
+      })
+    });
+    const json = await res.json();
+    if (json.status === "success" && json.member) {
+      currentMemberSession = json.member;
+      localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      showToast(json.message || "Alhamdulillah, selamat datang kembali!", "success");
+
+      const headerText = document.getElementById("headerMemberText");
+      if (headerText) headerText.textContent = json.member.name.split(" ")[0];
+
+      // Switch ke dashboard
+      const authContainer = document.getElementById("memberAuthContainer");
+      const dashContainer = document.getElementById("memberDashboardContainer");
+      if (authContainer) authContainer.classList.add("hidden");
+      if (dashContainer) dashContainer.classList.remove("hidden");
+
+      renderMemberDashboardUI(json.member, json.claims || []);
+    } else {
+      showToast(json.message || "Gagal masuk. Periksa nomor HP dan password Anda.", "error");
+    }
+  } catch (err) {
+    console.error("Login member error:", err);
+    showToast("Gagal terhubung ke server. Periksa koneksi internet.", "error");
+  }
+}
+
+async function handleMemberRegister(phone, name, password) {
+  showToast("Mendaftarkan akun Member VIP...", "info");
+  try {
+    const res = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "registerMember",
+        phone: phone,
+        name: name,
+        password: password
+      })
+    });
+    const json = await res.json();
+    if (json.status === "success" && json.member) {
+      currentMemberSession = json.member;
+      localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      showToast(json.message || "Pendaftaran berhasil!", "success");
+
+      const headerText = document.getElementById("headerMemberText");
+      if (headerText) headerText.textContent = json.member.name.split(" ")[0];
+
+      const authContainer = document.getElementById("memberAuthContainer");
+      const dashContainer = document.getElementById("memberDashboardContainer");
+      if (authContainer) authContainer.classList.add("hidden");
+      if (dashContainer) dashContainer.classList.remove("hidden");
+
+      renderMemberDashboardUI(json.member, []);
+    } else {
+      showToast(json.message || "Gagal mendaftar.", "error");
+    }
+  } catch (err) {
+    console.error("Register member error:", err);
+    showToast("Gagal mendaftar ke server. Periksa koneksi internet.", "error");
+  }
+}
+
+function handleMemberLogout() {
+  if (confirm("Apakah Anda yakin ingin keluar dari akun Member Delina?")) {
+    currentMemberSession = null;
+    localStorage.removeItem("delina_member_session");
+
+    const headerText = document.getElementById("headerMemberText");
+    if (headerText) headerText.textContent = "Member / Hadiah";
+
+    const authContainer = document.getElementById("memberAuthContainer");
+    const dashContainer = document.getElementById("memberDashboardContainer");
+    if (authContainer) authContainer.classList.remove("hidden");
+    if (dashContainer) dashContainer.classList.add("hidden");
+
+    switchMemberAuthMode("login");
+    showToast("Anda telah keluar dari akun Member.", "info");
+  }
+}
+
+async function refreshMemberDataOnline(phone) {
+  if (!phone || typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
+  try {
+    const res = await fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}`);
+    const json = await res.json();
+    if (json.status === "success" && json.member) {
+      currentMemberSession = json.member;
+      localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      renderMemberDashboardUI(json.member, json.claims || []);
+    }
+  } catch (e) {
+    console.warn("Online member refresh notice:", e);
+  }
+}
+
+function renderMemberDashboardUI(member, claims) {
+  if (!member) return;
+
+  const nameEl = document.getElementById("cardMemberName");
+  const phoneEl = document.getElementById("cardMemberPhone");
+  const dateEl = document.getElementById("memberRegisteredDateText");
+  const progressBar = document.getElementById("stampsProgressBar");
+  const unlockBtn = document.getElementById("btnClaimRewardUnlock");
+
+  if (nameEl) nameEl.textContent = member.name;
+  if (phoneEl) phoneEl.textContent = member.phone;
+  if (dateEl) dateEl.textContent = member.registeredAt || "-";
+
+  const count = Number(member.belanjaCount) || 0;
+  const stampText = document.getElementById("cardStampCounterText") || document.getElementById("stampCountText");
+  if (stampText) stampText.textContent = `${count} / 30`;
+
+  const percent = Math.min(100, Math.round((count / 30) * 100));
+  if (progressBar) progressBar.style.width = `${percent}%`;
+
+  // Render 30 Slot Stempel
+  renderMemberStamps(count);
+
+  // Tombol Buka Kunci Hadiah
+  if (unlockBtn) {
+    if (count >= 30) {
+      unlockBtn.className = "w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer animate-pulse transition-all active:scale-95";
+      unlockBtn.innerHTML = `<i class="bi bi-gift-fill text-slate-950 text-base"></i> <span>🎉 PILIH 1 HADIAH GRATIS SEKARANG! (${count}/30)</span>`;
+      unlockBtn.disabled = false;
+    } else {
+      unlockBtn.className = "w-full py-2 px-3 rounded-xl bg-white/10 text-emerald-200/80 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed";
+      unlockBtn.innerHTML = `<i class="bi bi-lock-fill"></i> <span>Terkunci (Butuh ${30 - count} stempel lagi untuk membuka hadiah)</span>`;
+      unlockBtn.disabled = true;
+    }
+  }
+
+  // Render Katalog 10 Hadiah
+  renderMemberRewardsCatalog(memberRewardsList, count);
+
+  // Render Riwayat Klaim
+  renderMemberClaimsHistory(claims || []);
+}
+
+function renderMemberStamps(count) {
+  const container = document.getElementById("cardStampsGrid") || document.getElementById("memberStampsGrid");
+  if (!container) return;
+
+  let html = "";
+  for (let i = 1; i <= 30; i++) {
+    const isStamped = i <= count;
+    const isTarget = i === 30;
+
+    if (isStamped) {
+      html += `
+        <div class="aspect-square rounded-xl bg-gradient-to-tr from-amber-400 to-amber-300 text-slate-950 flex flex-col items-center justify-center font-black text-[10px] shadow-sm transform hover:scale-105 transition-all" title="Stempel Ke-${i} Terkumpul">
+          <i class="bi bi-check-circle-fill text-emerald-900 text-xs"></i>
+          <span class="text-[8px] font-black">${i}</span>
+        </div>
+      `;
+    } else if (isTarget) {
+      html += `
+        <div class="aspect-square rounded-xl border-2 border-dashed border-amber-400/80 bg-amber-400/20 text-amber-300 flex flex-col items-center justify-center font-black text-[9px] animate-pulse" title="Slot Hadiah Spesial">
+          <i class="bi bi-gift-fill text-amber-300 text-sm"></i>
+          <span class="text-[8px] font-bold">30</span>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="aspect-square rounded-xl border border-white/15 bg-white/5 text-emerald-300/40 flex items-center justify-center font-mono text-[9px] font-semibold">
+          ${i}
+        </div>
+      `;
+    }
+  }
+  container.innerHTML = html;
+}
+
+function renderMemberRewardsCatalog(rewards, belanjaCount) {
+  const container = document.getElementById("rewardsCardsGrid");
+  if (!container) return;
+
+  const defaultRewards = [
+    { id: "HDH-01", name: "Tumbler Stainless Steel Delina Exclusive (500ml Tahan Panas/Dingin)", imageUrl: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600", stock: 25, description: "Tumbler premium tahan panas dingin 12 jam." },
+    { id: "HDH-02", name: "Minyak Goreng Premium 1 Liter (Bimoli / SunCo)", imageUrl: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600", stock: 40, description: "Minyak goreng kelapa sawit higienis jernih." },
+    { id: "HDH-03", name: "Paket Skincare Glow & Bright Wardah / Garnier", imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600", stock: 15, description: "Facial wash + serum pencerah kulit." },
+    { id: "HDH-04", name: "Paket Alat Tulis Kantor Mewah (Joyko Executive Set)", imageUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600", stock: 30, description: "Set buku notes spiral, pulpen gel, dan sticky notes." },
+    { id: "HDH-05", name: "Beras Super Pulen 2.5 kg", imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600", stock: 20, description: "Beras putih wangi tanpa pemutih." },
+    { id: "HDH-06", name: "Paket Snack & Minuman Segar Keluarga", imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600", stock: 50, description: "Aneka wafer, biskuit renyah, dan minuman teh botol." },
+    { id: "HDH-07", name: "Tas Belanja Delina Premium (Eco Bag Canvas)", imageUrl: "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1?w=600", stock: 45, description: "Tas belanja kain kanvas tebal ramah lingkungan." },
+    { id: "HDH-08", name: "Payung Lipat Delina Anti-UV Lipat Otomatis", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600", stock: 20, description: "Payung lipat praktis tahan angin kencang." },
+    { id: "HDH-09", name: "Lip Cream Matte Velvet Halal", imageUrl: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600", stock: 25, description: "Lip cream lembut pigmen tinggi tidak membuat bibir kering." },
+    { id: "HDH-10", name: "Voucher Belanja Delina.store Senilai Rp 35.000", imageUrl: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600", stock: 100, description: "Voucher potongan langsung di Delina.store." }
+  ];
+
+  const list = rewards && rewards.length > 0 ? rewards : defaultRewards;
+  const canClaim = (belanjaCount || 0) >= 30;
+
+  let html = "";
+  list.forEach(r => {
+    const isOut = Number(r.stock) <= 0;
+    html += `
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex gap-3 items-center">
+        <img src="${formatImageUrl(r.imageUrl)}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500'" />
+        <div class="flex-1 min-w-0">
+          <h4 class="font-extrabold text-xs text-slate-900 truncate">${r.name}</h4>
+          <p class="text-[10px] text-slate-500 line-clamp-1 mt-0.5">${r.description || 'Pilihan hadiah eksklusif 30x belanja.'}</p>
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-[10px] font-bold ${isOut ? 'text-red-500' : 'text-emerald-700'}">
+              Stok: ${r.stock} unit
+            </span>
+            ${canClaim && !isOut ? `
+              <button 
+                type="button" 
+                onclick="claimSelectedReward('${r.id}')"
+                class="px-3 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] shadow-xs cursor-pointer active:scale-95 transition-all"
+              >
+                Klaim Ini 🎁
+              </button>
+            ` : `
+              <span class="text-[10px] text-slate-400 font-semibold">
+                ${isOut ? 'Habis' : 'Butuh 30 Stempel'}
+              </span>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderMemberClaimsHistory(claims) {
+  const container = document.getElementById("memberClaimsListContainer");
+  if (!container) return;
+
+  if (!claims || claims.length === 0) {
+    container.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">Belum ada riwayat penukaran hadiah.</p>`;
+    return;
+  }
+
+  let html = "";
+  claims.forEach(c => {
+    html += `
+      <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+        <div>
+          <strong class="text-slate-800 block">${c.rewardName}</strong>
+          <span class="text-[10px] text-slate-500 font-mono">Kode: ${c.claimId} • ${c.time}</span>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.status === 'Sudah Diserahkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+          ${c.status}
+        </span>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function scrollToRewardsSection() {
+  const section = document.getElementById("sectionRewardsCatalog");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function openRewardClaimModal(rewardId) {
+  claimSelectedReward(rewardId);
+}
+
+async function claimSelectedReward(rewardId) {
+  if (!currentMemberSession) {
+    showToast("Silakan masuk ke akun member Anda terlebih dahulu.", "error");
+    return;
+  }
+
+  const pinConfirm = prompt(`Konfirmasi Penukaran Hadiah:\nMasukkan Password/PIN akun Anda untuk menukarkan 30 stempel belanja dengan hadiah ini:`, "1234");
+  if (pinConfirm === null) return;
+
+  showToast("Memproses klaim hadiah Anda...", "info");
+  try {
+    const res = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "claimReward",
+        phone: currentMemberSession.phone,
+        password: pinConfirm.trim(),
+        idHadiah: rewardId
+      })
+    });
+    const json = await res.json();
+    if (json.status === "success") {
+      alert(`🎉 ALHAMDULILLAH KLAIM BERHASIL!\n\nHadiah: ${json.rewardName}\nKode Klaim: ${json.claimId}\nSisa Stempel: ${json.newBelanjaCount}/30\n\nSilakan tunjukkan Kode Klaim ini ke meja kasir Toko Delina saat mengambil hadiah.`);
+      
+      currentMemberSession.belanjaCount = json.newBelanjaCount;
+      currentMemberSession.totalClaimed = json.totalClaimed;
+      localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+
+      refreshMemberDataOnline(currentMemberSession.phone);
+    } else {
+      alert(`Afwan: ${json.message}`);
+    }
+  } catch (err) {
+    console.error("Claim error:", err);
+    showToast("Gagal memproses klaim ke server.", "error");
+  }
+}
+
+// Inisialisasi sesi member saat awal load halaman
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initMemberSessionFromStorage();
+  });
+}
+
 // Ekspos fungsi interaktif secara eksplisit ke window agar dapat dipanggil dari atribut onclick
 if (typeof window !== "undefined") {
   window.openPosModal = openPosModal;
@@ -2554,7 +3103,8 @@ if (typeof window !== "undefined") {
   window.setPosFilter = setPosFilter;
   window.handlePosSearch = handlePosSearch;
   window.renderPosOrders = renderPosOrders;
-  window.updateOrderStatusKasir = updateOrderStatusKasir;
+  window.changeOrderStatus = changeOrderStatus;
+  window.updateOrderStatusKasir = changeOrderStatus;
   window.sendCustomerWhatsAppNotification = sendCustomerWhatsAppNotification;
   window.openThermalReceiptModal = openThermalReceiptModal;
   window.closeThermalReceiptModal = closeThermalReceiptModal;
@@ -2600,4 +3150,18 @@ if (typeof window !== "undefined") {
   window.openLacakPesananModal = openLacakPesananModal;
   window.closeLacakPesananModal = closeLacakPesananModal;
   window.executeLacakPesanan = executeLacakPesanan;
+
+  // Global Member & Royalty Handlers
+  window.openMemberModal = openMemberModal;
+  window.closeMemberModal = closeMemberModal;
+  window.switchMemberAuthTab = switchMemberAuthTab;
+  window.switchMemberAuthMode = switchMemberAuthMode;
+  window.handleMemberAuthSubmit = handleMemberAuthSubmit;
+  window.handleMemberLogin = handleMemberLogin;
+  window.handleMemberRegister = handleMemberRegister;
+  window.handleMemberLogout = handleMemberLogout;
+  window.scrollToRewardsSection = scrollToRewardsSection;
+  window.openRewardClaimModal = openRewardClaimModal;
+  window.claimSelectedReward = claimSelectedReward;
+  window.formatImageUrl = formatImageUrl;
 }

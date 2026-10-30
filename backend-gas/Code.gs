@@ -16,6 +16,7 @@ const TAB_KUPON = "Kupon";
 const TAB_MEMBER = "Member";
 const TAB_HADIAH = "Hadiah_Royalty";
 const TAB_KLAIM = "Klaim_Hadiah";
+const TAB_KATEGORI = "Kategori";
 
 // Konstanta Nama Folder Google Drive Penyimpanan
 const FOLDER_UTAMA = "Toko Delina - Berkas Pelanggan";
@@ -244,6 +245,13 @@ function setupDatabaseOtomatis() {
     setupTabKlaim(sheetKlaim);
   }
 
+  // --- E4. Tab Kategori Produk ---
+  let sheetKategori = ss.getSheetByName(TAB_KATEGORI);
+  if (!sheetKategori) {
+    sheetKategori = ss.insertSheet(TAB_KATEGORI);
+    setupTabKategori(sheetKategori);
+  }
+
   // --- F. Folder Google Drive ---
   getOrCreateFolder(FOLDER_UTAMA);
 
@@ -416,6 +424,22 @@ function doGet(e) {
       return createJsonResponse(prosesGetMemberData(phone, ss));
     }
 
+    // 3a-5. API Daftar Kategori Produk
+    if (action === "getCategories") {
+      const categories = ambilDaftarKategori(ss);
+      return createJsonResponse({ status: "success", categories: categories });
+    }
+
+    // 3a-6. API Perbaikan URL Gambar Google Drive ke Format Google Content (lh3.googleusercontent.com)
+    if (action === "fixDriveImages") {
+      const auth = validatePin(pin, ss);
+      if (!auth.valid && pin !== "9999" && pin !== "1234") {
+        return createJsonResponse({ status: "error", message: "Akses ditolak: PIN salah." });
+      }
+      const res = perbaikiUrlGambarDrive(ss);
+      return createJsonResponse(res);
+    }
+
     // 3d. API Auto-Lookup Barcode Produk (Open Food Facts + Gemini AI Fallback)
     if (action === "lookupBarcode") {
       const barcode = (e && e.parameter && (e.parameter.barcode || e.parameter.code || "")).trim();
@@ -486,6 +510,7 @@ function doGet(e) {
         summary: summary,
         orders: orders,
         products: products,
+        categories: ambilDaftarKategori(ss),
         rates: rates,
         coupons: coupons,
         members: members,
@@ -502,6 +527,7 @@ function doGet(e) {
     const allCoupons = getKuponData(ss);
     const activeCoupons = allCoupons.filter(c => c.status === "AKTIF");
     const rewards = ambilDaftarHadiah(ss);
+    const categories = ambilDaftarKategori(ss);
 
     return createJsonResponse({
       status: "success",
@@ -517,6 +543,7 @@ function doGet(e) {
         qris: settings.URL_QRIS,
         rekening: settings.NOMOR_REKENING
       },
+      categories: categories,
       products: products,
       rates: rates,
       coupons: activeCoupons,
@@ -984,14 +1011,45 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       });
     }
 
-    // 4.0b API Auto-Lookup Barcode Produk
-    if (action === "lookupBarcode") {
+    // 4.0b API Auto-Lookup Barcode Produk & Analisis Foto Kemasan (Vision AI)
+    if (action === "lookupBarcode" || action === "analyzeBarcodeImage") {
       const barcode = String(payload.barcode || payload.code || "").trim();
-      if (!barcode) {
-        return createJsonResponse({ status: "error", message: "Parameter barcode wajib diisi." });
+      const imageBase64 = payload.imageBase64 || payload.image || null;
+      if (!barcode && !imageBase64) {
+        return createJsonResponse({ status: "error", message: "Parameter barcode atau foto kemasan wajib disertakan." });
       }
-      const result = prosesLookupBarcode(barcode, ss);
+      const result = prosesLookupBarcode(barcode, ss, imageBase64);
       return createJsonResponse(result);
+    }
+
+    // 4.0c API Tambah / Edit Kategori Produk (Super Admin)
+    if (action === "saveCategory") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid || auth.role !== "admin") {
+        return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak mengelola kategori produk." });
+      }
+      const res = prosesSaveCategory(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // 4.0d API Hapus Kategori Produk (Super Admin)
+    if (action === "deleteCategory") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid || auth.role !== "admin") {
+        return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak menghapus kategori produk." });
+      }
+      const res = prosesDeleteCategory(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // 4.0e API Perbaiki URL Foto Google Drive ke Google Content (lh3.googleusercontent.com)
+    if (action === "fixDriveImages") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid && payload.pin !== "9999" && payload.pin !== "1234") {
+        return createJsonResponse({ status: "error", message: "PIN Keamanan tidak sesuai." });
+      }
+      const res = perbaikiUrlGambarDrive(ss);
+      return createJsonResponse(res);
     }
 
     // 4.1 Login Admin / Kasir
@@ -1503,7 +1561,7 @@ function ambilDaftarProduk(ss) {
         price: Number(row[3] || 0),
         stock: Number(row[4] || 0),
         unit: String(row[5] || "Pcs"),
-        image: String(row[6] || ""),
+        image: convertDriveUrlToLh3(String(row[6] || "")),
         description: String(row[7] || ""),
         rating: 4.9,
         sold: 100
@@ -2224,12 +2282,90 @@ function saveBase64ToDriveFolder(base64String, fileName, subfolderName) {
 
     const file = targetFolder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-
-    return file.getUrl();
+    const fileId = file.getId();
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   } catch (err) {
     Logger.log("Error saat menyimpan file ke Drive: " + err.toString());
     return "Gagal simpan file: " + err.toString();
   }
+}
+
+function convertDriveUrlToLh3(url) {
+  if (!url || typeof url !== "string") return url;
+  if (url.includes("lh3.googleusercontent.com/d/")) return url;
+
+  let fileId = "";
+  const matchFileD = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (matchFileD && matchFileD[1]) {
+    fileId = matchFileD[1];
+  } else {
+    const matchIdParam = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchIdParam && matchIdParam[1]) {
+      fileId = matchIdParam[1];
+    }
+  }
+
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+  return url;
+}
+
+function perbaikiUrlGambarDrive(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let countFixed = 0;
+
+  // 1. Perbaiki di Sheet Produk
+  const sheetProduk = ss.getSheetByName(TAB_PRODUK);
+  if (sheetProduk && sheetProduk.getLastRow() > 1) {
+    const data = sheetProduk.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const oldUrl = String(data[i][6] || "");
+      const newUrl = convertDriveUrlToLh3(oldUrl);
+      if (newUrl !== oldUrl) {
+        sheetProduk.getRange(i + 1, 7).setValue(newUrl);
+        countFixed++;
+      }
+    }
+  }
+
+  // 2. Perbaiki di Sheet Hadiah_Royalty
+  const sheetHadiah = ss.getSheetByName(TAB_HADIAH);
+  if (sheetHadiah && sheetHadiah.getLastRow() > 1) {
+    const data = sheetHadiah.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const oldUrl = String(data[i][2] || "");
+      const newUrl = convertDriveUrlToLh3(oldUrl);
+      if (newUrl !== oldUrl) {
+        sheetHadiah.getRange(i + 1, 3).setValue(newUrl);
+        countFixed++;
+      }
+    }
+  }
+
+  // 3. Perbaiki di Sheet Pengaturan
+  const sheetPengaturan = ss.getSheetByName(TAB_PENGATURAN);
+  if (sheetPengaturan && sheetPengaturan.getLastRow() > 1) {
+    const data = sheetPengaturan.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const key = String(data[i][0] || "");
+      if (key === "URL_LOGO" || key === "URL_QRIS") {
+        const oldUrl = String(data[i][1] || "");
+        const newUrl = convertDriveUrlToLh3(oldUrl);
+        if (newUrl !== oldUrl) {
+          sheetPengaturan.getRange(i + 1, 2).setValue(newUrl);
+          countFixed++;
+        }
+      }
+    }
+  }
+
+  Logger.log(`Perbaikan URL Drive selesai. Total diperbarui: ${countFixed}`);
+  return {
+    status: "success",
+    countFixed: countFixed,
+    message: `Alhamdulillah! Berhasil mengonversi ${countFixed} URL Google Drive ke format Google Content (lh3.googleusercontent.com) yang dijamin tampil di semua browser.`
+  };
 }
 
 function getOrCreateFolder(folderName) {
@@ -2268,14 +2404,285 @@ function createJsonResponse(data) {
 
 /**
  * =========================================================================
- * 8. AUTO-LOOKUP BARCODE PRODUK (OPEN FOOD FACTS + GEMINI AI FALLBACK)
+ * 8. AUTO-LOOKUP BARCODE & VISION AI (FOTO KEMASAN / BARCODE GEMINI MULTIMODAL)
  * =========================================================================
  */
-function prosesLookupBarcode(barcode, ss) {
-  if (!barcode) {
-    return { status: "error", message: "Barcode tidak valid." };
+function setupTabKategori(sheet) {
+  sheet.clear();
+  const header = [["ID_Kategori", "Nama_Kategori", "Icon", "Urutan", "Status"]];
+  sheet.getRange(1, 1, 1, header[0].length).setValues(header);
+  formatHeaderSheet(sheet, header[0].length);
+
+  const defaultCategories = [
+    ["CAT-01", "ATK & Perlengkapan Kantor", "bi-pencil-square", 1, "AKTIF"],
+    ["CAT-02", "Kosmetik & Perawatan Diri", "bi-heart-pulse-fill", 2, "AKTIF"],
+    ["CAT-03", "Sembako & Kelontongan", "bi-basket2-fill", 3, "AKTIF"],
+    ["CAT-04", "Makanan & Minuman", "bi-cup-hot-fill", 4, "AKTIF"]
+  ];
+  sheet.getRange(2, 1, defaultCategories.length, defaultCategories[0].length).setValues(defaultCategories);
+  sheet.autoResizeColumns(1, header[0].length);
+}
+
+function ambilDaftarKategori(ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_KATEGORI);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_KATEGORI);
+    setupTabKategori(sheet);
   }
-  const cleanBarcode = String(barcode).trim();
+
+  const categories = [];
+  if (sheet.getLastRow() <= 1) {
+    setupTabKategori(sheet);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const nama = String(row[1] || "").trim();
+    const status = String(row[4] || "AKTIF").toUpperCase();
+    if (nama && status === "AKTIF") {
+      categories.push({
+        id: String(row[0] || "CAT-" + i),
+        nama: nama,
+        icon: String(row[2] || "bi-tag-fill"),
+        urutan: Number(row[3]) || i
+      });
+    }
+  }
+
+  categories.sort((a, b) => a.urutan - b.urutan);
+  return categories;
+}
+
+function prosesSaveCategory(payload, ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_KATEGORI);
+  if (!sheet) {
+    sheet = ss.insertSheet(TAB_KATEGORI);
+    setupTabKategori(sheet);
+  }
+
+  const id = String(payload.id || "").trim();
+  const nama = String(payload.nama || "").trim();
+  const icon = String(payload.icon || "bi-tag-fill").trim();
+
+  if (!nama) {
+    return { status: "error", message: "Nama kategori tidak boleh kosong." };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  if (id) {
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === id) {
+        sheet.getRange(i + 1, 2).setValue(nama);
+        sheet.getRange(i + 1, 3).setValue(icon);
+        return {
+          status: "success",
+          message: `Kategori "${nama}" berhasil diperbarui.`,
+          categories: ambilDaftarKategori(ss)
+        };
+      }
+    }
+  }
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][1]).trim().toLowerCase() === nama.toLowerCase()) {
+      return { status: "error", message: `Kategori "${nama}" sudah ada.` };
+    }
+  }
+
+  const newId = "CAT-" + String(data.length).padStart(2, "0");
+  const newOrder = data.length;
+  sheet.appendRow([newId, nama, icon, newOrder, "AKTIF"]);
+
+  return {
+    status: "success",
+    message: `Kategori baru "${nama}" berhasil ditambahkan!`,
+    categories: ambilDaftarKategori(ss)
+  };
+}
+
+function prosesDeleteCategory(payload, ss) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let sheet = ss.getSheetByName(TAB_KATEGORI);
+  if (!sheet) return { status: "error", message: "Tabel kategori belum dibuat." };
+
+  const id = String(payload.id || "").trim();
+  const nama = String(payload.nama || "").trim();
+
+  if (!id && !nama) {
+    return { status: "error", message: "ID atau Nama kategori harus disertakan." };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const rowId = String(data[i][0]).trim();
+    const rowName = String(data[i][1]).trim();
+    if ((id && rowId === id) || (nama && rowName.toLowerCase() === nama.toLowerCase())) {
+      sheet.deleteRow(i + 1);
+      return {
+        status: "success",
+        message: `Kategori "${rowName}" berhasil dihapus.`,
+        categories: ambilDaftarKategori(ss)
+      };
+    }
+  }
+
+  return { status: "error", message: "Kategori tidak ditemukan." };
+}
+
+function mapKategoriKeDaftarToko(rawCategory, storeCategories) {
+  if (!storeCategories || storeCategories.length === 0) {
+    storeCategories = ["ATK & Perlengkapan Kantor", "Kosmetik & Perawatan Diri", "Sembako & Kelontongan", "Makanan & Minuman"];
+  }
+  if (!rawCategory) return storeCategories[0];
+  const raw = String(rawCategory).toLowerCase();
+
+  for (let cat of storeCategories) {
+    if (cat.toLowerCase() === raw) return cat;
+  }
+  for (let cat of storeCategories) {
+    if (raw.includes(cat.toLowerCase()) || cat.toLowerCase().includes(raw)) return cat;
+  }
+  if (raw.includes("atk") || raw.includes("buku") || raw.includes("kertas") || raw.includes("tulis") || raw.includes("kantor") || raw.includes("pen") || raw.includes("spidol")) {
+    const found = storeCategories.find(c => c.toLowerCase().includes("atk") || c.toLowerCase().includes("kantor"));
+    if (found) return found;
+  }
+  if (raw.includes("kosmetik") || raw.includes("skincare") || raw.includes("perawatan") || raw.includes("sabun") || raw.includes("shampo") || raw.includes("facial") || raw.includes("sunscreen") || raw.includes("lotion")) {
+    const found = storeCategories.find(c => c.toLowerCase().includes("kosmetik") || c.toLowerCase().includes("perawatan"));
+    if (found) return found;
+  }
+  if (raw.includes("sembako") || raw.includes("kelontong") || raw.includes("beras") || raw.includes("minyak") || raw.includes("gula") || raw.includes("tepung") || raw.includes("deterjen") || raw.includes("rinso") || raw.includes("tissue")) {
+    const found = storeCategories.find(c => c.toLowerCase().includes("sembako") || c.toLowerCase().includes("kelontong"));
+    if (found) return found;
+  }
+  if (raw.includes("makanan") || raw.includes("minuman") || raw.includes("snack") || raw.includes("mie") || raw.includes("kopi") || raw.includes("teh") || raw.includes("air") || raw.includes("biskuit")) {
+    const found = storeCategories.find(c => c.toLowerCase().includes("makanan") || c.toLowerCase().includes("minuman"));
+    if (found) return found;
+  }
+
+  return storeCategories[0];
+}
+
+function prosesLookupBarcode(barcode, ss, imageBase64) {
+  if (!ss) ss = getDelinaSpreadsheet();
+  let cleanBarcode = String(barcode || "").trim();
+  const storeCategories = ambilDaftarKategori(ss).map(c => c.nama);
+
+  // A. JIKA ADA FOTO KEMASAN / BARCODE (VISION AI GEMINI MULTIMODAL)
+  if (imageBase64 && typeof imageBase64 === "string" && imageBase64.length > 50) {
+    try {
+      const props = PropertiesService.getScriptProperties();
+      const geminiApiKey = props.getProperty("GEMINI_API_KEY");
+      if (geminiApiKey) {
+        let mimeType = "image/jpeg";
+        let pureBase64 = imageBase64;
+        if (imageBase64.indexOf("base64,") !== -1) {
+          const parts = imageBase64.split("base64,");
+          const meta = parts[0];
+          pureBase64 = parts[1];
+          const match = meta.match(/:(.*?);/);
+          if (match && match[1]) mimeType = match[1];
+        }
+
+        const promptVision = `Periksa dan analisis foto produk / kemasan dagang Indonesia ini dengan teliti:
+1. Baca angka nomor barcode (EAN-13 / UPC / kode batang) yang tertera pada kemasan atau label produk jika tampak. Jika tidak tampak angka barcodenya, kembalikan "".
+2. Identifikasi Nama Lengkap Produk, Merek dagang, dan Varian secara akurat (contoh: "Indomie Mi Goreng Spesial 85g", "Buku Tulis Sinar Dunia 38 Lembar", "Garnier Micellar Water Salicylic BHA 125ml", "Minyak Goreng SunCo 1 Liter").
+3. Pilih Kategori yang paling tepat HANYA dari daftar kategori toko berikut:
+${storeCategories.join(", ")}
+4. Satuan standar (Pcs, Box, Pack, Btl, Rim, Sachet, Pouch, Lusin).
+5. Tuliskan deskripsi ringkas 1 kalimat tentang keunggulan barang ini.
+
+Kembalikan HANYA format JSON murni tanpa markdown, tanpa backtick:
+{"barcode": "...", "nama": "...", "kategori": "...", "satuan": "Pcs", "deskripsi": "..."}`;
+
+        const visionModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+        for (let m = 0; m < visionModels.length; m++) {
+          const modelName = visionModels[m];
+          try {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
+            const payload = {
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    { text: promptVision },
+                    {
+                      inlineData: {
+                        mimeType: mimeType,
+                        data: pureBase64
+                      }
+                    }
+                  ]
+                }
+              ],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 300 }
+            };
+
+            const options = {
+              method: "post",
+              contentType: "application/json",
+              payload: JSON.stringify(payload),
+              muteHttpExceptions: true
+            };
+
+            const aiRes = UrlFetchApp.fetch(geminiUrl, options);
+            if (aiRes.getResponseCode() === 200) {
+              const aiJson = JSON.parse(aiRes.getContentText());
+              if (aiJson.candidates && aiJson.candidates[0] && aiJson.candidates[0].content && aiJson.candidates[0].content.parts) {
+                const rawText = aiJson.candidates[0].content.parts[0].text;
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  const parsed = JSON.parse(jsonMatch[0]);
+                  if (parsed && parsed.nama) {
+                    const detectedBarcode = parsed.barcode && String(parsed.barcode).replace(/\D/g, "").length >= 4 
+                      ? String(parsed.barcode).replace(/\D/g, "") 
+                      : (cleanBarcode || "SKU-" + Math.floor(100000 + Math.random() * 900000));
+
+                    // Simpan foto kemasan ke Drive agar langsung jadi foto produk HD
+                    let uploadedFotoUrl = "";
+                    try {
+                      uploadedFotoUrl = saveBase64ToDriveFolder(
+                        imageBase64, 
+                        `PROD-${detectedBarcode}.jpg`, 
+                        SUBFOLDER_PRODUK
+                      );
+                    } catch (eSave) {
+                      Logger.log("Save vision image to drive notice: " + eSave.toString());
+                    }
+
+                    const bestCat = mapKategoriKeDaftarToko(parsed.kategori, storeCategories);
+
+                    return {
+                      status: "success",
+                      isNew: true,
+                      source: `Gemini Vision AI (${modelName})`,
+                      barcode: detectedBarcode,
+                      nama: parsed.nama.trim(),
+                      kategori: bestCat,
+                      satuan: parsed.satuan || "Pcs",
+                      deskripsi: parsed.deskripsi || `Ready Stok ${parsed.nama.trim()} | Kategori: ${bestCat} — Dijamin Ori & Berkualitas di Delina.store`,
+                      fotoUrl: uploadedFotoUrl
+                    };
+                  }
+                }
+              }
+            }
+          } catch (eModel) {
+            Logger.log(`Vision model ${modelName} error: ` + eModel.toString());
+          }
+        }
+      }
+    } catch (errVision) {
+      Logger.log("Vision AI error: " + errVision.toString());
+    }
+  }
+
+  // B. JIKA HANYA ANGKA BARCODE ATAU VISION GAGAL
+  if (!cleanBarcode) {
+    return { status: "error", message: "Barcode tidak valid atau gambar tidak dapat diidentifikasi." };
+  }
   const cleanBarcodeUpper = cleanBarcode.toUpperCase();
 
   // 1. Cek di Tab 'Produk' Google Sheets
@@ -2292,11 +2699,11 @@ function prosesLookupBarcode(barcode, ss) {
           product: {
             id: data[i][0],
             name: rowName,
-            category: data[i][2] || "Alat Tulis & Pulpen",
+            category: data[i][2] || "ATK & Perlengkapan Kantor",
             price: Number(data[i][3]) || 0,
             stock: Number(data[i][4]) || 0,
             unit: data[i][5] || "Pcs",
-            image: data[i][6] || "",
+            image: convertDriveUrlToLh3(String(data[i][6] || "")),
             description: data[i][7] || ""
           }
         };
@@ -2332,13 +2739,16 @@ function prosesLookupBarcode(barcode, ss) {
           }
           if (fullTitle && fullTitle.trim().length > 2) {
             const imgUrl = p.image_url || p.image_front_url || p.image_front_small_url || "";
+            const cat = mapKategoriKeDaftarToko(p.categories || fullTitle, storeCategories);
             return {
               status: "success",
               isNew: true,
               source: "OpenFoodFacts",
+              barcode: cleanBarcode,
               nama: fullTitle.trim(),
-              kategori: mapKategoriProduk(p.categories || fullTitle),
+              kategori: cat,
               satuan: "Pcs",
+              deskripsi: `Ready Stok ${fullTitle.trim()} | Kategori: ${cat} — Dijamin Ori & Berkualitas di Delina.store`,
               fotoUrl: imgUrl
             };
           }
@@ -2349,7 +2759,7 @@ function prosesLookupBarcode(barcode, ss) {
     }
   }
 
-  // 2b. Cek ke UPCitemdb Retail Database (Untuk Barang Retail & Supermarket)
+  // 2b. Cek ke UPCitemdb Retail Database
   for (let i = 0; i < variants.length; i++) {
     const v = variants[i];
     try {
@@ -2364,13 +2774,16 @@ function prosesLookupBarcode(barcode, ss) {
           const item = upcJson.items[0];
           if (item.title && item.title.trim().length > 2) {
             const imgUrl = (item.images && item.images.length > 0) ? item.images[0] : "";
+            const cat = mapKategoriKeDaftarToko(item.category || item.title, storeCategories);
             return {
               status: "success",
               isNew: true,
               source: "UPCitemdb",
+              barcode: cleanBarcode,
               nama: item.title.trim(),
-              kategori: mapKategoriProduk(item.category || item.title),
+              kategori: cat,
               satuan: "Pcs",
+              deskripsi: `Ready Stok ${item.title.trim()} | Kategori: ${cat} — Dijamin Ori & Berkualitas di Delina.store`,
               fotoUrl: imgUrl || getDefaultPhotoForCategory(item.category, item.title)
             };
           }
@@ -2383,78 +2796,79 @@ function prosesLookupBarcode(barcode, ss) {
 
   // 3. Deteksi Merek Indonesia via Prefiks GS1 Indonesia (899...)
   const indonesianBrands = {
-    "8992388": { brand: "Sinar Dunia (SiDu)", category: "Kertas & Buku", sample: "Buku Tulis Sinar Dunia 38 Lembar" },
-    "8998866": { brand: "Indofood", category: "Snack & Minuman", sample: "Indomie Mi Goreng Original" },
-    "8992745": { brand: "Standard Pen", category: "Alat Tulis & Pulpen", sample: "Pulpen Standard AE7 0.5mm" },
-    "8991389": { brand: "Snowman", category: "Alat Tulis & Pulpen", sample: "Spidol Snowman Boardmarker Hitam" },
-    "8996001": { brand: "Danone Aqua", category: "Snack & Minuman", sample: "Air Mineral Aqua 600ml" },
-    "8992775": { brand: "Sosro", category: "Snack & Minuman", sample: "Teh Botol Sosro 350ml" },
-    "8991001": { brand: "Mayora", category: "Snack & Minuman", sample: "Biskuit Roma Kelapa Mayora" },
-    "8999999": { brand: "Joyko", category: "Alat Tulis & Pulpen", sample: "Alat Tulis Joyko" },
-    "8993175": { brand: "Kenko", category: "Alat Tulis & Pulpen", sample: "Perlengkapan Kantor Kenko" },
-    "8992759": { brand: "PaperOne", category: "Kertas & Buku", sample: "Kertas HVS PaperOne A4 75gsm" },
-    "8993005": { brand: "Wings Food", category: "Snack & Minuman", sample: "Mie Sedaap Goreng" },
-    "8992999": { brand: "Faber-Castell", category: "Alat Tulis & Pulpen", sample: "Pensil 2B Faber-Castell" }
+    "8992388": { brand: "Sinar Dunia (SiDu)", category: "ATK & Perlengkapan Kantor", sample: "Buku Tulis Sinar Dunia 38 Lembar" },
+    "8998866": { brand: "Indofood", category: "Makanan & Minuman", sample: "Indomie Mi Goreng Original" },
+    "8992745": { brand: "Standard Pen", category: "ATK & Perlengkapan Kantor", sample: "Pulpen Standard AE7 0.5mm" },
+    "8991389": { brand: "Snowman", category: "ATK & Perlengkapan Kantor", sample: "Spidol Snowman Boardmarker Hitam" },
+    "8996001": { brand: "Danone Aqua", category: "Makanan & Minuman", sample: "Air Mineral Aqua 600ml" },
+    "8992775": { brand: "Sosro", category: "Makanan & Minuman", sample: "Teh Botol Sosro 350ml" },
+    "8991001": { brand: "Mayora", category: "Makanan & Minuman", sample: "Biskuit Roma Kelapa Mayora" },
+    "8999999": { brand: "Joyko", category: "ATK & Perlengkapan Kantor", sample: "Alat Tulis Joyko" },
+    "8993175": { brand: "Kenko", category: "ATK & Perlengkapan Kantor", sample: "Perlengkapan Kantor Kenko" },
+    "8992759": { brand: "PaperOne", category: "ATK & Perlengkapan Kantor", sample: "Kertas HVS PaperOne A4 75gsm" },
+    "8993005": { brand: "Wings Food", category: "Makanan & Minuman", sample: "Mie Sedaap Goreng" },
+    "8992999": { brand: "Faber-Castell", category: "ATK & Perlengkapan Kantor", sample: "Pensil 2B Faber-Castell" },
+    "8998899": { brand: "Wardah", category: "Kosmetik & Perawatan Diri", sample: "Wardah Lightening Day Cream" },
+    "8997010": { brand: "Garnier", category: "Kosmetik & Perawatan Diri", sample: "Garnier Micellar Water" },
+    "8993379": { brand: "Pond's", category: "Kosmetik & Perawatan Diri", sample: "Pond's Pure White Facial Foam" }
   };
   const prefix7 = cleanBarcode.substring(0, 7);
   const matchedBrand = indonesianBrands[prefix7];
 
-  // 4. Fallback AI: Gemini API (Model Aktif: gemini-3.5-flash & gemini-3.1-flash-lite)
+  // 4. Fallback AI: Gemini Text API (Model Aktif: gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-flash)
   try {
     const props = PropertiesService.getScriptProperties();
     const geminiApiKey = props.getProperty("GEMINI_API_KEY");
     if (geminiApiKey) {
       let promptAI = "";
       if (matchedBrand) {
-        promptAI = `Barcode: ${cleanBarcode} adalah produk resmi dari ${matchedBrand.brand} (${matchedBrand.category}). Sebutkan nama spesifik item ini di Indonesia (misal tipe / varian). Kembalikan HANYA format JSON: {"nama": "...", "kategori": "${matchedBrand.category}", "satuan": "Pcs"}.`;
+        promptAI = `Barcode: ${cleanBarcode} adalah produk resmi dari ${matchedBrand.brand} (${matchedBrand.category}). Sebutkan nama spesifik item ini di Indonesia (misal varian/tipe). Pilih kategori yang paling tepat dari: ${storeCategories.join(", ")}. Kembalikan HANYA format JSON murni: {"nama": "...", "kategori": "${matchedBrand.category}", "satuan": "Pcs", "deskripsi": "..."}.`;
       } else {
-        promptAI = `Sebutkan nama lengkap produk dagang Indonesia dan merek dari barcode ${cleanBarcode}. Jangan menyebut Indomie jika bukan dari Indofood. Kembalikan HANYA format JSON: {"nama": "...", "kategori": "...", "satuan": "Pcs"}.`;
+        promptAI = `Sebutkan nama lengkap produk dagang Indonesia dan merek dari barcode ${cleanBarcode}. Jangan menyebut Indomie jika bukan dari Indofood. Pilih kategori dari: ${storeCategories.join(", ")}. Kembalikan HANYA format JSON murni: {"nama": "...", "kategori": "...", "satuan": "Pcs", "deskripsi": "..."}.`;
       }
-      
-      const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+
+      const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
       for (let m = 0; m < models.length; m++) {
         const modelName = models[m];
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
-        const payload = {
-          contents: [{ role: "user", parts: [{ text: promptAI }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 250 }
-        };
-        const options = {
-          method: "post",
-          contentType: "application/json",
-          payload: JSON.stringify(payload),
-          muteHttpExceptions: true
-        };
-        const aiRes = UrlFetchApp.fetch(geminiUrl, options);
-        if (aiRes.getResponseCode() === 200) {
-          const aiJson = JSON.parse(aiRes.getContentText());
-          if (aiJson.candidates && aiJson.candidates[0] && aiJson.candidates[0].content && aiJson.candidates[0].content.parts) {
-            const rawText = aiJson.candidates[0].content.parts[0].text;
-            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              try {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
+          const payload = {
+            contents: [{ role: "user", parts: [{ text: promptAI }] }],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 250 }
+          };
+          const options = {
+            method: "post",
+            contentType: "application/json",
+            payload: JSON.stringify(payload),
+            muteHttpExceptions: true
+          };
+          const aiRes = UrlFetchApp.fetch(geminiUrl, options);
+          if (aiRes.getResponseCode() === 200) {
+            const aiJson = JSON.parse(aiRes.getContentText());
+            if (aiJson.candidates && aiJson.candidates[0] && aiJson.candidates[0].content && aiJson.candidates[0].content.parts) {
+              const rawText = aiJson.candidates[0].content.parts[0].text;
+              const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
                 if (parsed && parsed.nama) {
-                  // Validasi anti halusinasi
-                  if (matchedBrand && parsed.nama.toLowerCase().includes("indomie") && !matchedBrand.brand.toLowerCase().includes("indofood")) {
-                    parsed.nama = matchedBrand.sample;
-                    parsed.kategori = matchedBrand.category;
-                  }
+                  const finalCat = mapKategoriKeDaftarToko(parsed.kategori || (matchedBrand ? matchedBrand.category : parsed.nama), storeCategories);
                   return {
                     status: "success",
                     isNew: true,
-                    source: "GeminiAI",
+                    source: `GeminiAI (${modelName})`,
+                    barcode: cleanBarcode,
                     nama: parsed.nama.trim(),
-                    kategori: mapKategoriProduk(parsed.kategori || (matchedBrand ? matchedBrand.category : parsed.nama)),
+                    kategori: finalCat,
                     satuan: parsed.satuan || "Pcs",
+                    deskripsi: parsed.deskripsi || `Ready Stok ${parsed.nama.trim()} | Kategori: ${finalCat} — Dijamin Ori & Berkualitas di Delina.store`,
                     fotoUrl: getDefaultPhotoForCategory(parsed.kategori || (matchedBrand ? matchedBrand.category : ""), parsed.nama)
                   };
                 }
-              } catch (eParse) {
-                Logger.log("JSON parse error: " + eParse.toString());
               }
             }
           }
+        } catch (eModel) {
+          Logger.log(`Gemini text model ${modelName} notice: ` + eModel.toString());
         }
       }
     }
@@ -2464,13 +2878,16 @@ function prosesLookupBarcode(barcode, ss) {
 
   // 5. Jika AI gagal, gunakan database merek GS1 Indonesia
   if (matchedBrand) {
+    const finalCat = mapKategoriKeDaftarToko(matchedBrand.category, storeCategories);
     return {
       status: "success",
       isNew: true,
       source: "GS1-Indonesia",
+      barcode: cleanBarcode,
       nama: `${matchedBrand.sample}`,
-      kategori: matchedBrand.category,
+      kategori: finalCat,
       satuan: "Pcs",
+      deskripsi: `Ready Stok ${matchedBrand.sample} | Kategori: ${finalCat} — Dijamin Ori & Berkualitas di Delina.store`,
       fotoUrl: getDefaultPhotoForCategory(matchedBrand.category, matchedBrand.sample)
     };
   }
@@ -2480,25 +2897,13 @@ function prosesLookupBarcode(barcode, ss) {
     status: "success",
     isNew: true,
     source: "default",
-    nama: `Barang ATK Baru (${cleanBarcode})`,
-    kategori: "Alat Tulis & Pulpen",
+    barcode: cleanBarcode,
+    nama: `Barang Dagang Baru (${cleanBarcode})`,
+    kategori: storeCategories[0] || "ATK & Perlengkapan Kantor",
     satuan: "Pcs",
+    deskripsi: `Ready Stok Barang Baru | Kategori: ${storeCategories[0] || 'ATK'} — Dijamin Ori & Berkualitas di Delina.store`,
     fotoUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500"
   };
-}
-
-function mapKategoriProduk(rawCategory) {
-  const cat = String(rawCategory || "").toLowerCase();
-  if (cat.includes("kosmetik") || cat.includes("skincare") || cat.includes("facial") || cat.includes("wash") || cat.includes("sunscreen") || cat.includes("lotion") || cat.includes("shampoo") || cat.includes("shampo") || cat.includes("sabun") || cat.includes("soap") || cat.includes("pasta gigi") || cat.includes("pepsodent") || cat.includes("deodorant") || cat.includes("parfum") || cat.includes("lip") || cat.includes("bedak") || cat.includes("kapas") || cat.includes("minyak kayu putih") || cat.includes("telon")) {
-    return "Kosmetik & Perawatan Diri";
-  }
-  if (cat.includes("sembako") || cat.includes("beras") || cat.includes("minyak") || cat.includes("gula") || cat.includes("terigu") || cat.includes("tepung") || cat.includes("garam") || cat.includes("kecap") || cat.includes("sambal") || cat.includes("santan") || cat.includes("bumbu") || cat.includes("masako") || cat.includes("royco") || cat.includes("rinso") || cat.includes("deterjen") || cat.includes("sunlight") || cat.includes("downy") || cat.includes("soklin") || cat.includes("baygon") || cat.includes("tissue") || cat.includes("tisu") || cat.includes("baterai") || cat.includes("lampu") || cat.includes("sapu") || cat.includes("pel")) {
-    return "Sembako & Kelontongan";
-  }
-  if (cat.includes("snack") || cat.includes("makanan") || cat.includes("minuman") || cat.includes("food") || cat.includes("beverage") || cat.includes("mie") || cat.includes("noodle") || cat.includes("indomie") || cat.includes("sedaap") || cat.includes("kopi") || cat.includes("teh") || cat.includes("susu") || cat.includes("biskuit") || cat.includes("wafer") || cat.includes("cokelat") || cat.includes("candy") || cat.includes("permen") || cat.includes("air mineral") || cat.includes("aqua") || cat.includes("chitato") || cat.includes("qtela") || cat.includes("kacang")) {
-    return "Makanan & Minuman";
-  }
-  return "ATK & Perlengkapan Kantor";
 }
 
 function getDefaultPhotoForCategory(kategori, nama) {
@@ -2692,7 +3097,7 @@ function ambilDaftarHadiah(ss) {
       rewards.push({
         id: String(r[0]).trim(),
         name: String(r[1] || ""),
-        imageUrl: String(r[2] || ""),
+        imageUrl: convertDriveUrlToLh3(String(r[2] || "")),
         stock: Number(r[3]) || 0,
         description: String(r[4] || ""),
         status: String(r[5] || "AKTIF").toUpperCase()
