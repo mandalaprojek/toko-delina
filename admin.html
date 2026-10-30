@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Portal Kasir & Admin Toko Delina</title>
 
+  <!-- PWA Web App Manifest & Meta Tags -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0066b2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kasir Delina" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then((reg) => console.log("PWA Service Worker terdaftar:", reg.scope))
+          .catch((err) => console.warn("PWA Service Worker gagal:", err));
+      });
+    }
+  </script>
+
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -114,8 +135,51 @@
   <!-- =========================================================================
        1. LAYAR KUNCI LOGIN PIN (INTERAKTIF & KEYPAD VIRTUAL)
        ========================================================================= -->
-  <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-br from-emerald-950 via-delina-emerald to-slate-900">
-    <div class="w-full max-w-sm bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/40 flex flex-col items-center animate-fadeIn">
+  <div id="loginScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-950 via-delina-emerald to-slate-900 overflow-y-auto">
+    
+    <!-- PWA Install Banner untuk Kasir & Admin (Tampil jika didukung & belum di-dismiss) -->
+    <div id="adminPwaInstallBanner" class="hidden w-full max-w-sm mb-3.5 animate-fadeIn">
+      <div class="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 p-0.5 rounded-3xl shadow-2xl">
+        <div class="bg-slate-900/95 backdrop-blur-md rounded-[22px] p-4 text-white">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-amber-400/20 border border-amber-400/30 text-amber-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+              <i class="bi bi-shop"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black tracking-wider uppercase border border-amber-400/30 mb-1">
+                <i class="bi bi-star-fill text-[9px]"></i> Rekomendasi Kasir
+              </div>
+              <h3 class="font-black text-xs sm:text-sm text-white leading-snug">⚡ Pasang Aplikasi Kasir Delina di Layar Utama</h3>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                Akses kasir kilat lebih cepat, scan barcode leluasa tanpa address bar, dan cetak struk Bluetooth lebih stabil.
+              </p>
+              
+              <div class="mt-3 flex items-center gap-2">
+                <button 
+                  type="button" 
+                  onclick="triggerAdminPwaInstall()" 
+                  class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-tokopedia-green hover:from-emerald-500 hover:to-emerald-600 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="bi bi-phone"></i>
+                  <span>📲 Pasang Aplikasi Kasir</span>
+                </button>
+                <button 
+                  type="button" 
+                  onclick="dismissAdminPwaBanner()" 
+                  class="py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white font-bold text-xs transition-all cursor-pointer"
+                  title="Lewati instalasi"
+                >
+                  Lanjut di Browser
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kotak Login PIN -->
+    <div id="loginSection" class="w-full max-w-sm bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/40 flex flex-col items-center animate-fadeIn">
       
       <!-- Icon Toko & Judul -->
       <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-700 border-2 border-emerald-200 flex items-center justify-center text-3xl shadow-inner mb-3">
@@ -1899,6 +1963,50 @@
     const GAS_URL = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) 
       ? CONFIG.GAS_API_URL 
       : "https://script.google.com/macros/s/AKfycbyT06sft4rQBNQcQtoPDV7kNKk4ywk7_5bsMS1H3Dj2PozE2CYh4YpHgWKjPslfJBVA2w/exec";
+
+    // =========================================================
+    // PWA INSTALL PROMPT LOGIC (ADMIN & KASIR POS)
+    // =========================================================
+    let adminDeferredPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      adminDeferredPrompt = e;
+      const isDismissed = localStorage.getItem("delina_dismiss_admin_pwa");
+      if (!isDismissed) {
+        const banner = document.getElementById("adminPwaInstallBanner");
+        if (banner) banner.classList.remove("hidden");
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      adminDeferredPrompt = null;
+      const banner = document.getElementById("adminPwaInstallBanner");
+      if (banner) banner.classList.add("hidden");
+      showToastAdmin("✅ Aplikasi Kasir POS Delina berhasil dipasang di layar utama!");
+    });
+
+    function triggerAdminPwaInstall() {
+      if (adminDeferredPrompt) {
+        adminDeferredPrompt.prompt();
+        adminDeferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === "accepted") {
+            console.log("Kasir menyetujui instalasi PWA POS Delina");
+          }
+          adminDeferredPrompt = null;
+          const banner = document.getElementById("adminPwaInstallBanner");
+          if (banner) banner.classList.add("hidden");
+        });
+      } else {
+        alert("Untuk memasang Aplikasi Kasir di Layar Utama HP/Tablet:\n1. Ketuk ikon Pasang (Install) di bilah alamat browser, ATAU\n2. Buka menu titik tiga (⋮) lalu pilih 'Pasang Aplikasi' / 'Tambahkan ke Layar Utama'.");
+      }
+    }
+
+    function dismissAdminPwaBanner() {
+      localStorage.setItem("delina_dismiss_admin_pwa", "true");
+      const banner = document.getElementById("adminPwaInstallBanner");
+      if (banner) banner.classList.add("hidden");
+    }
 
     let enteredPin = "";
     let userRole = null; // "admin" atau "kasir"

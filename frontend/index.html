@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Delina.store - ATK, Kosmetik dan Kelontongan</title>
   
+  <!-- PWA Web App Manifest & Meta Tags -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0066b2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Delina.store" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then((reg) => console.log("PWA Service Worker terdaftar:", reg.scope))
+          .catch((err) => console.warn("PWA Service Worker gagal:", err));
+      });
+    }
+  </script>
+
   <!-- Font Google: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1539,6 +1560,60 @@
             </ul>
           </div>
 
+          <!-- KARTU PROMO PWA EKSKLUSIF VIP MEMBER (VIEW 1 - AUTH) -->
+          <div class="pwa-member-promo-card relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 p-4 sm:p-5 text-white shadow-xl border border-amber-400/30">
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-8 -top-8 w-32 h-32 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div class="space-y-2 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-400/30">
+                    <i class="bi bi-phone-fill text-[9px]"></i> VIP PWA App
+                  </span>
+                  <span class="text-[10px] text-emerald-300/80 font-bold">Akses 1-Klik Instan</span>
+                </div>
+
+                <h3 class="font-black text-sm sm:text-base text-white tracking-tight leading-snug">
+                  🎁 Simpan Kartu Member Delina di Layar HP!
+                </h3>
+                <p class="text-xs text-emerald-100/90 leading-relaxed">
+                  Pantau 30 stempel belanjaanmu kapan saja, klaim hadiah gratis lebih mudah, dan nikmati akses instan tanpa perlu buka browser.
+                </p>
+
+                <!-- Badges Keunggulan -->
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-0.5">
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Ringan & Hemat Memori
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Tanpa Play Store
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Buka Instan
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tombol Aksi Pasang & Petunjuk iOS -->
+              <div class="w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0">
+                <button 
+                  type="button" 
+                  onclick="triggerCustomerPwaInstall()" 
+                  class="btn-install-pwa-trigger w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="bi bi-download"></i>
+                  <span>✨ Pasang Kartu Member (Install)</span>
+                </button>
+
+                <!-- Petunjuk Fallback Khusus iOS Safari -->
+                <div class="ios-pwa-guide hidden text-[11px] text-amber-200/95 bg-black/50 border border-amber-400/40 rounded-xl p-2.5 text-center sm:text-right max-w-xs">
+                  <span>📱 <strong>Pengguna iPhone/iPad:</strong> Ketuk tombol <strong>Bagikan (Share)</strong> <i class="bi bi-box-arrow-up text-amber-300"></i> lalu pilih <strong>'Tambahkan ke Layar Utama'</strong> ⊞.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- ================= VIEW 2: DASHBOARD MEMBER (JIKA SUDAH LOGIN) ================= -->
@@ -1586,6 +1661,60 @@
               </button>
             </div>
 
+          </div>
+
+          <!-- KARTU PROMO PWA EKSKLUSIF VIP MEMBER (VIEW 2 - DASHBOARD) -->
+          <div class="pwa-member-promo-card relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 p-4 sm:p-5 text-white shadow-xl border border-amber-400/30">
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-8 -top-8 w-32 h-32 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div class="space-y-2 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-400/30">
+                    <i class="bi bi-phone-fill text-[9px]"></i> VIP PWA App
+                  </span>
+                  <span class="text-[10px] text-emerald-300/80 font-bold">Akses 1-Klik Instan</span>
+                </div>
+
+                <h3 class="font-black text-sm sm:text-base text-white tracking-tight leading-snug">
+                  🎁 Simpan Kartu Member Delina di Layar HP!
+                </h3>
+                <p class="text-xs text-emerald-100/90 leading-relaxed">
+                  Pantau 30 stempel belanjaanmu kapan saja, klaim hadiah gratis lebih mudah, dan nikmati akses instan tanpa perlu buka browser.
+                </p>
+
+                <!-- Badges Keunggulan -->
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-0.5">
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Ringan & Hemat Memori
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Tanpa Play Store
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/10 text-emerald-200 border border-white/10">
+                    <i class="bi bi-check2 text-amber-400"></i> Buka Instan
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tombol Aksi Pasang & Petunjuk iOS -->
+              <div class="w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0">
+                <button 
+                  type="button" 
+                  onclick="triggerCustomerPwaInstall()" 
+                  class="btn-install-pwa-trigger w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="bi bi-download"></i>
+                  <span>✨ Pasang Kartu Member (Install)</span>
+                </button>
+
+                <!-- Petunjuk Fallback Khusus iOS Safari -->
+                <div class="ios-pwa-guide hidden text-[11px] text-amber-200/95 bg-black/50 border border-amber-400/40 rounded-xl p-2.5 text-center sm:text-right max-w-xs">
+                  <span>📱 <strong>Pengguna iPhone/iPad:</strong> Ketuk tombol <strong>Bagikan (Share)</strong> <i class="bi bi-box-arrow-up text-amber-300"></i> lalu pilih <strong>'Tambahkan ke Layar Utama'</strong> ⊞.</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- KATALOG 10 PILIHAN HADIAH ROYALTY -->

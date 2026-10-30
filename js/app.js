@@ -3658,4 +3658,88 @@ if (typeof window !== "undefined") {
   window.openPromoInfoModal = openPromoInfoModal;
   window.closePromoInfoModal = closePromoInfoModal;
   window.copyPromoCouponCode = copyPromoCouponCode;
+
+  // PWA Customer Handlers
+  window.triggerCustomerPwaInstall = triggerCustomerPwaInstall;
+  window.updatePwaButtons = updatePwaButtons;
 }
+
+// =========================================================
+// PWA INSTALL PROMPT & INSTALLATION LOGIC (CUSTOMER & MEMBER)
+// =========================================================
+let customerDeferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  customerDeferredPrompt = e;
+  updatePwaButtons(true, false);
+});
+
+window.addEventListener("appinstalled", () => {
+  customerDeferredPrompt = null;
+  updatePwaButtons(false, true);
+  if (typeof showToast === "function") {
+    showToast("🎉 Alhamdulillah! Aplikasi Delina.store berhasil dipasang di layar HP Anda.");
+  }
+});
+
+function updatePwaButtons(canInstall, isInstalled) {
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true || isInstalled;
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+
+  const buttons = document.querySelectorAll(".btn-install-pwa-trigger");
+  const iosGuides = document.querySelectorAll(".ios-pwa-guide");
+
+  buttons.forEach(btn => {
+    if (isStandalone) {
+      btn.innerHTML = `<i class="bi bi-check2-circle text-emerald-300"></i><span>Aplikasi Sudah Terpasang</span>`;
+      btn.disabled = true;
+      btn.classList.remove("bg-gradient-to-r", "from-amber-400", "via-amber-500", "to-yellow-500", "text-slate-950");
+      btn.classList.add("bg-emerald-800/80", "text-white", "cursor-default", "border", "border-emerald-600");
+    } else if (isIos) {
+      btn.innerHTML = `<i class="bi bi-box-arrow-up text-amber-300"></i><span>Cara Pasang di iPhone</span>`;
+    }
+  });
+
+  iosGuides.forEach(g => {
+    if (isIos && !isStandalone) {
+      g.classList.remove("hidden");
+    } else {
+      g.classList.add("hidden");
+    }
+  });
+}
+
+function triggerCustomerPwaInstall() {
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+  if (isStandalone) {
+    if (typeof showToast === "function") showToast("Aplikasi Delina.store sudah terpasang dan aktif di layar utama Anda.");
+    return;
+  }
+
+  if (isIos) {
+    const iosGuides = document.querySelectorAll(".ios-pwa-guide");
+    iosGuides.forEach(g => g.classList.remove("hidden"));
+    alert("📱 Petunjuk Memasang di iPhone/iPad (iOS Safari):\n\n1. Ketuk ikon Bagikan (Share) ⎋ di bilah bawah Safari.\n2. Gulir ke bawah lalu pilih 'Tambahkan ke Layar Utama' (Add to Home Screen ⊞).\n3. Ketuk 'Tambah' di pojok kanan atas.\n\nSelesai! Ikon Delina.store akan langsung muncul di layar HP Anda.");
+    return;
+  }
+
+  if (customerDeferredPrompt) {
+    customerDeferredPrompt.prompt();
+    customerDeferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === "accepted") {
+        console.log("Pelanggan menyetujui instalasi PWA Delina.store");
+      }
+      customerDeferredPrompt = null;
+    });
+  } else {
+    alert("Untuk memasang Delina.store di Layar Utama HP:\n\n1. Ketuk menu titik tiga (⋮) di pojok kanan atas browser Chrome/Edge.\n2. Pilih 'Pasang Aplikasi' atau 'Tambahkan ke Layar Utama'.\n3. Konfirmasi pasang.");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updatePwaButtons(false, false);
+});
+
