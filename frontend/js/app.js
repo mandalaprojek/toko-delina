@@ -617,7 +617,7 @@ function showToast(message, type = "success") {
 }
 
 // 9. Buka/Tutup Keranjang
-function toggleCartDrawer(open = true) {
+function toggleCartDrawer(open = true, notifyHistory = true) {
   const drawer = document.getElementById("cartDrawer");
   const overlay = document.getElementById("cartOverlay");
   if (!drawer || !overlay) return;
@@ -634,7 +634,9 @@ function toggleCartDrawer(open = true) {
     if (activeBottomNav === "cart") {
       setActiveBottomNav("home");
     }
-    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+    if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") {
+      notifyModalClosed();
+    }
   }
 }
 
@@ -1242,30 +1244,43 @@ const setPrintType = updatePrintTypeUI;
 // =========================================================================
 
 function goToCheckout() {
-  if (cart.length === 0) {
-    alert("Keranjang masih kosong kak. Silakan pilih produk ATK atau pesanan cetak terlebih dahulu.");
+  if (!cart || cart.length === 0) {
+    if (typeof showToast === "function") {
+      showToast("⚠️ Keranjang masih kosong kak. Silakan pilih produk terlebih dahulu!");
+    } else {
+      alert("Keranjang masih kosong kak. Silakan pilih produk terlebih dahulu.");
+    }
     return;
   }
   openCheckoutModal();
 }
 
 function openCheckoutModal() {
-  toggleCartDrawer(false); // Tutup drawer belanja
+  // Tutup drawer belanja tanpa memicu history.back() karena ini transisi maju
+  toggleCartDrawer(false, false);
   renderCheckoutSummary();
 
   const modal = document.getElementById("checkoutModal");
   if (modal) {
     modal.classList.remove("hidden");
-    if (typeof pushModalState === "function") pushModalState("checkoutModal");
+    if (history.state && history.state.modalOpen) {
+      try {
+        history.replaceState({ modalOpen: true, modalId: "checkoutModal", count: modalHistoryCount }, "");
+      } catch (err) {}
+    } else {
+      if (typeof pushModalState === "function") pushModalState("checkoutModal");
+    }
   }
 }
 
-function closeCheckoutModal() {
+function closeCheckoutModal(notifyHistory = true) {
   const modal = document.getElementById("checkoutModal");
   if (modal) {
     const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
-    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+    if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") {
+      notifyModalClosed();
+    }
   }
 }
 
@@ -1849,8 +1864,8 @@ function submitOrderCheckout() {
     });
   }
 
-  // Tutup Modal Checkout
-  closeCheckoutModal();
+  // Tutup Modal Checkout tanpa memicu history.back() karena transisi maju ke sukses
+  closeCheckoutModal(false);
 
   // Buka Modal Sukses
   openSuccessModal(latestOrderData);
@@ -1882,7 +1897,13 @@ function openSuccessModal(order) {
   document.getElementById("successOrderTotal").textContent = order.totalAkhir;
 
   modal.classList.remove("hidden");
-  if (typeof pushModalState === "function") pushModalState("orderSuccessModal");
+  if (history.state && history.state.modalOpen) {
+    try {
+      history.replaceState({ modalOpen: true, modalId: "orderSuccessModal", count: modalHistoryCount }, "");
+    } catch (err) {}
+  } else {
+    if (typeof pushModalState === "function") pushModalState("orderSuccessModal");
+  }
 }
 
 function closeSuccessModal() {
@@ -3662,6 +3683,7 @@ if (typeof window !== "undefined") {
   window.applyCouponCode = applyCouponCode;
   window.removeCouponCode = removeCouponCode;
   window.toggleCartDrawer = toggleCartDrawer;
+  window.goToCheckout = goToCheckout;
   window.openCheckoutModal = openCheckoutModal;
   window.closeCheckoutModal = closeCheckoutModal;
   window.submitOrderCheckout = submitOrderCheckout;
