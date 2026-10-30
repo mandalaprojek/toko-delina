@@ -4018,7 +4018,12 @@ window.isAnyModalOpen = isAnyModalOpen;
 // =========================================================================
 let currentTheme = "light";
 try {
-  currentTheme = localStorage.getItem("delina_theme") || "light";
+  const saved = localStorage.getItem("delina_theme");
+  if (saved === "dark" || saved === "light") {
+    currentTheme = saved;
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    currentTheme = "dark";
+  }
 } catch (e) {}
 
 function applyDelinaTheme(theme) {
@@ -4028,11 +4033,28 @@ function applyDelinaTheme(theme) {
   } catch (e) {}
 
   const html = document.documentElement;
+
+  // 1. Elemen Saklar In-Page (#sectionThemeSwitcher)
+  const pageKnob = document.getElementById("pageThemeSwitchKnob");
+  const pageKnobIcon = document.getElementById("pageThemeKnobIcon");
+
+  // 2. Elemen Saklar Modal (#modalThemeToggle) jika ada
   const knob = document.getElementById("themeSwitchKnob");
   const indicator = document.getElementById("themeKnobIndicator");
 
   if (currentTheme === "dark") {
     html.classList.add("dark");
+
+    // In-Page Switch Knob: Posisi BAWAH (translateY(48px)), hijau zamrud menyala + bulan sabit mini putih
+    if (pageKnob) {
+      pageKnob.style.transform = "translateY(48px)";
+      pageKnob.className = "w-[52px] h-[52px] rounded-full shadow-lg shadow-emerald-500/50 transition-all duration-300 transform flex items-center justify-center absolute top-1.5 left-1.5 bg-emerald-500 border border-emerald-400 text-white";
+    }
+    if (pageKnobIcon) {
+      pageKnobIcon.innerHTML = `<svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" /></svg>`;
+    }
+
+    // Modal Knob
     if (knob) {
       knob.style.transform = "translateY(56px)";
       knob.className = "w-[68px] h-[68px] rounded-[22px] bg-emerald-500 shadow-md shadow-emerald-500/40 text-white border border-emerald-400 flex items-center justify-center transition-all duration-300 ease-in-out absolute top-[6px] left-[6px]";
@@ -4042,6 +4064,17 @@ function applyDelinaTheme(theme) {
     }
   } else {
     html.classList.remove("dark");
+
+    // In-Page Switch Knob: Posisi ATAS (translateY(0px)), gradasi putih perak halus + matahari mini redup
+    if (pageKnob) {
+      pageKnob.style.transform = "translateY(0px)";
+      pageKnob.className = "w-[52px] h-[52px] rounded-full shadow-md transition-all duration-300 transform flex items-center justify-center absolute top-1.5 left-1.5 bg-gradient-to-b from-white to-[#e4e7eb] border border-white/90 text-amber-500";
+    }
+    if (pageKnobIcon) {
+      pageKnobIcon.innerHTML = `<svg class="w-5 h-5 text-amber-500/70" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>`;
+    }
+
+    // Modal Knob
     if (knob) {
       knob.style.transform = "translateY(0px)";
       knob.className = "w-[68px] h-[68px] rounded-[22px] bg-gradient-to-b from-white to-[#e4e7eb] shadow-md border border-white/90 flex items-center justify-center text-gray-600 transition-all duration-300 ease-in-out absolute top-[6px] left-[6px]";
@@ -4054,7 +4087,11 @@ function applyDelinaTheme(theme) {
 
 function toggleDelinaTheme() {
   const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  document.documentElement.classList.add("delina-theme-transition");
   applyDelinaTheme(nextTheme);
+  setTimeout(() => {
+    document.documentElement.classList.remove("delina-theme-transition");
+  }, 350);
   if (typeof showToast === "function") {
     showToast(nextTheme === "dark" ? "🌙 Beralih ke Mode Gelap" : "☀️ Beralih ke Mode Terang");
   }
@@ -4087,6 +4124,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 if (document.readyState === "complete" || document.readyState === "interactive") {
   applyDelinaTheme(currentTheme);
+}
+
+// Pantau perubahan preferensi tema OS pengguna jika belum set manual
+if (window.matchMedia) {
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      try {
+        if (!localStorage.getItem("delina_theme")) {
+          applyDelinaTheme(e.matches ? "dark" : "light");
+        }
+      } catch (err) {}
+    });
+  } catch (err) {}
 }
 
 // Export fungsi tema & navigasi ke window

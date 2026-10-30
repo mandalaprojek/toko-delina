@@ -588,6 +588,27 @@ html.dark .text-tokopedia-green {
   background-color: #10b981 !important;
 }
 
+/* Transisi Tema Halus */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#sectionThemeSwitcher,
+#mainHeader,
+#bottomNav,
+footer {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.delina-theme-transition,
+.delina-theme-transition *,
+.delina-theme-transition *::before,
+.delina-theme-transition *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+  transition-delay: 0s !important;
+}
+
+
 
 
 
