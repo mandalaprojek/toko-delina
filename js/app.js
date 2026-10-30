@@ -796,6 +796,158 @@ function addFotokopiToCart() {
 }
 
 // =========================================================================
+// 12.A HERO PROMOTIONAL CAROUSEL (RESPONSIVE & TOUCH SWIPE)
+// =========================================================================
+let heroCurrentIndex = 0;
+const HERO_TOTAL_SLIDES = 3;
+let heroAutoPlayTimer = null;
+const HERO_AUTOPLAY_INTERVAL = 4500; // 4.5 detik auto-play
+
+function goToHeroSlide(index) {
+  const track = document.getElementById("heroCarouselTrack");
+  const dots = document.querySelectorAll("#heroCarouselDots .hero-dot");
+  if (!track) return;
+
+  // Normalisasi index (wrap-around 0 s/d HERO_TOTAL_SLIDES - 1)
+  heroCurrentIndex = ((index % HERO_TOTAL_SLIDES) + HERO_TOTAL_SLIDES) % HERO_TOTAL_SLIDES;
+
+  // Animasi transform translateX yang halus
+  track.style.transform = `translateX(-${heroCurrentIndex * 100}%)`;
+
+  // Update visual dot indicator
+  dots.forEach((dot, idx) => {
+    if (idx === heroCurrentIndex) {
+      dot.classList.add("active");
+    } else {
+      dot.classList.remove("active");
+    }
+  });
+}
+
+function nextHeroSlide() {
+  goToHeroSlide(heroCurrentIndex + 1);
+}
+
+function prevHeroSlide() {
+  goToHeroSlide(heroCurrentIndex - 1);
+}
+
+function startHeroAutoPlay() {
+  stopHeroAutoPlay();
+  heroAutoPlayTimer = setInterval(() => {
+    nextHeroSlide();
+  }, HERO_AUTOPLAY_INTERVAL);
+}
+
+function stopHeroAutoPlay() {
+  if (heroAutoPlayTimer) {
+    clearInterval(heroAutoPlayTimer);
+    heroAutoPlayTimer = null;
+  }
+}
+
+function initHeroCarousel() {
+  const container = document.getElementById("heroCarousel");
+  const track = document.getElementById("heroCarouselTrack");
+  if (!container || !track) return;
+
+  // Inisialisasi awal ke slide pertama & nyalakan auto-play
+  goToHeroSlide(0);
+  startHeroAutoPlay();
+
+  // 1. Mouse Hover Events (Desktop / Laptop)
+  container.addEventListener("mouseenter", () => {
+    stopHeroAutoPlay();
+  });
+  container.addEventListener("mouseleave", () => {
+    startHeroAutoPlay();
+  });
+
+  // 2. Touch Swipe Events (Smartphone & Samsung Galaxy Tab)
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  let isSwiping = false;
+
+  container.addEventListener("touchstart", (e) => {
+    stopHeroAutoPlay();
+    if (e.touches && e.touches.length > 0) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchEndX = touchStartX;
+      touchEndY = touchStartY;
+      isSwiping = true;
+    }
+  }, { passive: true });
+
+  container.addEventListener("touchmove", (e) => {
+    if (!isSwiping || !e.touches || e.touches.length === 0) return;
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+  }, { passive: true });
+
+  container.addEventListener("touchend", (e) => {
+    if (!isSwiping) return;
+    isSwiping = false;
+
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+
+    // Geser horizontal jika swipe X melebihi threshold dan lebih besar dari gerakan vertikal
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        // Geser ke kiri -> Next slide
+        nextHeroSlide();
+      } else {
+        // Geser ke kanan -> Prev slide
+        prevHeroSlide();
+      }
+    }
+
+    startHeroAutoPlay();
+  }, { passive: true });
+
+  container.addEventListener("touchcancel", () => {
+    isSwiping = false;
+    startHeroAutoPlay();
+  }, { passive: true });
+}
+
+// Modal Fotokopi & Slide Action Handlers
+function openFotokopiCalculatorModal() {
+  const modal = document.getElementById("fotokopiCalculatorModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    calculateFotokopi();
+  }
+}
+
+function closeFotokopiCalculatorModal() {
+  const modal = document.getElementById("fotokopiCalculatorModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+}
+
+function submitFotokopiAndCloseModal() {
+  addFotokopiToCart();
+  closeFotokopiCalculatorModal();
+}
+
+function handleSlideBelanja() {
+  const categorySection = document.getElementById("categorySection");
+  if (categorySection) {
+    categorySection.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+// Alias setPrintType
+const setPrintType = updatePrintTypeUI;
+
+// =========================================================================
 // 13. LOGIKA MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2)
 // =========================================================================
 
@@ -2606,6 +2758,7 @@ document.addEventListener("DOMContentLoaded", () => {
   calculateFotokopi();
   fetchProductsFromGAS();
   initChidoriTooltip();
+  initHeroCarousel();
 
   // Live listener jika admin menambah/mengedit produk di tab admin (Sync Real-time tanpa refresh)
   window.addEventListener("storage", (e) => {
@@ -3211,4 +3364,16 @@ if (typeof window !== "undefined") {
   window.openRewardClaimModal = openRewardClaimModal;
   window.claimSelectedReward = claimSelectedReward;
   window.formatImageUrl = formatImageUrl;
+
+  // Hero Carousel & Fotokopi Handlers
+  window.initHeroCarousel = initHeroCarousel;
+  window.goToHeroSlide = goToHeroSlide;
+  window.nextHeroSlide = nextHeroSlide;
+  window.prevHeroSlide = prevHeroSlide;
+  window.openFotokopiCalculatorModal = openFotokopiCalculatorModal;
+  window.closeFotokopiCalculatorModal = closeFotokopiCalculatorModal;
+  window.submitFotokopiAndCloseModal = submitFotokopiAndCloseModal;
+  window.handleSlideBelanja = handleSlideBelanja;
+  window.setPrintType = updatePrintTypeUI;
+  window.updatePrintTypeUI = updatePrintTypeUI;
 }

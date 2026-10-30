@@ -251,3 +251,88 @@ body {
   display: none !important;
   opacity: 0;
 }
+
+/* ==========================================================================
+   HERO PROMOTIONAL CAROUSEL (RESPONSIVE & MOBILE POLISHED)
+   ========================================================================== */
+.hero-carousel-container {
+  border-radius: 1.5rem; /* rounded-3xl approx 24px */
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  touch-action: pan-y; /* izinkan scroll vertikal sembari menangkap geser horizontal */
+}
+
+@media (min-width: 640px) {
+  .hero-carousel-container {
+    border-radius: 1.75rem;
+  }
+}
+
+.hero-slide {
+  min-height: 185px;
+  max-height: 250px;
+}
+
+@media (max-width: 640px) {
+  .hero-slide {
+    min-height: 180px;
+    max-height: 220px; /* Di bawah 35% tinggi viewport HP */
+    padding: 1.15rem 1.15rem;
+  }
+}
+
+/* Glassmorphism badge */
+.hero-glass-badge {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Aksen visual dekoratif 3D di sisi kanan */
+.hero-icon-3d {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -1rem;
+  opacity: 0.16;
+  font-size: 7.5rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.25));
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+
+@media (min-width: 640px) {
+  .hero-icon-3d {
+    right: 0.5rem;
+    bottom: -0.5rem;
+    font-size: 9.5rem;
+    opacity: 0.20;
+  }
+}
+
+.hero-carousel-container:hover .hero-icon-3d {
+  transform: scale(1.08) rotate(4deg);
+  opacity: 0.26;
+}
+
+/* 3 Dots Indicator */
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.45);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.hero-dot.active {
+  width: 24px;
+  background-color: #fbbf24; /* Amber-400 */
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+}
+
