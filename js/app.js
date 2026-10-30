@@ -1913,27 +1913,39 @@ function sendConfirmationWhatsApp() {
 }
 
 // =========================================================================
-// 14. LOGIKA MOBILE & TABLET BOTTOM NAVIGATION BAR
+// 14. LOGIKA MOBILE & TABLET BOTTOM NAVIGATION BAR (GAYA GOPAY - HIJAU DELINA)
 // =========================================================================
 
 function setActiveBottomNav(menu) {
+  // Alias normalizer
+  if (menu === "member") menu = "hadiah";
+  if (menu === "lacak") menu = "riwayat";
   activeBottomNav = menu;
+
   const navBtns = document.querySelectorAll(".bottom-nav-btn");
   navBtns.forEach(btn => {
-    const isTarget = btn.dataset.nav === menu;
+    const btnNav = btn.dataset.nav;
+    const isTarget = btnNav === menu;
+    const pill = btn.querySelector(".nav-pill-wrapper");
     const label = btn.querySelector("span:not(.cart-badge)");
 
     if (isTarget) {
-      btn.classList.add("active", "text-tokopedia-green");
-      btn.classList.remove("text-gray-500");
+      btn.classList.add("active", "text-emerald-700");
+      btn.classList.remove("text-gray-500", "dark:text-gray-400");
+      if (pill) {
+        pill.className = "nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-semibold rounded-2xl py-1 px-3 sm:px-4 flex flex-col items-center justify-center transition-all";
+      }
       if (label) {
         label.classList.add("font-bold");
         label.classList.remove("font-medium");
       }
     } else {
-      btn.classList.remove("active", "text-tokopedia-green");
-      btn.classList.add("text-gray-500");
-      if (label) {
+      btn.classList.remove("active", "text-emerald-700");
+      btn.classList.add("text-gray-500", "dark:text-gray-400");
+      if (pill) {
+        pill.className = "nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all text-gray-500 dark:text-gray-400";
+      }
+      if (label && btnNav !== "hadiah") {
         label.classList.remove("font-bold");
         label.classList.add("font-medium");
       }
@@ -1942,27 +1954,36 @@ function setActiveBottomNav(menu) {
 }
 
 function handleBottomNav(menu) {
-  setActiveBottomNav(menu);
-
   switch (menu) {
     case "home":
+      setActiveBottomNav("home");
       window.scrollTo({ top: 0, behavior: "smooth" });
       selectCategory("Semua Produk");
       break;
 
     case "category":
+      setActiveBottomNav("category");
       const categorySection = document.getElementById("categorySection");
       if (categorySection) {
         categorySection.scrollIntoView({ behavior: "smooth" });
       }
       break;
 
+    case "hadiah":
     case "member":
-      openMemberModal();
+      setActiveBottomNav("hadiah");
+      openMemberModal("rewards");
       break;
 
+    case "riwayat":
     case "lacak":
+      setActiveBottomNav("riwayat");
       openLacakPesananModal();
+      break;
+
+    case "account":
+      setActiveBottomNav("account");
+      openThemeModal();
       break;
 
     case "cart":
@@ -3834,7 +3855,8 @@ function isAnyModalOpen() {
     "checkoutModal",
     "orderSuccessModal",
     "kikoChatModal",
-    "qrisInfoModal"
+    "qrisInfoModal",
+    "modalThemeToggle"
   ];
   for (const id of modalIds) {
     const el = document.getElementById(id);
@@ -3906,6 +3928,13 @@ function closeAllModals(isFromPopState = false) {
   const kiko = document.getElementById("kikoChatModal");
   if (kiko && !kiko.classList.contains("hidden")) {
     closeKikoChat();
+    closedAny = true;
+  }
+
+  // 10. Modal Theme Toggle
+  const theme = document.getElementById("modalThemeToggle");
+  if (theme && !theme.classList.contains("hidden")) {
+    closeThemeModal();
     closedAny = true;
   }
 
@@ -3983,5 +4012,93 @@ window.pushModalState = pushModalState;
 window.notifyModalClosed = notifyModalClosed;
 window.closeAllModals = closeAllModals;
 window.isAnyModalOpen = isAnyModalOpen;
+
+// =========================================================================
+// 21. SAKLAR TEMA MODERN (TERANG / GELAP) - PALET HIJAU EMERALD DELINA
+// =========================================================================
+let currentTheme = "light";
+try {
+  currentTheme = localStorage.getItem("delina_theme") || "light";
+} catch (e) {}
+
+function applyDelinaTheme(theme) {
+  currentTheme = theme === "dark" ? "dark" : "light";
+  try {
+    localStorage.setItem("delina_theme", currentTheme);
+  } catch (e) {}
+
+  const html = document.documentElement;
+  const knob = document.getElementById("themeSwitchKnob");
+  const knobIcon = document.getElementById("themeKnobIcon");
+  const statusLabel = document.getElementById("themeSwitchStatusLabel");
+  const iconMini = document.getElementById("themeSwitchIconMini");
+  const textMini = document.getElementById("themeSwitchTextMini");
+
+  if (currentTheme === "dark") {
+    html.classList.add("dark");
+    if (knob) {
+      knob.style.transform = "translateY(44px)";
+      knob.className = "w-11 h-11 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/40 text-white border border-emerald-400 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5";
+    }
+    if (knobIcon) knobIcon.className = "bi bi-moon-stars-fill";
+    if (statusLabel) statusLabel.className = "text-xs font-bold text-emerald-400 mb-3 flex items-center gap-1.5 transition-colors";
+    if (iconMini) iconMini.className = "bi bi-moon-stars-fill text-emerald-400";
+    if (textMini) textMini.textContent = "Mode Gelap Aktif";
+  } else {
+    html.classList.remove("dark");
+    if (knob) {
+      knob.style.transform = "translateY(0px)";
+      knob.className = "w-11 h-11 rounded-full bg-gradient-to-b from-white to-emerald-50 text-emerald-600 shadow-md border border-emerald-100 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5";
+    }
+    if (knobIcon) knobIcon.className = "bi bi-sun-fill";
+    if (statusLabel) statusLabel.className = "text-xs font-bold text-emerald-700 mb-3 flex items-center gap-1.5 transition-colors";
+    if (iconMini) iconMini.className = "bi bi-sun-fill text-amber-500";
+    if (textMini) textMini.textContent = "Mode Terang Aktif";
+  }
+}
+
+function toggleDelinaTheme() {
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  applyDelinaTheme(nextTheme);
+  if (typeof showToast === "function") {
+    showToast(nextTheme === "dark" ? "🌙 Beralih ke Mode Gelap" : "☀️ Beralih ke Mode Terang");
+  }
+}
+
+function openThemeModal() {
+  const modal = document.getElementById("modalThemeToggle");
+  if (!modal) return;
+  applyDelinaTheme(currentTheme);
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (typeof pushModalState === "function") pushModalState("modalThemeToggle");
+}
+
+function closeThemeModal() {
+  const modal = document.getElementById("modalThemeToggle");
+  if (!modal) return;
+  const wasOpen = !modal.classList.contains("hidden");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  if (activeBottomNav === "account") {
+    setActiveBottomNav("home");
+  }
+  if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+}
+
+// Inisialisasi tema saat berkas dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  applyDelinaTheme(currentTheme);
+});
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  applyDelinaTheme(currentTheme);
+}
+
+// Export fungsi tema ke window
+window.applyDelinaTheme = applyDelinaTheme;
+window.toggleDelinaTheme = toggleDelinaTheme;
+window.openThemeModal = openThemeModal;
+window.closeThemeModal = closeThemeModal;
+
 
 

@@ -36,16 +36,20 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            'tokopedia-green': '#03AC0E',
-            'tokopedia-dark': '#028a0b',
-            'delina-emerald': '#065f46',
+            'tokopedia-green': '#059669',
+            'tokopedia-dark': '#047857',
+            'delina-emerald': '#059669',
             'delina-dark': '#044e39',
             'delina-gold': '#d97706',
             'delina-amber': '#f59e0b',
@@ -58,10 +62,24 @@
     }
   </script>
 
+  <!-- Script Pencegah Flash Tema Gelap (Dark Mode Instant Init) -->
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem("delina_theme");
+        if (savedTheme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch(e) {}
+    })();
+  </script>
+
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261030_01" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261031_01" />
 </head>
-<body class="bg-[#F6F8F7] text-gray-800 antialiased min-h-screen flex flex-col pb-24">
+<body class="bg-[#F6F8F7] dark:bg-[#0b1320] text-gray-800 dark:text-gray-100 antialiased min-h-screen flex flex-col pb-24 transition-colors duration-300">
 
   <!-- ================= TOPBAR ISLAMI & INFORMASI TOKO ================= -->
   <div class="bg-delina-dark text-white text-[11px] py-1.5 px-4 hidden md:block">
@@ -1369,73 +1387,74 @@
     </div>
   </div>
 
-  <!-- ================= BOTTOM NAVIGATION BAR (MOBILE & TABLET SAMSUNG TAB A9+) ================= -->
-  <nav class="mobile-bottom-nav fixed bottom-0 sm:bottom-3.5 left-0 right-0 z-40 px-0 sm:px-4 pointer-events-none">
-    <div class="max-w-md sm:max-w-lg md:max-w-xl mx-auto pointer-events-auto bg-white/95 backdrop-blur-md border-t sm:border border-gray-200/90 sm:rounded-2xl shadow-[0_-2px_15px_rgba(0,0,0,0.06)] sm:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-      <div class="grid grid-cols-5 h-15 sm:h-16 items-center px-1 sm:px-2">
+  <!-- ================= BOTTOM NAVIGATION BAR (GAYA GOPAY - HIJAU EMERALD DELINA) ================= -->
+  <nav id="bottomNav" class="mobile-bottom-nav fixed bottom-0 sm:bottom-3.5 left-0 right-0 z-40 px-0 sm:px-4 pointer-events-none">
+    <div class="max-w-md sm:max-w-lg md:max-w-xl mx-auto pointer-events-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t sm:border border-gray-200/90 dark:border-slate-800 sm:rounded-2xl shadow-[0_-2px_15px_rgba(0,0,0,0.06)] sm:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+      <div class="grid grid-cols-5 h-16 sm:h-17 items-center px-1 sm:px-2">
         
-        <!-- 1. Beranda -->
+        <!-- 1. Beranda (Active pill gaya GoPay: bg-emerald-100 text-emerald-700 font-semibold rounded-2xl py-1 px-4) -->
         <button 
           data-nav="home"
           onclick="handleBottomNav('home')" 
-          class="bottom-nav-btn active flex flex-col items-center justify-center text-tokopedia-green transition-all py-1 focus:outline-none hover:scale-105 active:scale-95"
+          class="bottom-nav-btn active flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-400 transition-all py-1 focus:outline-none cursor-pointer"
           title="Beranda"
         >
-          <i class="bi bi-house-door-fill text-lg sm:text-xl"></i>
-          <span class="text-[10px] sm:text-xs font-bold mt-0.5">Beranda</span>
+          <div class="nav-pill-wrapper bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-semibold rounded-2xl py-1 px-3 sm:px-4 flex flex-col items-center justify-center transition-all">
+            <i class="fa-solid fa-house bi bi-house-door-fill text-base sm:text-lg"></i>
+            <span class="text-[10px] sm:text-xs font-bold mt-0.5">Beranda</span>
+          </div>
         </button>
 
         <!-- 2. Kategori -->
         <button 
           data-nav="category"
           onclick="handleBottomNav('category')" 
-          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 focus:outline-none hover:scale-105 active:scale-95"
-          title="Kategori ATK"
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 focus:outline-none cursor-pointer"
+          title="Kategori Produk"
         >
-          <i class="bi bi-grid text-lg sm:text-xl"></i>
-          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kategori</span>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
+            <i class="fa-solid fa-th-large bi bi-grid-fill text-base sm:text-lg"></i>
+            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Kategori</span>
+          </div>
         </button>
 
-        <!-- 3. Member & Hadiah (Aksen Menonjol di Tengah) -->
+        <!-- 3. Hadiah (TOMBOL TENGAH HERO ACTION MENGAMBANG) -->
         <button 
-          data-nav="member"
-          onclick="handleBottomNav('member')" 
-          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-delina-emerald transition-all py-1 relative focus:outline-none group"
-          title="Member & Hadiah Royalty (30x Belanja)"
+          data-nav="hadiah"
+          onclick="handleBottomNav('hadiah')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all py-1 relative focus:outline-none group cursor-pointer"
+          title="Kartu Member & Hadiah Gratis (30x Belanja)"
         >
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-600 text-slate-900 flex items-center justify-center shadow-lg -mt-6 border-2 border-white group-hover:scale-110 group-active:scale-95 transition-all">
-            <i class="bi bi-gift-fill text-base sm:text-lg text-slate-900"></i>
+          <div class="w-[52px] h-[52px] rounded-3xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 border-4 border-emerald-100 dark:border-slate-800 -mt-5 flex items-center justify-center transition-transform active:scale-95 group-hover:scale-105">
+            <i class="fa-solid fa-gift bi bi-gift-fill text-xl text-white"></i>
           </div>
-          <span class="text-[10px] sm:text-xs font-bold text-amber-700 mt-0.5">Hadiah</span>
+          <span class="text-[10px] sm:text-xs text-emerald-700 dark:text-emerald-400 font-bold mt-0.5">Hadiah</span>
         </button>
 
-        <!-- 4. Lacak Pesanan (Layanan Tanpa Antre) -->
+        <!-- 4. Riwayat (Nota Kuitansi & Lacak Pesanan) -->
         <button 
-          data-nav="lacak"
-          onclick="handleBottomNav('lacak')" 
-          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
-          title="Lacak Nota & Ambil Tanpa Antre"
+          data-nav="riwayat"
+          onclick="handleBottomNav('riwayat')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 relative focus:outline-none cursor-pointer"
+          title="Riwayat Pesanan & Lacak Nota"
         >
-          <div class="relative">
-            <i class="bi bi-qr-code text-lg sm:text-xl"></i>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
+            <i class="fa-solid fa-receipt bi bi-receipt text-base sm:text-lg"></i>
+            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Riwayat</span>
           </div>
-          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Lacak</span>
         </button>
 
-        <!-- 5. Keranjang (Sinkron Badge Otomatis) -->
+        <!-- 5. Akun (Menu Member & Saklar Tema) -->
         <button 
-          data-nav="cart"
-          onclick="handleBottomNav('cart')" 
-          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-tokopedia-green transition-all py-1 relative focus:outline-none hover:scale-105 active:scale-95"
-          title="Keranjang Belanja"
+          data-nav="account"
+          onclick="handleBottomNav('account')" 
+          class="bottom-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all py-1 relative focus:outline-none cursor-pointer"
+          title="Akun & Saklar Tema"
         >
-          <div class="relative">
-            <i class="bi bi-cart3 text-lg sm:text-xl"></i>
-            <span class="cart-badge absolute -top-1.5 -right-2.5 bg-delina-gold text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-sm" style="display: none;">
-              0
-            </span>
+          <div class="nav-pill-wrapper flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all">
+            <i class="fa-solid fa-user-circle bi bi-person-circle text-base sm:text-lg"></i>
+            <span class="text-[10px] sm:text-xs font-medium mt-0.5">Akun</span>
           </div>
-          <span class="text-[10px] sm:text-xs font-medium mt-0.5">Keranjang</span>
         </button>
 
       </div>
@@ -1894,6 +1913,93 @@
           Tutup
         </button>
       </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL SAKLAR "MAU MODE TERANG ATAU GELAP?" (THEME TOGGLE MODAL)
+       ========================================================================= -->
+  <div id="modalThemeToggle" onclick="if(event.target === this) closeThemeModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-3xl w-full max-w-sm sm:max-w-md shadow-2xl border border-gray-150 dark:border-slate-800 p-6 sm:p-8 relative overflow-hidden transition-colors duration-300">
+      
+      <!-- Tombol Tutup Silang -->
+      <button 
+        type="button" 
+        onclick="closeThemeModal()" 
+        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-400 hover:text-gray-700 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90"
+        title="Tutup Saklar"
+      >
+        <i class="bi bi-x-lg text-sm"></i>
+      </button>
+
+      <!-- Header Modal -->
+      <div class="text-center pt-2">
+        <h3 class="text-2xl font-bold text-gray-900 tracking-tight dark:text-white">
+          Mau mode terang atau gelap?
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Nyalain atau matiin saklar sesuai keinginan
+        </p>
+      </div>
+
+      <!-- Kartu Saklar Besar 3D di Tengah -->
+      <div 
+        id="themeSwitchCard" 
+        onclick="toggleDelinaTheme()" 
+        class="w-56 h-56 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-150 dark:border-slate-700 flex flex-col items-center justify-center mx-auto my-8 relative cursor-pointer select-none group transition-all duration-300 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-600"
+      >
+        <!-- Indikator Status Mini -->
+        <div id="themeSwitchStatusLabel" class="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-1.5 transition-colors">
+          <i id="themeSwitchIconMini" class="bi bi-sun-fill text-amber-500"></i>
+          <span id="themeSwitchTextMini">Mode Terang Aktif</span>
+        </div>
+
+        <!-- Rel Saklar Vertikal (Vertical Switch Track) -->
+        <div class="w-14 h-26 rounded-full bg-slate-100 dark:bg-slate-900/90 border-2 border-slate-200 dark:border-emerald-700/50 p-1.5 flex flex-col justify-between relative shadow-inner transition-colors duration-300">
+          
+          <!-- Ikon Matahari (Atas) -->
+          <div class="w-full flex justify-center text-xs text-amber-500 font-bold py-0.5 pointer-events-none">
+            <i class="bi bi-sun-fill"></i>
+          </div>
+
+          <!-- Knob Saklar Vertikal (Bisa Bergeser ke Bawah) -->
+          <div 
+            id="themeSwitchKnob" 
+            class="w-11 h-11 rounded-full bg-gradient-to-b from-white to-emerald-50 text-emerald-600 shadow-md border border-emerald-100 flex items-center justify-center text-lg transition-all duration-300 ease-in-out absolute top-1.5 left-1.5 group-hover:scale-105"
+          >
+            <i id="themeKnobIcon" class="bi bi-sun-fill"></i>
+          </div>
+
+          <!-- Ikon Bulan (Bawah) -->
+          <div class="w-full flex justify-center text-xs text-emerald-400 font-bold py-0.5 pointer-events-none">
+            <i class="bi bi-moon-stars-fill"></i>
+          </div>
+
+        </div>
+
+        <!-- Hint Text -->
+        <span class="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-3.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          Ketuk untuk beralih mode
+        </span>
+      </div>
+
+      <!-- Tombol Aksi Akses Kartu Member -->
+      <div class="flex justify-center mb-5">
+        <button 
+          type="button"
+          onclick="closeThemeModal(); openMemberModal();" 
+          class="px-4 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-200/80 dark:border-emerald-800 transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-95"
+        >
+          <i class="fa-solid fa-crown bi bi-award-fill text-amber-500"></i>
+          <span>Buka Akun & Kartu Member</span>
+        </button>
+      </div>
+
+      <!-- Teks Kepercayaan di Bawah -->
+      <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-center font-medium leading-relaxed">
+        100% Produk Halal & Berkualitas. Belanja Berkah, Hemat, dan Nyaman di Delina.store.
+      </p>
 
     </div>
   </div>

@@ -64,17 +64,35 @@ body {
 }
 
 .bottom-nav-btn.active {
-  color: #03AC0E;
+  color: #047857;
+}
+
+html.dark .bottom-nav-btn.active {
+  color: #34d399;
 }
 
 .bottom-nav-btn.active i {
-  transform: scale(1.1);
+  transform: scale(1.05);
   transition: transform 0.2s ease-in-out;
 }
 
 .bottom-nav-btn.active span {
   font-weight: 800;
-  color: #03AC0E;
+  color: #047857;
+}
+
+html.dark .bottom-nav-btn.active span {
+  color: #34d399;
+}
+
+.bottom-nav-btn.active .nav-pill-wrapper {
+  background-color: #d1fae5 !important;
+  color: #047857 !important;
+}
+
+html.dark .bottom-nav-btn.active .nav-pill-wrapper {
+  background-color: rgba(6, 95, 70, 0.5) !important;
+  color: #6ee7b7 !important;
 }
 
 /* Fade in animation for modals */
@@ -471,6 +489,104 @@ body {
 .alfagift-more-card:hover {
   transform: translateY(-2px);
 }
+
+/* ==========================================================================
+   DELINA DARK & LIGHT THEME PALETTE (EMERALD GREEN ACCENTS)
+   ========================================================================== */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b1320 !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark #mainHeader {
+  background-color: #111e2f !important;
+  border-color: #1e293b !important;
+}
+
+html.dark #bottomNav > div,
+html.dark .mobile-bottom-nav > div {
+  background-color: rgba(17, 30, 47, 0.95) !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .bg-white {
+  background-color: #162235 !important;
+}
+
+html.dark .bg-\[\#F6F8F7\] {
+  background-color: #0b1320 !important;
+}
+
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-gray-400,
+html.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.dark .border-gray-100,
+html.dark .border-gray-150,
+html.dark .border-gray-200,
+html.dark .border-slate-100,
+html.dark .border-slate-200 {
+  border-color: #1e293b !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-gray-100 {
+  background-color: #0f1928 !important;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #0f1928 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Primary Green Emerald accents stay rich & radiant */
+.text-delina-emerald {
+  color: #059669 !important;
+}
+
+html.dark .text-delina-emerald {
+  color: #34d399 !important;
+}
+
+.text-tokopedia-green {
+  color: #10b981 !important;
+}
+
+html.dark .text-tokopedia-green {
+  color: #34d399 !important;
+}
+
+.bg-delina-emerald {
+  background-color: #059669 !important;
+}
+
+.bg-tokopedia-green {
+  background-color: #10b981 !important;
+}
+
 
 
 
