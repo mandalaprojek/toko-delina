@@ -257,9 +257,9 @@
        ========================================================================= -->
   <div id="mainDashboard" class="hidden min-h-screen flex flex-col">
     
-    <!-- Top Header Bar (Ultra-Slim Edge-to-Edge App Bar on Mobile) -->
+    <!-- Top Header Bar (Ultra-Slim Edge-to-Edge App Bar on Mobile & Tablet) -->
     <header class="bg-gradient-to-r from-delina-emerald to-slate-900 text-white sticky top-0 z-40 shadow-md">
-      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3.5 flex items-center justify-between h-14 sm:h-auto">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3.5 flex items-center justify-between h-14 lg:h-auto">
         
         <!-- Sisi Kiri: Logo Delina & Judul Tab Aktif -->
         <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -268,21 +268,21 @@
             <i id="headerLogoIcon" class="bi bi-shop hidden"></i>
           </div>
           <div class="min-w-0">
-            <!-- Tampilan Mobile: Judul Tab Dinamis yang Sedang Dibuka -->
-            <div class="flex items-center gap-1.5 md:hidden">
+            <!-- Tampilan Mobile & Tablet: Judul Tab Dinamis yang Sedang Dibuka -->
+            <div class="flex items-center gap-1.5 lg:hidden">
               <span id="mobileHeaderTabTitle" class="font-black text-xs sm:text-sm text-white truncate leading-tight">Kasir POS</span>
               <span id="roleBadgeMobile" class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-amber-400 text-slate-950 uppercase">
                 Admin
               </span>
             </div>
             <!-- Tampilan Desktop: Nama Toko & Slogan -->
-            <div class="hidden md:flex items-center gap-2">
+            <div class="hidden lg:flex items-center gap-2">
               <h1 id="headerNamaToko" class="font-black text-sm sm:text-base leading-tight">Toko Delina</h1>
               <span id="roleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-xs uppercase tracking-wider">
                 Admin
               </span>
             </div>
-            <p id="headerSlogan" class="text-[11px] text-emerald-200/80 hidden md:block">Lengkap, Murah & Berkah</p>
+            <p id="headerSlogan" class="text-[11px] text-emerald-200/80 hidden lg:block">Lengkap, Murah & Berkah</p>
           </div>
         </div>
 
@@ -305,7 +305,7 @@
             title="Buka Website Etalase Toko"
           >
             <i class="bi bi-globe text-sm"></i>
-            <span class="hidden md:inline">Lihat Web</span>
+            <span class="hidden lg:inline">Lihat Web</span>
           </a>
 
           <button 
@@ -320,8 +320,8 @@
 
       </div>
 
-      <!-- Navigation Tabs (Bento Switcher) - DISEMBUNYIKAN DI LAYAR MOBILE, HANYA TAMPIL DI DESKTOP -->
-      <div id="adminTopTabsContainer" class="hidden md:block border-t border-white/10 bg-black/15 overflow-x-auto scroll-smooth">
+      <!-- Navigation Tabs (Bento Switcher) - DISEMBUNYIKAN DI LAYAR MOBILE & TABLET, HANYA TAMPIL DI DESKTOP/LAPTOP -->
+      <div id="adminTopTabsContainer" class="hidden lg:block border-t border-white/10 bg-black/15 overflow-x-auto scroll-smooth">
         <div class="max-w-7xl mx-auto px-4 flex gap-1 text-xs font-bold">
           
           <!-- Tab 1: Dashboard Keuangan (Admin Only) -->
@@ -399,8 +399,8 @@
       </div>
     </header>
 
-    <!-- Kontainer Konten Utama (Edge-to-Edge Canvas di Layar Mobile) -->
-    <main class="w-full max-w-full md:max-w-7xl mx-auto p-0 md:p-6 flex-1 pb-28 md:pb-8 bg-white md:bg-transparent overflow-x-hidden">
+    <!-- Kontainer Konten Utama (Edge-to-Edge Canvas di Layar Mobile & Tablet) -->
+    <main class="w-full max-w-full lg:max-w-7xl mx-auto p-0 lg:p-6 flex-1 pb-28 lg:pb-8 bg-white lg:bg-transparent" style="overflow-x: clip;">
 
       <!-- =========================================================
            TAB 1: DASHBOARD & KEUANGAN (KHUSUS SUPER ADMIN)
@@ -938,7 +938,7 @@
           <div class="bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/90 dark:border-slate-800 shadow-none md:shadow-xs space-y-3">
             
             <!-- STICKY HEADER KATALOG (FREEZE DI BATAS KOLOM PENCARIAN) -->
-            <div id="posStickyCatalogHeader" class="sticky top-14 md:top-[98px] z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-y border-slate-200/90 dark:border-slate-800 py-2.5 px-3 -mx-2 md:mx-0 shadow-sm space-y-2">
+            <div id="posStickyCatalogHeader" class="sticky top-14 lg:top-[98px] z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-y border-slate-200/90 dark:border-slate-800 py-2.5 px-3 -mx-2 md:mx-0 shadow-sm space-y-2">
               
               <!-- Baris 1: Judul Katalog, Counter, & Sticky Mini Cart Pill -->
               <div class="flex items-center justify-between gap-2">
@@ -1082,7 +1082,7 @@
       <!-- =========================================================
            TAB 4: KATALOG PRODUK & MANAJEMEN STOK
            ========================================================= -->
-       class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
+      <section id="tabContentProducts" class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
         
         <!-- Header Aksi Katalog -->
         <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center justify-between">
@@ -1521,7 +1521,7 @@
     <div 
       id="posFloatingCartBar" 
       onclick="openPosMobileCartDrawer()"
-      class="hidden md:hidden fixed bottom-16 left-3 right-3 z-30 bg-emerald-700 hover:bg-emerald-800 text-white p-3 rounded-2xl shadow-xl items-center justify-between cursor-pointer active:scale-98 transition-all"
+      class="hidden lg:hidden fixed bottom-16 left-3 right-3 z-30 bg-emerald-700 hover:bg-emerald-800 text-white p-3 rounded-2xl shadow-xl items-center justify-between cursor-pointer active:scale-98 transition-all"
     >
       <div class="flex items-center gap-2.5">
         <span class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">🛒</span>
@@ -1695,9 +1695,9 @@
     </div>
 
     <!-- =========================================================================
-         NAVBAR BAWAH KHUSUS MOBILE ADMIN POS (5 MENU)
+         NAVBAR BAWAH KHUSUS MOBILE & TABLET ADMIN POS (5 MENU)
          ========================================================================= -->
-    <nav id="adminMobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1.5 px-2 flex justify-around items-center shadow-lg">
+    <nav id="adminMobileBottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1.5 px-2 flex justify-around items-center shadow-lg">
       <!-- 1. Kasir POS -->
       <button 
         type="button" 
@@ -2862,11 +2862,19 @@
     // =========================================================
     // 2. NAVIGASI TAB
     // =========================================================
-    function switchTab(tabId) {
+    function switchTab(tabId, pushHistory = true) {
       // Periksa role jika kasir mencoba akses fitur admin
       if (userRole === "kasir" && ["dashboard", "coupons", "settings"].includes(tabId)) {
         tabId = "pos";
       }
+
+      // Catat riwayat tab di history peramban untuk dukungan tombol Back hardware Android
+      if (pushHistory && tabId !== currentAdminTab && !isHandlingAdminPopstate) {
+        try {
+          history.pushState({ adminTab: tabId }, "");
+        } catch (e) {}
+      }
+
       currentAdminTab = tabId;
 
       const tabs = ["dashboard", "pos", "queue", "products", "members", "coupons", "settings"];
@@ -6413,6 +6421,7 @@ ${escapeHtml(order.itemsText || "-")}
       const drawer = document.getElementById("posMobileCartDrawer");
       if (drawer) {
         drawer.classList.remove("hidden");
+        if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("posMobileCartDrawer");
         const deskPhone = document.getElementById("posMemberPhoneInput");
         const drawerPhone = document.getElementById("posDrawerMemberPhoneInput");
         if (deskPhone && drawerPhone) drawerPhone.value = deskPhone.value;
@@ -6428,7 +6437,9 @@ ${escapeHtml(order.itemsText || "-")}
     function closePosMobileCartDrawer() {
       const drawer = document.getElementById("posMobileCartDrawer");
       if (drawer) {
+        const wasOpen = !drawer.classList.contains("hidden");
         drawer.classList.add("hidden");
+        if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
       }
     }
 
@@ -7889,6 +7900,20 @@ ${escapeHtml(order.itemsText || "-")}
     function closeAllAdminModals(isFromPopState = false) {
       let anyClosed = false;
 
+      // 0. Mobile Cart Drawer
+      const drawer = document.getElementById("posMobileCartDrawer");
+      if (drawer && !drawer.classList.contains("hidden")) {
+        closePosMobileCartDrawer();
+        anyClosed = true;
+      }
+
+      // 0b. Modern Confirm/Alert Modal
+      const delinaModal = document.getElementById("delinaModernModal");
+      if (delinaModal && !delinaModal.classList.contains("opacity-0") && !delinaModal.classList.contains("pointer-events-none")) {
+        closeDelinaModernModal();
+        anyClosed = true;
+      }
+
       // 1. Lembar Sakti Modal
       const lembar = document.getElementById("lembarSaktiModal");
       if (lembar && !lembar.classList.contains("hidden")) {
@@ -7972,15 +7997,22 @@ ${escapeHtml(order.itemsText || "-")}
           return;
         }
 
-        // 2. Jika tidak ada modal dan bukan di tab default, kembali ke tab default
-        const defaultTab = (userRole === "kasir") ? "pos" : "dashboard";
-        if (currentAdminTab && currentAdminTab !== defaultTab) {
-          switchTab(defaultTab);
+        // 2. Jika ada state riwayat tab sebelumnya, navigasi kembali ke tab tersebut
+        if (e.state && e.state.adminTab) {
+          switchTab(e.state.adminTab, false);
           if (e && e.preventDefault) e.preventDefault();
           return;
         }
 
-        // 3. Jika sudah di tab default tanpa modal terbuka, biarkan back browser normal
+        // 3. Jika tidak ada state dan saat ini bukan di tab default, kembali ke tab default
+        const defaultTab = (userRole === "kasir") ? "pos" : "dashboard";
+        if (currentAdminTab && currentAdminTab !== defaultTab) {
+          switchTab(defaultTab, false);
+          if (e && e.preventDefault) e.preventDefault();
+          return;
+        }
+
+        // 4. Jika sudah di tab default tanpa modal terbuka, biarkan back browser normal
       } finally {
         setTimeout(() => { isHandlingAdminPopstate = false; }, 60);
       }
