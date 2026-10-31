@@ -600,20 +600,259 @@ function renderCartDrawer() {
   totalElem.textContent = formatRupiah(total);
 }
 
-// 8. Tampilkan Pesan Notifikasi Ringan (Toast)
-function showToast(message, type = "success") {
-  const toast = document.getElementById("toastNotification");
-  const toastText = document.getElementById("toastMessage");
-  if (!toast || !toastText) return;
+// Web Audio Synthesizer untuk Notifikasi Audio Halus
+let delinaAudioCtx = null;
+function getDelinaAudioCtx() {
+  if (!delinaAudioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) delinaAudioCtx = new AudioContextClass();
+  }
+  if (delinaAudioCtx && delinaAudioCtx.state === "suspended") {
+    delinaAudioCtx.resume();
+  }
+  return delinaAudioCtx;
+}
 
-  toastText.textContent = message;
-  toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
-  toast.classList.add("translate-y-0", "opacity-100");
+function beepToastSuccess() {
+  try {
+    const ctx = getDelinaAudioCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.13);
+  } catch (e) {}
+}
+
+function beepToastError() {
+  try {
+    const ctx = getDelinaAudioCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(400, now);
+    osc.frequency.exponentialRampToValueAtTime(260, now + 0.18);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.21);
+  } catch (e) {}
+}
+
+// 8. Tampilkan Pesan Notifikasi Ringan (Modern Top Toast)
+function showToast(message, type = "success") {
+  const container = document.getElementById("modernToastContainer");
+  if (!container) {
+    console.log("Toast:", message);
+    return;
+  }
+
+  const msgStr = String(message || "");
+  const isErr = (type === "error" || type === "danger" || msgStr.toLowerCase().includes("gagal") || msgStr.toLowerCase().includes("afwan") || msgStr.includes("❌") || msgStr.includes("⚠️"));
+  if (isErr) {
+    beepToastError();
+  } else {
+    beepToastSuccess();
+  }
+
+  const toast = document.createElement("div");
+  const borderColor = isErr 
+    ? "border-rose-500/50 bg-slate-900/95 text-rose-100 shadow-rose-900/20" 
+    : (type === "warning" ? "border-amber-500/50 bg-slate-900/95 text-amber-100 shadow-amber-900/20" : "border-emerald-500/50 bg-slate-900/95 text-white shadow-emerald-900/20");
+  const icon = isErr 
+    ? '<i class="bi bi-x-circle-fill text-rose-400 text-base flex-shrink-0"></i>' 
+    : (type === "warning" ? '<i class="bi bi-exclamation-triangle-fill text-amber-400 text-base flex-shrink-0"></i>' : '<i class="bi bi-check-circle-fill text-emerald-400 text-base flex-shrink-0"></i>');
+  const barColor = isErr ? "bg-rose-500" : (type === "warning" ? "bg-amber-400" : "bg-emerald-400");
+
+  toast.className = `pointer-events-auto backdrop-blur-md border ${borderColor} rounded-2xl p-3 shadow-2xl transition-all duration-300 transform -translate-y-2 opacity-0 flex flex-col overflow-hidden`;
+  
+  toast.innerHTML = `
+    <div class="flex items-center gap-2.5">
+      ${icon}
+      <span class="text-xs font-semibold leading-snug flex-1">${msgStr}</span>
+    </div>
+    <div class="h-0.5 w-full bg-slate-700/60 mt-2 rounded-full overflow-hidden">
+      <div class="toast-progress-bar h-full ${barColor} rounded-full" style="width: 100%; transition: width 3000ms linear;"></div>
+    </div>
+  `;
+
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.remove("-translate-y-2", "opacity-0");
+    toast.classList.add("translate-y-0", "opacity-100");
+    const bar = toast.querySelector(".toast-progress-bar");
+    if (bar) {
+      setTimeout(() => { bar.style.width = "0%"; }, 20);
+    }
+  });
 
   setTimeout(() => {
-    toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
     toast.classList.remove("translate-y-0", "opacity-100");
-  }, 2600);
+    toast.classList.add("-translate-y-2", "opacity-0");
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, 3200);
+}
+
+// DELINA MODERN MODAL DIALOG SYSTEM (CONFIRM & ALERT)
+let delinaModalResolver = null;
+
+function showDelinaConfirm({ title, subtitle = "Konfirmasi Belanja Delina", message = "", details = null, confirmText = "Ya, Lanjutkan", cancelText = "Batal", type = "success", icon = null }) {
+  return new Promise((resolve) => {
+    delinaModalResolver = resolve;
+    const modal = document.getElementById("delinaModernModal");
+    const card = document.getElementById("delinaModernModalCard");
+    const iconBox = document.getElementById("delinaModalIconBox");
+    const iconEl = document.getElementById("delinaModalIcon");
+    const titleEl = document.getElementById("delinaModalTitle");
+    const subEl = document.getElementById("delinaModalSubtitle");
+    const bodyEl = document.getElementById("delinaModalBody");
+    const detailsBox = document.getElementById("delinaModalDetailsBox");
+    const btnCancel = document.getElementById("delinaModalBtnCancel");
+    const btnConfirm = document.getElementById("delinaModalBtnConfirm");
+
+    if (!modal) {
+      resolve(confirm(message));
+      return;
+    }
+
+    titleEl.textContent = title || "Konfirmasi";
+    subEl.textContent = subtitle || "";
+    bodyEl.innerHTML = typeof message === "string" ? message.replace(/\n/g, "<br>") : "";
+
+    if (details) {
+      detailsBox.classList.remove("hidden");
+      detailsBox.innerHTML = details;
+    } else {
+      detailsBox.classList.add("hidden");
+      detailsBox.innerHTML = "";
+    }
+
+    btnCancel.classList.remove("hidden");
+    btnCancel.textContent = cancelText;
+    btnConfirm.textContent = confirmText;
+
+    if (type === "danger" || type === "delete") {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-trash3-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    } else if (type === "warning") {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-exclamation-triangle-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    } else {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-cart-check-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    }
+
+    btnCancel.onclick = () => {
+      closeDelinaModernModal();
+      resolve(false);
+    };
+
+    btnConfirm.onclick = () => {
+      closeDelinaModernModal();
+      resolve(true);
+    };
+
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    modal.classList.add("opacity-100", "pointer-events-auto");
+    if (card) {
+      card.classList.remove("scale-95");
+      card.classList.add("scale-100");
+    }
+  });
+}
+
+function showDelinaAlert({ title = "Informasi", subtitle = "Toko Delina", message = "", details = null, buttonText = "OK, Mengerti", type = "info", icon = null }) {
+  return new Promise((resolve) => {
+    delinaModalResolver = resolve;
+    const modal = document.getElementById("delinaModernModal");
+    const card = document.getElementById("delinaModernModalCard");
+    const iconBox = document.getElementById("delinaModalIconBox");
+    const iconEl = document.getElementById("delinaModalIcon");
+    const titleEl = document.getElementById("delinaModalTitle");
+    const subEl = document.getElementById("delinaModalSubtitle");
+    const bodyEl = document.getElementById("delinaModalBody");
+    const detailsBox = document.getElementById("delinaModalDetailsBox");
+    const btnCancel = document.getElementById("delinaModalBtnCancel");
+    const btnConfirm = document.getElementById("delinaModalBtnConfirm");
+
+    if (!modal) {
+      alert(message);
+      resolve();
+      return;
+    }
+
+    titleEl.textContent = title;
+    subEl.textContent = subtitle;
+    bodyEl.innerHTML = typeof message === "string" ? message.replace(/\n/g, "<br>") : "";
+
+    if (details) {
+      detailsBox.classList.remove("hidden");
+      detailsBox.innerHTML = details;
+    } else {
+      detailsBox.classList.add("hidden");
+      detailsBox.innerHTML = "";
+    }
+
+    btnCancel.classList.add("hidden");
+    btnConfirm.textContent = buttonText;
+
+    if (type === "success") {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-check-circle-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    } else if (type === "danger" || type === "error") {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-x-circle-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    } else {
+      iconBox.className = "w-12 h-12 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center text-2xl flex-shrink-0";
+      iconEl.className = icon || "bi bi-info-circle-fill";
+      btnConfirm.className = "px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+    }
+
+    btnConfirm.onclick = () => {
+      closeDelinaModernModal();
+      resolve(true);
+    };
+
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    modal.classList.add("opacity-100", "pointer-events-auto");
+    if (card) {
+      card.classList.remove("scale-95");
+      card.classList.add("scale-100");
+    }
+  });
+}
+
+function closeDelinaModernModal() {
+  const modal = document.getElementById("delinaModernModal");
+  const card = document.getElementById("delinaModernModalCard");
+  if (modal) {
+    modal.classList.remove("opacity-100", "pointer-events-auto");
+    modal.classList.add("opacity-0", "pointer-events-none");
+  }
+  if (card) {
+    card.classList.remove("scale-100");
+    card.classList.add("scale-95");
+  }
 }
 
 // 9. Buka/Tutup Keranjang
@@ -959,7 +1198,7 @@ async function handleFotokopiFileSelect(event) {
   // Batas 10 MB
   const maxBytes = 10 * 1024 * 1024;
   if (file.size > maxBytes) {
-    alert("Afwan kak, ukuran file dokumen melebihi batas maksimal 10 MB. Silakan pilih berkas yang lebih kecil atau kompres terlebih dahulu.");
+    showToast("Afwan kak, ukuran berkas melebihi batas 10 MB. Silakan kompres berkas terlebih dahulu.", "warning");
     event.target.value = "";
     return;
   }
@@ -979,10 +1218,10 @@ async function handleFotokopiFileSelect(event) {
     document.getElementById("fotokopiFileSizeText").textContent = `Siap cetak (${sizeFormatted})`;
     document.getElementById("fotokopiFileNotice").classList.remove("hidden");
     document.getElementById("fotokopiNoticeText").textContent = `${file.name} (${sizeFormatted})`;
-    showToast("Alhamdulillah, file dokumen berhasil diunggah.");
+    showToast("Alhamdulillah, file dokumen berhasil diunggah.", "success");
   } catch (err) {
     console.error("Gagal membaca file fotokopi:", err);
-    alert("Gagal memproses file dokumen.");
+    showToast("Gagal memproses file dokumen. Format tidak didukung.", "error");
   }
 }
 
@@ -1245,11 +1484,7 @@ const setPrintType = updatePrintTypeUI;
 
 function goToCheckout() {
   if (!cart || cart.length === 0) {
-    if (typeof showToast === "function") {
-      showToast("⚠️ Keranjang masih kosong kak. Silakan pilih produk terlebih dahulu!");
-    } else {
-      alert("Keranjang masih kosong kak. Silakan pilih produk terlebih dahulu.");
-    }
+    showToast("Keranjang belanja masih kosong kak. Silakan pilih produk terlebih dahulu!", "warning");
     return;
   }
   openCheckoutModal();
@@ -1550,7 +1785,7 @@ async function handlePaymentProofSelect(event) {
   // Batas 5 MB
   const maxBytes = 5 * 1024 * 1024;
   if (file.size > maxBytes) {
-    alert("Afwan kak, ukuran bukti transfer melebihi batas 5 MB. Silakan gunakan tangkapan layar yang lebih kecil.");
+    showToast("Afwan kak, ukuran bukti transfer melebihi batas 5 MB. Silakan gunakan foto yang lebih kecil.", "warning");
     event.target.value = "";
     return;
   }
@@ -1578,10 +1813,10 @@ async function handlePaymentProofSelect(event) {
       previewContainer.classList.remove("hidden");
     }
 
-    showToast("Alhamdulillah, bukti bayar siap dikonfirmasi.");
+    showToast("Alhamdulillah, bukti bayar siap dikonfirmasi.", "success");
   } catch (err) {
     console.error("Gagal membaca bukti bayar:", err);
-    alert("Gagal memproses file gambar bukti transfer.");
+    showToast("Gagal memproses file gambar bukti transfer.", "error");
   }
 }
 
@@ -1731,7 +1966,7 @@ function useSimulatedReceipt() {
     showToast("🧪 Struk simulasi berhasil dibuat & bukti bayar terverifikasi!", "success");
   } catch (err) {
     console.error("Gagal generate struk simulasi:", err);
-    alert("Gagal membuat struk simulasi. Silakan unggah foto biasa.");
+    showToast("Gagal membuat struk simulasi. Silakan unggah foto biasa.", "error");
   }
 }
 
@@ -1799,26 +2034,34 @@ function submitOrderCheckout() {
 
   // Validasi Isian Wajib
   if (!customerName) {
-    alert("Mohon masukkan Nama Lengkap Anda.");
+    showToast("Mohon masukkan Nama Lengkap Anda.", "warning");
     if (nameInput) nameInput.focus();
     return;
   }
 
   if (!customerPhone) {
-    alert("Mohon masukkan Nomor WhatsApp aktif Anda.");
+    showToast("Mohon masukkan Nomor WhatsApp aktif Anda.", "warning");
     if (phoneInput) phoneInput.focus();
     return;
   }
 
   if (selectedDeliveryMethod === "courier" && !customerAddress) {
-    alert("Mohon lengkapi Alamat Lengkap Pengiriman untuk kurir toko.");
+    showToast("Mohon lengkapi Alamat Lengkap Pengiriman untuk kurir toko.", "warning");
     if (addressInput) addressInput.focus();
     return;
   }
 
   // Wajib Unggah Bukti Bayar
   if (!uploadedPaymentProof) {
-    alert("⚠️ Bukti pembayaran (struk transfer / QRIS) wajib diunggah sebelum pesanan diproses!\n\n💡 Tips: Anda dapat mengklik tombol '[🧪 Gunakan Struk Simulasi / Uji Coba]' di atas untuk mencoba proses checkout tanpa harus menyiapkan foto asli.");
+    showDelinaAlert({
+      title: "Bukti Pembayaran Diperlukan",
+      subtitle: "Verifikasi Checkout Delina",
+      message: "Bukti transfer / pembayaran QRIS wajib diunggah sebelum pesanan diproses.",
+      details: "💡 Tips: Anda dapat mengklik tombol '[🧪 Gunakan Struk Simulasi / Uji Coba]' di atas untuk mencoba proses checkout secara langsung tanpa harus menyiapkan foto asli.",
+      buttonText: "Siap, Saya Mengerti",
+      type: "warning",
+      icon: "bi bi-receipt"
+    });
     return;
   }
 
@@ -2117,7 +2360,7 @@ async function executeLacakPesanan(customNota) {
   let notaQuery = (customNota || (input ? input.value : "")).trim().toUpperCase();
 
   if (!notaQuery) {
-    alert("Mohon masukkan nomor nota Delina Anda (contoh: #DLN-2026-XXXX)");
+    showToast("Mohon masukkan nomor nota Delina Anda (contoh: #DLN-2026-XXXX)", "warning");
     if (input) input.focus();
     return;
   }
@@ -2720,7 +2963,7 @@ async function loadPosOrders(forceRefresh = false) {
     const json = await res.json();
 
     if (json.status === "error") {
-      alert("PIN Kasir tidak sesuai! Silakan periksa kembali PIN Anda.");
+      showToast("PIN Kasir tidak sesuai! Silakan periksa kembali PIN Anda.", "error");
       lockPosSession();
       return;
     }
@@ -2942,12 +3185,12 @@ async function changeOrderStatus(orderId, newStatus) {
     if (json.status === "success") {
       showToast(`Alhamdulillah, status ${orderId} berhasil diubah.`);
     } else {
-      alert(`Gagal ubah status: ${json.message}`);
+      showToast(`Gagal ubah status: ${json.message}`, "error");
       loadPosOrders();
     }
   } catch (err) {
     console.error("Gagal ubah status:", err);
-    showToast(`Status lokal disimpan (${err.message})`);
+    showToast(`Status lokal disimpan (${err.message})`, "warning");
   }
 }
 
@@ -2957,7 +3200,7 @@ async function changeOrderStatus(orderId, newStatus) {
 function sendCustomerWhatsAppNotification(orderId) {
   const order = posOrders.find(o => o.orderId === orderId);
   if (!order) {
-    alert("Data pesanan tidak ditemukan.");
+    showToast("Data pesanan tidak ditemukan.", "error");
     return;
   }
 
@@ -2992,7 +3235,7 @@ _Jazakumullah khairan katsiran atas kepercayaannya. Semoga berkah, awet, dan ber
 function openThermalReceiptModal(orderId) {
   const order = posOrders.find(o => o.orderId === orderId);
   if (!order) {
-    alert("Data pesanan tidak ditemukan.");
+    showToast("Data pesanan tidak ditemukan.", "error");
     return;
   }
 
@@ -3406,6 +3649,7 @@ async function handleMemberLogin(phone, password) {
     });
     const json = await res.json();
     if (json.status === "success" && json.member) {
+      json.member.password = password;
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
       showToast(json.message || "Alhamdulillah, selamat datang kembali!", "success");
@@ -3443,6 +3687,7 @@ async function handleMemberRegister(phone, name, password) {
     });
     const json = await res.json();
     if (json.status === "success" && json.member) {
+      json.member.password = password;
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
       showToast(json.message || "Pendaftaran berhasil!", "success");
@@ -3465,8 +3710,17 @@ async function handleMemberRegister(phone, name, password) {
   }
 }
 
-function handleMemberLogout() {
-  if (confirm("Apakah Anda yakin ingin keluar dari akun Member Delina?")) {
+async function handleMemberLogout() {
+  const ok = await showDelinaConfirm({
+    title: "Keluar Akun Member?",
+    subtitle: "Program Hadiah Royalty Delina",
+    message: "Apakah Anda yakin ingin keluar dari akun Member Delina di perangkat ini?",
+    confirmText: "Ya, Keluar",
+    cancelText: "Batal",
+    type: "warning",
+    icon: "bi bi-box-arrow-right"
+  });
+  if (ok) {
     currentMemberSession = null;
     localStorage.removeItem("delina_member_session");
 
@@ -3489,6 +3743,9 @@ async function refreshMemberDataOnline(phone) {
     const res = await fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}`);
     const json = await res.json();
     if (json.status === "success" && json.member) {
+      if (currentMemberSession && currentMemberSession.password) {
+        json.member.password = currentMemberSession.password;
+      }
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
       renderMemberDashboardUI(json.member, json.claims || []);
@@ -3673,8 +3930,17 @@ async function claimSelectedReward(rewardId) {
     return;
   }
 
-  const pinConfirm = prompt(`Konfirmasi Penukaran Hadiah:\nMasukkan Password/PIN akun Anda untuk menukarkan 30 stempel belanja dengan hadiah ini:`, "1234");
-  if (pinConfirm === null) return;
+  const ok = await showDelinaConfirm({
+    title: "Tukarkan 30 Stempel?",
+    subtitle: "Program Hadiah Royalty Delina",
+    message: "Apakah Anda yakin ingin menukarkan 30 stempel belanja Anda dengan hadiah menarik ini?",
+    details: `Nama Member: ${currentMemberSession.name || "-"}\nNo. WhatsApp: ${currentMemberSession.phone || "-"}\nStempel Belanja: ${currentMemberSession.belanjaCount || 30} Stempel`,
+    confirmText: "Ya, Tukarkan Hadiah",
+    cancelText: "Batal",
+    type: "success",
+    icon: "bi bi-gift-fill"
+  });
+  if (!ok) return;
 
   showToast("Memproses klaim hadiah Anda...", "info");
   try {
@@ -3683,13 +3949,21 @@ async function claimSelectedReward(rewardId) {
       body: JSON.stringify({
         action: "claimReward",
         phone: currentMemberSession.phone,
-        password: pinConfirm.trim(),
+        password: currentMemberSession.password || "1234",
         idHadiah: rewardId
       })
     });
     const json = await res.json();
     if (json.status === "success") {
-      alert(`🎉 ALHAMDULILLAH KLAIM BERHASIL!\n\nHadiah: ${json.rewardName}\nKode Klaim: ${json.claimId}\nSisa Stempel: ${json.newBelanjaCount}/30\n\nSilakan tunjukkan Kode Klaim ini ke meja kasir Toko Delina saat mengambil hadiah.`);
+      await showDelinaAlert({
+        title: "🎉 ALHAMDULILLAH KLAIM BERHASIL!",
+        subtitle: "Program Hadiah Royalty Toko Delina",
+        message: "Klaim hadiah Anda berhasil diproses di sistem!",
+        details: `🎁 Hadiah: ${json.rewardName}\n🏷️ Kode Klaim: ${json.claimId}\n⭐ Sisa Stempel: ${json.newBelanjaCount}/30\n\n📌 Silakan tunjukkan Kode Klaim ini ke kasir Toko Delina saat mengambil hadiah fisik Anda.`,
+        buttonText: "Alhamdulillah, Siap!",
+        type: "success",
+        icon: "bi bi-trophy-fill"
+      });
       
       currentMemberSession.belanjaCount = json.newBelanjaCount;
       currentMemberSession.totalClaimed = json.totalClaimed;
@@ -3697,7 +3971,14 @@ async function claimSelectedReward(rewardId) {
 
       refreshMemberDataOnline(currentMemberSession.phone);
     } else {
-      alert(`Afwan: ${json.message}`);
+      await showDelinaAlert({
+        title: "Klaim Belum Berhasil",
+        subtitle: "Program Hadiah Royalty Delina",
+        message: json.message || "Stempel belum mencukupi atau terjadi kendala sistem.",
+        buttonText: "Tutup",
+        type: "warning",
+        icon: "bi bi-exclamation-triangle-fill"
+      });
     }
   } catch (err) {
     console.error("Claim error:", err);
@@ -3865,7 +4146,15 @@ function triggerCustomerPwaInstall() {
   if (isIos) {
     const iosGuides = document.querySelectorAll(".ios-pwa-guide");
     iosGuides.forEach(g => g.classList.remove("hidden"));
-    alert("📱 Petunjuk Memasang di iPhone/iPad (iOS Safari):\n\n1. Ketuk ikon Bagikan (Share) ⎋ di bilah bawah Safari.\n2. Gulir ke bawah lalu pilih 'Tambahkan ke Layar Utama' (Add to Home Screen ⊞).\n3. Ketuk 'Tambah' di pojok kanan atas.\n\nSelesai! Ikon Delina.store akan langsung muncul di layar HP Anda.");
+    showDelinaAlert({
+      title: "Pasang di iPhone / iPad",
+      subtitle: "Panduan Cepat iOS Safari",
+      message: "Ikuti 3 langkah mudah berikut untuk menambahkan aplikasi Delina ke Layar Utama Anda:",
+      details: "1. Ketuk ikon Bagikan (Share ⎋) di bilah bawah Safari.\n2. Gulir ke bawah lalu pilih 'Tambahkan ke Layar Utama' (Add to Home Screen ⊞).\n3. Ketuk 'Tambah' di pojok kanan atas.\n\nSelesai! Ikon Delina.store akan langsung muncul di layar HP Anda.",
+      buttonText: "OK, Saya Mengerti",
+      type: "info",
+      icon: "bi bi-apple"
+    });
     return;
   }
 
@@ -3878,7 +4167,15 @@ function triggerCustomerPwaInstall() {
       customerDeferredPrompt = null;
     });
   } else {
-    alert("Untuk memasang Delina.store di Layar Utama HP:\n\n1. Ketuk menu titik tiga (⋮) di pojok kanan atas browser Chrome/Edge.\n2. Pilih 'Pasang Aplikasi' atau 'Tambahkan ke Layar Utama'.\n3. Konfirmasi pasang.");
+    showDelinaAlert({
+      title: "Pasang Aplikasi Delina",
+      subtitle: "Petunjuk Instalasi Layar Utama",
+      message: "Browser Anda mendukung pemasangan aplikasi langsung ke layar utama:",
+      details: "1. Ketuk menu titik tiga (⋮) di pojok kanan atas browser Anda.\n2. Pilih 'Pasang Aplikasi' atau 'Tambahkan ke Layar Utama'.\n3. Konfirmasi pemasangan.\n\nAplikasi Delina.store akan langsung hadir seperti aplikasi ponsel biasa!",
+      buttonText: "Siap, Laksanakan",
+      type: "info",
+      icon: "bi bi-phone"
+    });
   }
 }
 

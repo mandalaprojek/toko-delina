@@ -1509,14 +1509,27 @@
     </div>
   </div>
 
-  <!-- NOTIFIKASI TOAST -->
-  <div
-    id="toastNotification" 
-    class="fixed bottom-24 left-1/2 transform -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none"
-  >
-    <div class="bg-gray-900/90 backdrop-blur-md text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
-      <i class="bi bi-check-circle-fill text-emerald-400 text-sm"></i>
-      <span id="toastMessage">Alhamdulillah, berhasil.</span>
+  <!-- WADAH TOAST MODERN MELAYANG DI ATAS LAYAR -->
+  <div id="modernToastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
+  <!-- MODAL DIALOG KONFIRMASI & ALERT MODERN (PENGGANTI WINDOW.CONFIRM & ALERT) -->
+  <div id="delinaModernModal" class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+    <div id="delinaModernModalCard" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 transform scale-95 transition-all duration-200 text-left space-y-4">
+      <div class="flex items-start gap-3.5">
+        <div id="delinaModalIconBox" class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-2xl flex-shrink-0">
+          <i id="delinaModalIcon" class="bi bi-cart-check-fill"></i>
+        </div>
+        <div class="flex-1 min-w-0 pt-0.5">
+          <h3 id="delinaModalTitle" class="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">Konfirmasi Aksi</h3>
+          <p id="delinaModalSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toko Delina</p>
+        </div>
+      </div>
+      <div id="delinaModalBody" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium"></div>
+      <div id="delinaModalDetailsBox" class="hidden bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-3.5 text-xs text-slate-700 dark:text-slate-200 space-y-2 font-medium"></div>
+      <div class="pt-2 flex items-center justify-end gap-2.5">
+        <button type="button" id="delinaModalBtnCancel" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition-all active:scale-95 cursor-pointer">Batal</button>
+        <button type="button" id="delinaModalBtnConfirm" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"><span>Konfirmasi</span></button>
+      </div>
     </div>
   </div>
 

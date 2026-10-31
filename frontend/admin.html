@@ -290,14 +290,14 @@
       </div>
 
       <!-- Navigation Tabs (Bento Switcher) -->
-      <div class="border-t border-white/10 bg-black/15 overflow-x-auto">
+      <div id="adminTopTabsContainer" class="border-t border-white/10 bg-black/15 overflow-x-auto scroll-smooth">
         <div class="max-w-7xl mx-auto px-4 flex gap-1 text-xs font-bold">
           
           <!-- Tab 1: Dashboard Keuangan (Admin Only) -->
           <button 
             onclick="switchTab('dashboard')" 
             data-tab="dashboard"
-            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-amber-400 text-amber-300 flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-amber-400 text-amber-300 flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-speedometer2"></i>
             <span>Dashboard</span>
@@ -307,10 +307,10 @@
           <button 
             onclick="switchTab('pos')" 
             data-tab="pos"
-            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-receipt"></i>
-            <span>Antrean POS</span>
+            <span>Kasir & Antrean POS</span>
             <span id="badgePendingCount" class="hidden px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black">0</span>
           </button>
 
@@ -318,7 +318,7 @@
           <button 
             onclick="switchTab('products')" 
             data-tab="products"
-            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-box-seam"></i>
             <span>Katalog & Stok</span>
@@ -328,7 +328,7 @@
           <button 
             onclick="switchTab('members')" 
             data-tab="members"
-            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-gift"></i>
             <span>Member & 10 Hadiah</span>
@@ -338,7 +338,7 @@
           <button 
             onclick="switchTab('coupons')" 
             data-tab="coupons"
-            class="admin-tab-btn admin-only-feature py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn admin-only-feature py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-ticket-perforated"></i>
             <span>Kupon Promo</span>
@@ -348,7 +348,7 @@
           <button 
             onclick="switchTab('settings')" 
             data-tab="settings"
-            class="admin-tab-btn admin-only-feature py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all"
+            class="admin-tab-btn admin-only-feature py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
             <i class="bi bi-gear-fill"></i>
             <span>Profil Toko</span>
@@ -1418,6 +1418,54 @@
   </div>
 
   <!-- =========================================================================
+       MODAL DIALOG KONFIRMASI & ALERT MODERN (PENGGANTI NATIVE CONFIRM & ALERT)
+       ========================================================================= -->
+  <div id="delinaModernModal" class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+    <div id="delinaModernModalCard" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 transform scale-95 transition-all duration-200 text-left space-y-4">
+      
+      <!-- Header Modal: Ikon & Judul -->
+      <div class="flex items-start gap-3.5">
+        <div id="delinaModalIconBox" class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-2xl flex-shrink-0">
+          <i id="delinaModalIcon" class="bi bi-cart-check-fill"></i>
+        </div>
+        <div class="flex-1 min-w-0 pt-0.5">
+          <h3 id="delinaModalTitle" class="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">Konfirmasi Aksi</h3>
+          <p id="delinaModalSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toko Delina POS</p>
+        </div>
+      </div>
+
+      <!-- Pesan / Rincian -->
+      <div id="delinaModalBody" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+        <!-- Teks pesan dinamis -->
+      </div>
+
+      <!-- Wadah Rincian Tambahan (Opsional) -->
+      <div id="delinaModalDetailsBox" class="hidden bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-3.5 text-xs text-slate-700 dark:text-slate-200 space-y-2 font-medium">
+        <!-- Diisi dinamis jika ada daftar item/rincian -->
+      </div>
+
+      <!-- Tombol Aksi -->
+      <div class="pt-2 flex items-center justify-end gap-2.5">
+        <button 
+          type="button" 
+          id="delinaModalBtnCancel"
+          class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition-all active:scale-95 cursor-pointer"
+        >
+          Batal
+        </button>
+        <button 
+          type="button" 
+          id="delinaModalBtnConfirm"
+          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+        >
+          <span>Konfirmasi</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
        3. MODAL TAMBAH / EDIT PRODUK ATK (SUPER ADMIN)
        ========================================================================= -->
   <div id="productModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
@@ -2056,6 +2104,155 @@
       : "https://script.google.com/macros/s/AKfycbyT06sft4rQBNQcQtoPDV7kNKk4ywk7_5bsMS1H3Dj2PozE2CYh4YpHgWKjPslfJBVA2w/exec";
 
     // =========================================================
+    // DELINA MODERN MODAL DIALOG SYSTEM (CONFIRM & ALERT)
+    // =========================================================
+    let delinaModalResolver = null;
+
+    function showDelinaConfirm({ title, subtitle = "Konfirmasi Aksi Toko", message = "", details = null, confirmText = "Ya, Lanjutkan", cancelText = "Batal", type = "success", icon = null }) {
+      return new Promise((resolve) => {
+        delinaModalResolver = resolve;
+        const modal = document.getElementById("delinaModernModal");
+        const card = document.getElementById("delinaModernModalCard");
+        const iconBox = document.getElementById("delinaModalIconBox");
+        const iconEl = document.getElementById("delinaModalIcon");
+        const titleEl = document.getElementById("delinaModalTitle");
+        const subEl = document.getElementById("delinaModalSubtitle");
+        const bodyEl = document.getElementById("delinaModalBody");
+        const detailsBox = document.getElementById("delinaModalDetailsBox");
+        const btnCancel = document.getElementById("delinaModalBtnCancel");
+        const btnConfirm = document.getElementById("delinaModalBtnConfirm");
+
+        if (!modal) {
+          resolve(confirm(message));
+          return;
+        }
+
+        titleEl.textContent = title || "Konfirmasi";
+        subEl.textContent = subtitle || "";
+        bodyEl.innerHTML = typeof message === "string" ? message.replace(/\n/g, "<br>") : "";
+
+        if (details) {
+          detailsBox.classList.remove("hidden");
+          detailsBox.innerHTML = details;
+        } else {
+          detailsBox.classList.add("hidden");
+          detailsBox.innerHTML = "";
+        }
+
+        btnCancel.classList.remove("hidden");
+        btnCancel.textContent = cancelText;
+        btnConfirm.textContent = confirmText;
+
+        if (type === "danger" || type === "delete") {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-trash3-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        } else if (type === "warning") {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-exclamation-triangle-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        } else {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-cart-check-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        }
+
+        btnCancel.onclick = () => {
+          closeDelinaModernModal();
+          resolve(false);
+        };
+
+        btnConfirm.onclick = () => {
+          closeDelinaModernModal();
+          resolve(true);
+        };
+
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        modal.classList.add("opacity-100", "pointer-events-auto");
+        if (card) {
+          card.classList.remove("scale-95");
+          card.classList.add("scale-100");
+        }
+      });
+    }
+
+    function showDelinaAlert({ title = "Informasi", subtitle = "Toko Delina POS", message = "", details = null, buttonText = "OK, Mengerti", type = "info", icon = null }) {
+      return new Promise((resolve) => {
+        delinaModalResolver = resolve;
+        const modal = document.getElementById("delinaModernModal");
+        const card = document.getElementById("delinaModernModalCard");
+        const iconBox = document.getElementById("delinaModalIconBox");
+        const iconEl = document.getElementById("delinaModalIcon");
+        const titleEl = document.getElementById("delinaModalTitle");
+        const subEl = document.getElementById("delinaModalSubtitle");
+        const bodyEl = document.getElementById("delinaModalBody");
+        const detailsBox = document.getElementById("delinaModalDetailsBox");
+        const btnCancel = document.getElementById("delinaModalBtnCancel");
+        const btnConfirm = document.getElementById("delinaModalBtnConfirm");
+
+        if (!modal) {
+          alert(message);
+          resolve();
+          return;
+        }
+
+        titleEl.textContent = title;
+        subEl.textContent = subtitle;
+        bodyEl.innerHTML = typeof message === "string" ? message.replace(/\n/g, "<br>") : "";
+
+        if (details) {
+          detailsBox.classList.remove("hidden");
+          detailsBox.innerHTML = details;
+        } else {
+          detailsBox.classList.add("hidden");
+          detailsBox.innerHTML = "";
+        }
+
+        btnCancel.classList.add("hidden");
+        btnConfirm.textContent = buttonText;
+
+        if (type === "success") {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-check-circle-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        } else if (type === "danger" || type === "error") {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-x-circle-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        } else {
+          iconBox.className = "w-12 h-12 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center text-2xl flex-shrink-0";
+          iconEl.className = icon || "bi bi-info-circle-fill";
+          btnConfirm.className = "px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer";
+        }
+
+        btnConfirm.onclick = () => {
+          closeDelinaModernModal();
+          resolve(true);
+        };
+
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        modal.classList.add("opacity-100", "pointer-events-auto");
+        if (card) {
+          card.classList.remove("scale-95");
+          card.classList.add("scale-100");
+        }
+      });
+    }
+
+    function closeDelinaModernModal() {
+      const modal = document.getElementById("delinaModernModal");
+      const card = document.getElementById("delinaModernModalCard");
+      if (modal) {
+        modal.classList.remove("opacity-100", "pointer-events-auto");
+        modal.classList.add("opacity-0", "pointer-events-none");
+      }
+      if (card) {
+        card.classList.remove("scale-100");
+        card.classList.add("scale-95");
+      }
+    }
+
+    // =========================================================
     // PWA INSTALL PROMPT LOGIC (ADMIN & KASIR POS)
     // =========================================================
     let adminDeferredPrompt = null;
@@ -2089,7 +2286,14 @@
           if (banner) banner.classList.add("hidden");
         });
       } else {
-        alert("Untuk memasang Aplikasi Kasir di Layar Utama HP/Tablet:\n1. Ketuk ikon Pasang (Install) di bilah alamat browser, ATAU\n2. Buka menu titik tiga (⋮) lalu pilih 'Pasang Aplikasi' / 'Tambahkan ke Layar Utama'.");
+        showDelinaAlert({
+          title: "Pasang Aplikasi Kasir Delina",
+          subtitle: "Progressive Web App (PWA)",
+          message: "Untuk memasang Aplikasi Kasir di Layar Utama HP / Tablet Anda:\n\n1. Ketuk ikon Pasang (Install) di bilah alamat browser, ATAU\n2. Buka menu browser (titik tiga ⋮) lalu pilih 'Pasang Aplikasi' / 'Tambahkan ke Layar Utama'.\n\nSetelah dipasang, aplikasi kasir dapat dibuka langsung fullscreen seperti aplikasi Play Store!",
+          buttonText: "OK, Paham",
+          type: "info",
+          icon: "bi bi-phone-fill"
+        });
       }
     }
 
@@ -2163,6 +2367,9 @@
       } else {
         updatePinDots();
       }
+
+      // Inisialisasi Gesture Swipe Antar Tab Mobile
+      initMobileSwipeNavigation();
 
       // Keyboard listener untuk tombol fisik
       document.addEventListener("keydown", (e) => {
@@ -2305,6 +2512,9 @@
     // 2. NAVIGASI TAB
     // =========================================================
     function switchTab(tabId) {
+      if (tabId !== "queue") {
+        window.isMobileQueueActive = false;
+      }
       // Periksa role jika kasir mencoba akses fitur admin
       if (userRole === "kasir" && ["dashboard", "coupons", "settings"].includes(tabId)) {
         tabId = "pos";
@@ -2325,6 +2535,10 @@
         if (btn) {
           if (t === tabId) {
             btn.className = "admin-tab-btn py-2.5 px-3.5 border-b-2 border-amber-400 text-amber-300 flex items-center gap-2 whitespace-nowrap transition-all";
+            // Scroll otomatis tab atas agar selalu terpusat di layar ponsel
+            try {
+              btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            } catch (eScroll) {}
           } else {
             btn.className = "admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all";
           }
@@ -2343,7 +2557,7 @@
       mobButtons.forEach(item => {
         const mBtn = document.getElementById(item.id);
         if (!mBtn) return;
-        const isActive = (item.tab === tabId) || (item.tab === "queue" && tabId === "pos" && window.isMobileQueueActive);
+        const isActive = window.isMobileQueueActive ? (item.tab === "queue") : (item.tab === tabId);
         if (isActive) {
           mBtn.className = "admin-mob-nav-btn flex flex-col items-center justify-center gap-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-3 py-1 rounded-xl shadow-xs transition-all cursor-pointer";
         } else {
@@ -2372,6 +2586,88 @@
 
       switchTab(tabKey);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // =========================================================
+    // 2b. TOUCH GESTURE CONTROLLER (SWIPE GESER TAB KIRI/KANAN)
+    // =========================================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isTouchActive = false;
+
+    function initMobileSwipeNavigation() {
+      const mainEl = document.getElementById("mainDashboard");
+      if (!mainEl) return;
+
+      mainEl.addEventListener("touchstart", (e) => {
+        if (window.innerWidth >= 1024) return;
+        const t = e.touches[0];
+        if (!t) return;
+
+        const target = e.target;
+        if (
+          target.closest("input") ||
+          target.closest("textarea") ||
+          target.closest("select") ||
+          target.closest("#delinaModernModal") ||
+          target.closest("#productModal") ||
+          target.closest("#adminTopTabsContainer") ||
+          target.closest("#posCategoryFilterPills") ||
+          target.closest(".overflow-x-auto") ||
+          target.closest(".scroll-rail") ||
+          target.closest("button")
+        ) {
+          isTouchActive = false;
+          return;
+        }
+
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchStartTime = Date.now();
+        isTouchActive = true;
+      }, { passive: true });
+
+      mainEl.addEventListener("touchend", (e) => {
+        if (!isTouchActive) return;
+        isTouchActive = false;
+
+        const t = e.changedTouches[0];
+        if (!t) return;
+
+        const deltaX = t.clientX - touchStartX;
+        const deltaY = t.clientY - touchStartY;
+        const timeDiff = Date.now() - touchStartTime;
+
+        if (Math.abs(deltaX) < 50 || timeDiff > 800) return;
+        if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.5) return;
+
+        const mobileTabs = (userRole === "kasir")
+          ? ["pos", "queue", "products", "members"]
+          : ["pos", "queue", "products", "members", "dashboard"];
+
+        let currentActiveTabKey = currentAdminTab || "pos";
+        if (currentAdminTab === "pos" && window.isMobileQueueActive) {
+          currentActiveTabKey = "queue";
+        }
+
+        const currentIdx = mobileTabs.indexOf(currentActiveTabKey);
+        if (currentIdx === -1) return;
+
+        if (deltaX > 0) {
+          // Geser ke Kanan (Contoh: dari Kasir POS pindah ke Antrean, dst)
+          if (currentIdx < mobileTabs.length - 1) {
+            const nextTab = mobileTabs[currentIdx + 1];
+            switchAdminMobileTab(nextTab);
+          }
+        } else {
+          // Geser ke Kiri (Pindah ke tab sebelumnya di sebelah kiri)
+          if (currentIdx > 0) {
+            const prevTab = mobileTabs[currentIdx - 1];
+            switchAdminMobileTab(prevTab);
+          }
+        }
+      }, { passive: true });
     }
 
     function capitalize(str) {
@@ -3099,7 +3395,7 @@ ${escapeHtml(order.itemsText || "-")}
 
       const rawPhone = cleanPhone(order.customerPhone);
       if (!rawPhone) {
-        alert("Nomor WhatsApp pelanggan tidak valid.");
+        showToastAdmin("Nomor WhatsApp pelanggan tidak valid.", "warning");
         return;
       }
 
@@ -3734,7 +4030,16 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     async function handleDeleteCategory(catId, catName) {
-      if (!confirm(`Apakah Anda yakin ingin menghapus kategori "${catName}"?`)) return;
+      const ok = await showDelinaConfirm({
+        title: "Hapus Kategori Produk?",
+        subtitle: "Manajemen Kategori",
+        message: `Apakah Anda yakin ingin menghapus kategori "${catName}" dari sistem toko?`,
+        confirmText: "Ya, Hapus",
+        cancelText: "Batal",
+        type: "danger",
+        icon: "bi bi-tag-fill"
+      });
+      if (!ok) return;
 
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       showToastAdmin(`Menghapus kategori "${catName}"...`);
@@ -3973,7 +4278,16 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     async function deleteCoupon(code) {
-      if (!confirm(`Hapus kupon diskon "${code}"?`)) return;
+      const ok = await showDelinaConfirm({
+        title: "Hapus Kupon Promo?",
+        subtitle: "Manajemen Kupon Diskon",
+        message: `Apakah Anda yakin ingin menghapus kupon promo "${code}" dari sistem?`,
+        confirmText: "Ya, Hapus",
+        cancelText: "Batal",
+        type: "danger",
+        icon: "bi bi-ticket-perforated-fill"
+      });
+      if (!ok) return;
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
 
       try {
@@ -4207,18 +4521,19 @@ ${escapeHtml(order.itemsText || "-")}
     async function triggerGenerateDummy() {
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       if (!pin) {
-        alert("Silakan login kembali untuk melanjutkan.");
+        showToastAdmin("Silakan login kembali untuk melanjutkan.", "warning");
         return;
       }
 
-      const confirmRun = confirm(
-        "Alhamdulillah! Anda akan men-generate 50 Data Dummy Transaksi Lengkap ke Google Sheets.\n\n" +
-        "Fitur ini akan otomatis mempopulasikan:\n" +
-        "• 50 Transaksi Pesanan bervariasi (7 hari terakhir, aneka status)\n" +
-        "• Katalog ATK, Kosmetik & Sembako\n" +
-        "• Stempel Royalty Member\n\n" +
-        "Lanjutkan proses otomatis?"
-      );
+      const confirmRun = await showDelinaConfirm({
+        title: "Generate 50 Data Dummy?",
+        subtitle: "Otomatisasi Database Google Sheets",
+        message: "Alhamdulillah! Anda akan men-generate 50 Data Dummy Transaksi Lengkap ke Google Sheets.\n\nFitur ini akan otomatis mempopulasikan:\n• 50 Transaksi Pesanan bervariasi (7 hari terakhir, aneka status)\n• Katalog ATK, Kosmetik & Sembako\n• Stempel Royalty Member",
+        confirmText: "Mulai Otomatis",
+        cancelText: "Batal",
+        type: "success",
+        icon: "bi bi-database-fill-gear"
+      });
       if (!confirmRun) return;
 
       const btn = document.getElementById("btnGenerateDummy");
@@ -4234,15 +4549,20 @@ ${escapeHtml(order.itemsText || "-")}
         const res = await fetch(`${GAS_URL}?action=generateDummyData&pin=${encodeURIComponent(pin)}`);
         const json = await res.json();
         if (json.status === "success") {
-          alert(`Alhamdulillah Berhasil!\n\n${json.message}\nTotal Pesanan: ${json.data ? json.data.pesananCount : 50}`);
+          await showDelinaAlert({
+            title: "Alhamdulillah Berhasil!",
+            subtitle: "50 Data Dummy Transaksi",
+            message: `${json.message}\nTotal Pesanan: ${json.data ? json.data.pesananCount : 50}`,
+            type: "success"
+          });
           showToastAdmin("Data dummy berhasil dimuat!");
           await fetchDashboardData(true);
         } else {
-          alert("Gagal: " + (json.message || "Terjadi kesalahan"));
+          showToastAdmin("Gagal: " + (json.message || "Terjadi kesalahan"), "error");
         }
       } catch (err) {
         console.error("Generate dummy error:", err);
-        alert("Gagal menghubungi Google Apps Script: " + err.message);
+        showToastAdmin("Gagal menghubungi Google Apps Script: " + err.message, "error");
       } finally {
         if (btn) {
           btn.disabled = false;
@@ -4426,7 +4746,7 @@ ${escapeHtml(order.itemsText || "-")}
       if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("productBarcodeScannerModal");
 
       if (typeof Html5Qrcode === "undefined") {
-        alert("Pustaka Html5Qrcode belum siap. Mohon periksa koneksi internet Anda.");
+        showToastAdmin("Pustaka pemindai barcode belum siap. Mohon periksa koneksi internet.", "warning");
         return;
       }
 
@@ -4474,10 +4794,13 @@ ${escapeHtml(order.itemsText || "-")}
         }, 300);
       }).catch(err => {
         console.error("Gagal membuka kamera:", err);
-        alert(
-          "⚠️ Tidak dapat mengakses kamera perangkat.\n\n" +
-          "Pastikan izin kamera telah disetujui di browser (Google Chrome / Samsung Internet) tablet Anda."
-        );
+        showDelinaAlert({
+          title: "Akses Kamera Dibutuhkan",
+          subtitle: "Izin Kamera Perangkat",
+          message: "Tidak dapat mengakses kamera perangkat Anda.\n\nPastikan izin akses kamera telah disetujui pada pengaturan peramban (Chrome / Edge / Safari).",
+          type: "danger",
+          icon: "bi bi-camera-video-off-fill"
+        });
         closeProductBarcodeScannerModal();
       });
     }
@@ -4907,12 +5230,12 @@ ${escapeHtml(order.itemsText || "-")}
 
     async function submitQuickRestock() {
       if (!activeRestockProduct) {
-        alert("Pilih produk terlebih dahulu untuk menambah stok.");
+        showToastAdmin("Pilih produk terlebih dahulu untuk menambah stok.", "warning");
         return;
       }
       const addQty = parseInt(document.getElementById("restockQtyInput").value, 10);
       if (isNaN(addQty) || addQty <= 0) {
-        alert("Masukkan jumlah stok masuk yang valid.");
+        showToastAdmin("Masukkan jumlah stok masuk yang valid.", "warning");
         return;
       }
 
@@ -4935,7 +5258,7 @@ ${escapeHtml(order.itemsText || "-")}
         showToastAdmin(`✅ Stok ${prodName} berhasil ditambah +${addQty} (Total: ${newStock} ${prodUnit})!`);
       } catch (err) {
         beepError();
-        alert("Gagal memperbarui stok: " + (err?.message || err));
+        showToastAdmin("Gagal memperbarui stok: " + (err?.message || err), "error");
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -5002,7 +5325,7 @@ ${escapeHtml(order.itemsText || "-")}
         if (btnText) btnText.innerText = "⏹ Tutup Kamera Kasir";
 
         if (typeof Html5Qrcode === "undefined") {
-          alert("Pustaka Html5Qrcode belum siap. Periksa koneksi internet.");
+          showToastAdmin("Pustaka pemindai barcode belum siap. Periksa koneksi internet.", "warning");
           return;
         }
 
@@ -5045,10 +5368,13 @@ ${escapeHtml(order.itemsText || "-")}
           }, 300);
         }).catch(err => {
           console.error("Gagal membuka kamera kasir:", err);
-          alert(
-            "⚠️ Tidak dapat mengakses kamera kasir.\n\n" +
-            "Pastikan izin kamera telah disetujui di Google Chrome / tablet Anda."
-          );
+          showDelinaAlert({
+            title: "Akses Kamera Dibutuhkan",
+            subtitle: "Scanner Kasir POS",
+            message: "Tidak dapat mengakses kamera kasir.\n\nPastikan izin akses kamera telah disetujui pada peramban perangkat Anda.",
+            type: "danger",
+            icon: "bi bi-camera-video-off-fill"
+          });
           container.classList.add("hidden");
           isPosCameraActive = false;
           if (btnText) btnText.innerText = "📷 Buka Kamera Kasir";
@@ -5160,11 +5486,21 @@ ${escapeHtml(order.itemsText || "-")}
       renderPosLiveCart();
     }
 
-    function clearPosLiveCart() {
+    async function clearPosLiveCart() {
       if (posLiveCart.length === 0) return;
-      if (confirm("Kosongkan seluruh keranjang belanja kasir saat ini?")) {
+      const ok = await showDelinaConfirm({
+        title: "Kosongkan Keranjang Kasir?",
+        subtitle: "Kasir POS",
+        message: "Apakah Anda yakin ingin membatalkan dan mengosongkan seluruh belanjaan kasir saat ini?",
+        confirmText: "Ya, Kosongkan",
+        cancelText: "Kembali",
+        type: "danger",
+        icon: "bi bi-cart-x-fill"
+      });
+      if (ok) {
         posLiveCart = [];
         renderPosLiveCart();
+        showToastAdmin("Keranjang belanja kasir telah dikosongkan.", "info");
       }
     }
 
@@ -5421,7 +5757,7 @@ ${escapeHtml(order.itemsText || "-")}
     // Cetak Struk Bluetooth Thermal dari Keranjang Kasir
     function printPosCartBluetooth(memberPhoneArg) {
       if (posLiveCart.length === 0) {
-        alert("Keranjang kasir masih kosong. Scan barang terlebih dahulu.");
+        showToastAdmin("Keranjang kasir masih kosong. Scan barang terlebih dahulu.", "warning");
         return;
       }
 
@@ -5445,29 +5781,52 @@ ${escapeHtml(order.itemsText || "-")}
       if (typeof printReceiptViaBluetooth === "function") {
         printReceiptViaBluetooth(orderData);
       } else {
-        alert("Modul printer Bluetooth belum terpasang.");
+        showToastAdmin("Modul printer Bluetooth belum terpasang atau browser tidak mendukung Bluetooth.", "warning");
       }
     }
 
     // Selesaikan Transaksi Kasir (Kirim ke GAS & Tambah Poin Member)
     async function submitPosDirectTransaction() {
       if (posLiveCart.length === 0) {
-        alert("Keranjang kasir masih kosong.");
+        showToastAdmin("Keranjang kasir masih kosong. Scan atau pilih barang terlebih dahulu.", "warning");
         return;
       }
 
       const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
       const totalItems = posLiveCart.reduce((sum, i) => sum + i.qty, 0);
       const memberPhone = (document.getElementById("posMemberPhoneInput") ? document.getElementById("posMemberPhoneInput").value.trim() : "");
-      let memberNote = memberPhone ? `\n• Member WhatsApp: ${memberPhone} (+1 Stempel)` : "";
 
-      const confirmDone = confirm(
-        `Selesaikan transaksi kasir?\n\n` +
-        `• Total Item: ${totalItems} pcs\n` +
-        `• Total Tagihan: ${formatRupiah(totalPrice)}\n` +
-        `• Pembayaran: ${posSelectedPayMethod}${memberNote}\n\n` +
-        `Klik OK untuk menyimpan ke database Google Sheets & mencetak struk.`
-      );
+      const detailsHtml = `
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200/80 dark:border-slate-700">
+          <span class="text-slate-500 dark:text-slate-400">Total Item</span>
+          <span class="font-extrabold text-slate-800 dark:text-white">${totalItems} pcs</span>
+        </div>
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200/80 dark:border-slate-700">
+          <span class="text-slate-500 dark:text-slate-400">Total Tagihan</span>
+          <span class="font-black text-emerald-700 dark:text-emerald-400 text-sm">${formatRupiah(totalPrice)}</span>
+        </div>
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200/80 dark:border-slate-700">
+          <span class="text-slate-500 dark:text-slate-400">Metode Bayar</span>
+          <span class="font-bold text-slate-800 dark:text-white">${posSelectedPayMethod}</span>
+        </div>
+        ${memberPhone ? `
+        <div class="flex justify-between items-center pt-1">
+          <span class="text-slate-500 dark:text-slate-400">Member WhatsApp</span>
+          <span class="font-bold text-emerald-700 dark:text-emerald-400 font-mono">${memberPhone} (+1 Stempel)</span>
+        </div>
+        ` : ''}
+      `;
+
+      const confirmDone = await showDelinaConfirm({
+        title: "Selesaikan Transaksi Kasir?",
+        subtitle: "Konfirmasi Simpan & Cetak Nota POS",
+        message: "Periksa kembali rincian transaksi belanja pelanggan sebelum disimpan ke Google Sheets & dicetak:",
+        details: detailsHtml,
+        confirmText: "Ya, Simpan & Selesai",
+        cancelText: "Periksa Lagi",
+        type: "success",
+        icon: "bi bi-cart-check-fill"
+      });
       if (!confirmDone) return;
 
       const orderId = `#POS-${Date.now().toString().slice(-4)}`;
@@ -5744,7 +6103,7 @@ ${escapeHtml(order.itemsText || "-")}
       });
 
       if (products.length === 0) {
-        alert("Tidak ada barcode produk untuk dicetak pada kategori ini.");
+        showToastAdmin("Tidak ada barcode produk untuk dicetak pada kategori ini.", "warning");
         return;
       }
 
@@ -5860,12 +6219,12 @@ ${escapeHtml(order.itemsText || "-")}
       const unit = unitInput ? unitInput.value.trim() : "Pcs";
 
       if (!name) {
-        alert("Mohon masukkan nama barang / jasa manual.");
+        showToastAdmin("Mohon masukkan nama barang / jasa manual.", "warning");
         if (nameInput) nameInput.focus();
         return;
       }
       if (isNaN(price) || price < 0) {
-        alert("Mohon masukkan harga yang valid.");
+        showToastAdmin("Mohon masukkan harga yang valid.", "warning");
         if (priceInput) priceInput.focus();
         return;
       }
@@ -5897,13 +6256,13 @@ ${escapeHtml(order.itemsText || "-")}
     // =========================================================
     function printAdminActiveReceiptBluetooth() {
       if (!activeReceiptOrder) {
-        alert("Pilih pesanan dari antrean kasir terlebih dahulu.");
+        showToastAdmin("Pilih pesanan dari antrean kasir terlebih dahulu.", "warning");
         return;
       }
       if (typeof printReceiptViaBluetooth === "function") {
         printReceiptViaBluetooth(activeReceiptOrder);
       } else {
-        alert("Modul printer Bluetooth belum terpasang.");
+        showToastAdmin("Modul printer Bluetooth belum terpasang atau browser tidak mendukung Bluetooth.", "warning");
       }
     }
 
@@ -5995,7 +6354,7 @@ ${escapeHtml(order.itemsText || "-")}
 
     function printLabels() {
       if (selectedLabelProductIds.size === 0) {
-        alert("Pilih minimal satu produk untuk dicetak labelnya.");
+        showToastAdmin("Pilih minimal satu produk untuk dicetak labelnya.", "warning");
         return;
       }
 
@@ -6303,10 +6662,10 @@ ${escapeHtml(order.itemsText || "-")}
           closeEditRewardModal();
           fetchAdminData();
         } else {
-          alert(json.message || "Gagal menyimpan hadiah.");
+          showToastAdmin(json.message || "Gagal menyimpan hadiah.", "error");
         }
       } catch (err) {
-        alert("Terjadi kendala jaringan saat menyimpan hadiah.");
+        showToastAdmin("Terjadi kendala jaringan saat menyimpan hadiah.", "error");
       } finally {
         btn.disabled = false;
         btn.textContent = "Simpan Hadiah";
@@ -6314,7 +6673,15 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     async function verifyMemberClaim(claimId) {
-      const confirmVerify = confirm(`Validasi penyerahan hadiah untuk Kode Klaim "${claimId}"?\n\nStatus akan diubah menjadi "Sudah Diserahkan".`);
+      const confirmVerify = await showDelinaConfirm({
+        title: "Validasi Penyerahan Hadiah?",
+        subtitle: "Program Hadiah 10 Member Delina",
+        message: `Validasi penyerahan hadiah untuk Kode Klaim "${claimId}"?\n\nStatus klaim akan diubah menjadi "Sudah Diserahkan".`,
+        confirmText: "Ya, Serahkan Hadiah",
+        cancelText: "Batal",
+        type: "success",
+        icon: "bi bi-gift-fill"
+      });
       if (!confirmVerify) return;
 
       try {
@@ -6334,10 +6701,10 @@ ${escapeHtml(order.itemsText || "-")}
           showToastAdmin("✅ Penyerahan hadiah berhasil divalidasi!");
           fetchAdminData();
         } else {
-          alert(json.message || "Gagal memverifikasi klaim.");
+          showToastAdmin(json.message || "Gagal memverifikasi klaim.", "error");
         }
       } catch (err) {
-        alert("Terjadi kendala jaringan saat validasi klaim.");
+        showToastAdmin("Terjadi kendala jaringan saat validasi klaim.", "error");
       }
     }
 
