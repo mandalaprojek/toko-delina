@@ -340,12 +340,22 @@
             data-tab="pos"
             class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
           >
-            <i class="bi bi-receipt"></i>
-            <span>Kasir & Antrean POS</span>
-            <span id="badgePendingCount" class="hidden px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black">0</span>
+            <i class="bi bi-calculator"></i>
+            <span>Kasir POS</span>
           </button>
 
-          <!-- Tab 3: Katalog & Stok (Admin & Kasir) -->
+          <!-- Tab 3: Antrean Pesanan Masuk (Kasir & Admin) -->
+          <button 
+            onclick="switchTab('queue')" 
+            data-tab="queue"
+            class="admin-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-emerald-100/70 hover:text-white flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
+          >
+            <i class="bi bi-clipboard-check"></i>
+            <span>Antrean Pesanan</span>
+            <span id="badgePendingCount" class="hidden px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black">0</span>
+          </button>
+
+          <!-- Tab 4: Katalog & Stok (Admin & Kasir) -->
           <button 
             onclick="switchTab('products')" 
             data-tab="products"
@@ -770,115 +780,81 @@
             </p>
           </div>
 
-          <!-- Bento Grid: Kiri Katalog & Daftar Belanja Kasir, Kanan Ringkasan & Pembayaran (Desktop) -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            
-            <!-- Sisi Kiri (2 Kolom): Katalog Kasir & Tabel Keranjang -->
-            <div class="lg:col-span-2 space-y-3">
-              
-              <!-- Tabel Keranjang Kasir (Desktop Only - di Mobile menggunakan Bottom Sheet Drawer) -->
-              <div class="hidden md:block space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <i class="bi bi-cart3 text-emerald-700"></i>
-                    <span>Daftar Item Belanja Kasir</span>
-                    <span id="posCartItemCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0 Item</span>
-                  </span>
-                  <button type="button" onclick="clearPosLiveCart()" class="text-[11px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer">
-                    Kosongkan Keranjang
-                  </button>
-                </div>
-
-                <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden max-h-56 overflow-y-auto">
-                  <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-extrabold sticky top-0">
-                      <tr>
-                        <th class="p-2.5">Barang / Jasa</th>
-                        <th class="p-2.5 text-center">Harga</th>
-                        <th class="p-2.5 text-center">Qty</th>
-                        <th class="p-2.5 text-right">Subtotal</th>
-                        <th class="p-2.5 text-center">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody id="posLiveCartTableBody" class="divide-y divide-slate-200">
-                      <!-- Diisi dinamis -->
-                      <tr>
-                        <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
-                          Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+          <!-- =========================================================
+               KERANJANG BELANJA KASIR (LIVE CART) - SELALU TAMPIL DI ATAS KATALOG
+               ========================================================= -->
+          <div id="posLiveCartCard" class="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-3 md:p-5 space-y-3 mx-2 md:mx-0 transition-all">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-150 dark:border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-sm shadow-xs">
+                  <i class="bi bi-cart3"></i>
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Keranjang Belanja Kasir</span>
+                    <span id="posCartItemCountBadge" class="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">0 Item</span>
+                  </h4>
+                  <p class="text-[10px] text-slate-400 hidden sm:block">Item yang di-scan atau diklik langsung masuk ke sini</p>
                 </div>
               </div>
+              <button type="button" onclick="clearPosLiveCart()" class="text-[11px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer flex items-center gap-1">
+                <i class="bi bi-trash text-xs"></i>
+                <span>Kosongkan</span>
+              </button>
+            </div>
 
-              <!-- KATALOG GRID MANUAL POS (TOUCH TO ADD) -->
-              <div class="bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/90 shadow-none md:shadow-xs space-y-2.5">
-                
-                <!-- Baris Judul, Search & Tambah Manual -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 md:px-0 pt-1 md:pt-0">
-                  <div class="flex items-center justify-between w-full sm:w-auto">
-                    <div class="flex items-center gap-2">
-                      <i class="bi bi-grid-fill text-emerald-700 text-sm"></i>
-                      <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Katalog Cepat Kasir</h4>
-                      <span id="posProductCountBadge" class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200">0 Produk</span>
-                    </div>
-                    <!-- Tombol + Barang Manual (Desktop) -->
-                    <button 
-                      type="button" 
-                      onclick="openManualPosItemModal()" 
-                      class="hidden md:flex px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs shadow-xs transition-all items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap"
-                      title="Tambah transaksi barang kilat tanpa barcode / non-katalog"
-                    >
-                      <i class="bi bi-plus-circle-fill"></i>
-                      <span>+ Barang Manual</span>
-                    </button>
-                  </div>
-                  
-                  <!-- Kolom Pencarian Instan POS -->
-                  <div class="relative w-full sm:w-64">
-                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input 
-                      type="text" 
-                      id="posProductSearchInput" 
-                      oninput="handlePosProductSearch(this.value)" 
-                      placeholder="Cari nama barang / barcode..." 
-                      class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium"
-                    />
-                  </div>
+            <!-- Kontainer Daftar Item Keranjang Kasir -->
+            <div id="posLiveCartItemsContainer">
+              <!-- Desktop Table View -->
+              <div class="hidden md:block bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-56 overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold sticky top-0">
+                    <tr>
+                      <th class="p-2.5">Barang / Jasa</th>
+                      <th class="p-2.5 text-center">Harga</th>
+                      <th class="p-2.5 text-center">Qty</th>
+                      <th class="p-2.5 text-right">Subtotal</th>
+                      <th class="p-2.5 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="posLiveCartTableBody" class="divide-y divide-slate-200 dark:divide-slate-700">
+                    <tr>
+                      <td colspan="5" class="p-5 text-center text-slate-400 text-xs">
+                        🛒 Keranjang belanja kasir masih kosong. Silakan scan barcode atau ketuk barang pada katalog di bawah.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mobile List View -->
+              <div id="posLiveCartMobileList" class="block md:hidden space-y-2">
+                <div class="p-4 text-center text-slate-400 dark:text-slate-500 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
+                  <i class="bi bi-cart3 text-xl block mb-1 text-slate-300 dark:text-slate-600"></i>
+                  <span>Keranjang kasir masih kosong.<br>Pilih produk dari katalog di bawah.</span>
                 </div>
-
-                <!-- Filter Kategori POS (Baris Kapsul Geser Horizontal) -->
-                <div id="posCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto py-2 px-3 bg-slate-50 border-y border-slate-150 no-scrollbar text-[11px]">
-                  <!-- Diisi dinamis -->
-                </div>
-
-                <!-- Grid Kartu Produk Sentuh POS (2 Kolom di Layar HP) -->
-                <div id="posProductsManualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 px-2.5 pt-1 pb-4">
-                  <!-- Diisi dinamis oleh renderPosProductsGrid() -->
-                </div>
-
               </div>
             </div>
 
-            <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth (Desktop Only) -->
-            <div class="hidden lg:flex bg-slate-50 p-4 rounded-2xl border border-slate-200 flex-col justify-between space-y-3">
-              <div class="space-y-3">
-                <!-- Input Nomor HP Member Kasir (Program Loyalitas 30x Belanja) -->
-                <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/80 space-y-1.5">
+            <!-- Rincian Pembayaran Kasir (Tampil Jika Ada Item di Keranjang) -->
+            <div id="posPaymentCalculationSection" class="hidden pt-2 border-t border-slate-150 dark:border-slate-800 space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                
+                <!-- Kolom 1: Member Phone -->
+                <div class="bg-amber-50/70 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800 space-y-1.5">
                   <div class="flex items-center justify-between">
-                    <label class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1.5">
+                    <label class="text-[11px] font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                       <i class="bi bi-person-badge-fill text-amber-600"></i>
                       <span>Nomor HP Member (Opsional):</span>
                     </label>
-                    <span id="posMemberStatusBadge" class="text-[10px] font-bold text-slate-500">+1 Stempel</span>
+                    <span id="posMemberStatusBadge" class="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900 px-2 py-0.5 rounded-full">+1 Stempel</span>
                   </div>
                   <input 
                     type="tel" 
                     id="posMemberPhoneInput" 
                     placeholder="Contoh: 081234567890" 
                     oninput="handlePosMemberPhoneInput(this.value)" 
-                    class="w-full text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 focus:border-emerald-600 focus:outline-none bg-white"
+                    class="w-full text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 focus:border-emerald-600 focus:outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   />
                   <div id="posMemberInfoBox" class="hidden text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-1 rounded-md flex items-center justify-between">
                     <span id="posMemberNameText">Member: -</span>
@@ -886,56 +862,55 @@
                   </div>
                 </div>
 
-                <div class="flex items-baseline justify-between border-b border-slate-200 pb-2">
-                  <span class="text-xs font-bold text-slate-600">Total Belanja:</span>
-                  <strong id="posLiveTotalText" class="text-xl sm:text-2xl font-black text-emerald-800">Rp 0</strong>
-                </div>
+                <!-- Kolom 2: Total Belanja & Metode Bayar -->
+                <div class="space-y-2">
+                  <div class="flex items-baseline justify-between bg-emerald-50/70 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800">
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Total Belanja:</span>
+                    <strong id="posLiveTotalText" class="text-lg sm:text-xl font-black text-emerald-800 dark:text-emerald-400">Rp 0</strong>
+                  </div>
 
-                <!-- Pilihan Metode Pembayaran -->
-                <div class="space-y-1.5">
-                  <label class="block text-[11px] font-extrabold text-slate-600 uppercase">Metode Bayar:</label>
                   <div class="grid grid-cols-2 gap-2">
-                    <button type="button" id="btnPosPayCash" onclick="setPosPayMethod('Tunai')" class="py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <button type="button" id="btnPosPayCash" onclick="setPosPayMethod('Tunai')" class="py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                       <i class="bi bi-cash-stack"></i> <span>Tunai</span>
                     </button>
-                    <button type="button" id="btnPosPayQris" onclick="setPosPayMethod('QRIS')" class="py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <button type="button" id="btnPosPayQris" onclick="setPosPayMethod('QRIS')" class="py-1.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                       <i class="bi bi-qr-code"></i> <span>QRIS</span>
                     </button>
                   </div>
                 </div>
 
-                <!-- Input Uang Diterima & Kembalian (Khusus Tunai) -->
-                <div id="posCashCalculationBox" class="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200">
+                <!-- Kolom 3: Uang Diterima & Kembalian (Khusus Tunai) -->
+                <div id="posCashCalculationBox" class="space-y-1.5 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-slate-500 font-bold">Uang Diterima:</span>
+                    <span class="text-slate-500 dark:text-slate-400 font-bold">Uang Diterima:</span>
                     <input 
                       type="number" 
                       id="posCashReceivedInput" 
                       placeholder="0" 
                       oninput="calculatePosChange()"
-                      class="w-28 text-right font-black text-xs border border-slate-300 rounded-lg p-1 focus:border-emerald-600 focus:outline-none"
+                      class="w-28 text-right font-black text-xs border border-slate-300 dark:border-slate-600 rounded-lg p-1 focus:border-emerald-600 focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                     />
                   </div>
 
                   <!-- Preset Tombol Cepat Nominal Kasir (Quick Cash) -->
-                  <div class="grid grid-cols-5 gap-1 pt-1">
-                    <button type="button" onclick="setPosQuickCash('exact')" class="px-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200 transition-all text-center active:scale-95 cursor-pointer">Uang Pas</button>
-                    <button type="button" onclick="setPosQuickCash(10000)" class="px-1 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 transition-all text-center active:scale-95 cursor-pointer">+10.000</button>
-                    <button type="button" onclick="setPosQuickCash(20000)" class="px-1 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 transition-all text-center active:scale-95 cursor-pointer">+20.000</button>
-                    <button type="button" onclick="setPosQuickCash(50000)" class="px-1 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 transition-all text-center active:scale-95 cursor-pointer">+50.000</button>
-                    <button type="button" onclick="setPosQuickCash(100000)" class="px-1 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 transition-all text-center active:scale-95 cursor-pointer">+100.000</button>
+                  <div class="grid grid-cols-5 gap-1 pt-0.5">
+                    <button type="button" onclick="setPosQuickCash('exact')" class="px-1 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-800 text-center active:scale-95 cursor-pointer">Uang Pas</button>
+                    <button type="button" onclick="setPosQuickCash(10000)" class="px-1 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95 cursor-pointer">+10k</button>
+                    <button type="button" onclick="setPosQuickCash(20000)" class="px-1 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95 cursor-pointer">+20k</button>
+                    <button type="button" onclick="setPosQuickCash(50000)" class="px-1 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95 cursor-pointer">+50k</button>
+                    <button type="button" onclick="setPosQuickCash(100000)" class="px-1 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95 cursor-pointer">+100k</button>
                   </div>
 
-                  <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                    <span class="text-slate-500 font-bold">Kembalian:</span>
-                    <strong id="posCashChangeText" class="font-black text-emerald-700">Rp 0</strong>
+                  <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 font-bold">Kembalian:</span>
+                    <strong id="posCashChangeText" class="font-black text-emerald-700 dark:text-emerald-400">Rp 0</strong>
                   </div>
                 </div>
+
               </div>
 
               <!-- Tombol Aksi Kasir -->
-              <div class="space-y-2 pt-2 border-t border-slate-200">
-                <!-- Tombol Cetak Struk Bluetooth Thermal -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <button 
                   type="button" 
                   onclick="printPosCartBluetooth()" 
@@ -945,7 +920,6 @@
                   <span>🖨️ Cetak Struk Bluetooth Thermal</span>
                 </button>
 
-                <!-- Tombol Selesaikan Transaksi Langsung -->
                 <button 
                   type="button" 
                   onclick="submitPosDirectTransaction()" 
@@ -955,62 +929,142 @@
                   <span>Selesaikan Transaksi Kasir</span>
                 </button>
               </div>
-
             </div>
-
-          </div>
-        </div>
-
-        <!-- =========================================================
-             BAGIAN ANTREAN PESANAN ONLINE & PENGAMBILAN TANPA ANTRE
-             ========================================================= -->
-        <div class="border-t border-slate-200 pt-3 md:pt-5 space-y-3 px-3 md:px-0">
-          <div class="flex items-center justify-between">
-            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <i class="bi bi-inbox-fill text-delina-emerald"></i>
-              <span>Antrean Pesanan Masuk (Online / Express Pick-up)</span>
-            </h3>
-            <span class="text-xs text-slate-500 hidden sm:inline">Scan QR nota pelanggan untuk mencari cepat</span>
           </div>
 
-          <!-- Filter & Search Bar Antrean -->
-          <div class="bg-white p-3 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-2.5 md:gap-3 items-center justify-between">
+          <!-- =========================================================
+               KATALOG CEPAT KASIR & REL KATEGORI HORIZONTAL
+               ========================================================= -->
+          <div class="bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/90 dark:border-slate-800 shadow-none md:shadow-xs space-y-3">
             
-            <!-- Filter Status Pesanan -->
-            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold no-scrollbar">
-              <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
-              <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Menunggu</button>
-              <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Diproses</button>
-              <button onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Siap Ambil</button>
-              <button onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
+            <!-- STICKY HEADER KATALOG (FREEZE DI BATAS KOLOM PENCARIAN) -->
+            <div id="posStickyCatalogHeader" class="sticky top-12 sm:top-14 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 py-2.5 px-3 -mx-2 md:mx-0 shadow-xs space-y-2">
+              
+              <!-- Baris 1: Judul Katalog, Counter, & Sticky Mini Cart Pill -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <i class="bi bi-grid-fill text-emerald-700 text-sm"></i>
+                  <h4 class="font-extrabold text-slate-800 dark:text-white text-xs sm:text-sm">Katalog Cepat Kasir</h4>
+                  <span id="posProductCountBadge" class="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">0 Produk</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <!-- Tombol + Barang Manual (Desktop) -->
+                  <button 
+                    type="button" 
+                    onclick="openManualPosItemModal()" 
+                    class="hidden md:flex px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs shadow-xs transition-all items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap"
+                    title="Tambah transaksi barang kilat tanpa barcode / non-katalog"
+                  >
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>+ Barang Manual</span>
+                  </button>
+
+                  <!-- Mini Cart Pill (Sticky Jump to Cart) -->
+                  <button 
+                    type="button" 
+                    id="posStickyCartIndicator" 
+                    onclick="scrollToPosCart()" 
+                    class="hidden px-2.5 py-1 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[11px] items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+                    title="Klik untuk ke keranjang belanja kasir di atas"
+                  >
+                    <span>🛒</span>
+                    <span id="posStickyCartSummaryText">0 Item - Rp 0</span>
+                    <i class="bi bi-arrow-up-short text-sm"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Baris 2: Kolom Pencarian Instan POS -->
+              <div class="relative w-full">
+                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input 
+                  type="text" 
+                  id="posProductSearchInput" 
+                  oninput="handlePosProductSearch(this.value)" 
+                  placeholder="Cari nama barang / barcode..." 
+                  class="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white"
+                />
+                <button 
+                  type="button" 
+                  id="btnClearPosSearch" 
+                  onclick="clearPosProductSearch()" 
+                  class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 flex items-center justify-center text-[10px] font-bold"
+                >✕</button>
+              </div>
+
+              <!-- Baris 3: Filter Kategori POS (Baris Kapsul Geser Horizontal) -->
+              <div id="posCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar text-[11px]">
+                <!-- Diisi dinamis -->
+              </div>
             </div>
 
-            <!-- Pencarian Pesanan -->
-            <div class="relative w-full md:w-72">
-              <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-              <input 
-                type="text" 
-                id="orderSearchInput"
-                oninput="handleOrderSearch(this.value)"
-                placeholder="Cari No. Nota, Nama, No. WA..." 
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium"
-              />
+            <!-- WADAH KATALOG PRODUK KASIR (REL HORIZONTAL ATAU GRID CARDS) -->
+            <div id="posProductsManualContainer" class="px-2.5 pt-1 pb-4 space-y-4">
+              <!-- Diisi dinamis oleh renderPosProductsGrid() / renderPosCategoryRails() -->
             </div>
 
           </div>
 
-          <!-- Daftar Antrean Pesanan (Flat List Native Android Retail) -->
-          <div id="ordersCardsContainer" class="divide-y divide-slate-150 bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 shadow-none md:shadow-xs overflow-hidden">
-            <!-- Diisi otomatis oleh JavaScript -->
-          </div>
         </div>
 
       </section>
 
       <!-- =========================================================
-           TAB 3: KATALOG PRODUK & MANAJEMEN STOK
+           TAB 3: ANTREAN PESANAN MASUK (ONLINE / EXPRESS PICK-UP)
            ========================================================= -->
-      <section id="tabContentProducts" class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
+      <section id="tabContentQueue" class="tab-pane hidden space-y-4 px-3 md:px-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center text-xl shadow-xs">
+              <i class="bi bi-inbox-fill"></i>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Antrean Pesanan Masuk (Online / Express Pick-up)</span>
+                <span id="queueOrdersCountBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0 Pesanan</span>
+              </h3>
+              <p class="text-xs text-slate-500">Scan QR nota pelanggan untuk mencari cepat & perbarui status pesanan</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar Antrean -->
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl md:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row gap-2.5 md:gap-3 items-center justify-between">
+          
+          <!-- Filter Status Pesanan -->
+          <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold no-scrollbar">
+            <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
+            <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Menunggu</button>
+            <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Diproses</button>
+            <button onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Siap Ambil</button>
+            <button onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Selesai</button>
+          </div>
+
+          <!-- Pencarian Pesanan -->
+          <div class="relative w-full md:w-72">
+            <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input 
+              type="text" 
+              id="orderSearchInput" 
+              oninput="handleOrderSearch(this.value)" 
+              placeholder="Cari No. Nota, Nama, No. WA..." 
+              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white"
+            />
+          </div>
+
+        </div>
+
+        <!-- Daftar Antrean Pesanan (Flat List Native Android Retail) -->
+        <div id="ordersCardsContainer" class="divide-y divide-slate-150 dark:divide-slate-800 bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 dark:border-slate-800 shadow-none md:shadow-xs overflow-hidden">
+          <!-- Diisi otomatis oleh JavaScript -->
+        </div>
+      </section>
+
+      <!-- =========================================================
+           TAB 4: KATALOG PRODUK & MANAJEMEN STOK
+           ========================================================= -->
+       class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
         
         <!-- Header Aksi Katalog -->
         <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center justify-between">
@@ -1090,18 +1144,31 @@
           </div>
         </div>
 
-        <!-- Daftar Produk & Quick Stock Edit (Flat List di Mobile, Tabel di Desktop) -->
-        <div class="bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 shadow-none md:shadow-xs overflow-hidden">
+        <!-- Daftar Produk & Quick Stock Edit (Horizontal Scroll Rails / Grid / Table) -->
+        <div class="bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 dark:border-slate-800 shadow-none md:shadow-xs overflow-hidden">
           
-          <!-- Tampilan Mobile Native Retail: Flat List Bersih dengan Garis Pembatas Tipis -->
-          <div id="productsMobileFlatList" class="block md:hidden divide-y divide-slate-150 bg-white">
+          <!-- Banner Tombol Tampilkan Semua Deret (Tampil Saat Mode Filter/Pencarian Aktif) -->
+          <div id="productsCategoryRailsBanner" class="hidden p-3 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+            <span id="productsCategoryRailsBannerText" class="font-bold text-slate-700 dark:text-slate-300">Menampilkan Filter</span>
+            <button type="button" onclick="resetProductsFilterAndShowRails()" class="text-xs text-emerald-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1">
+              <span>← Tampilkan Semua Deret Kategori</span>
+            </button>
+          </div>
+
+          <!-- Container Deret Rel Horizontal Scroll Per Kategori (Tampil Saat Mode Deret Aktif) -->
+          <div id="productsCategoryRailsContainer" class="p-3 md:p-4 space-y-5">
+            <!-- Diisi dinamis oleh renderProductsCategoryRails() -->
+          </div>
+
+          <!-- Tampilan Mobile Native Retail: Flat List Bersih dengan Garis Pembatas Tipis (Saat Filter Aktif) -->
+          <div id="productsMobileFlatList" class="hidden divide-y divide-slate-150 dark:divide-slate-800 bg-white dark:bg-slate-900">
             <!-- Diisi otomatis oleh renderProductsTable() -->
           </div>
 
-          <!-- Tampilan Desktop: Tabel Lengkap -->
-          <div class="hidden md:block overflow-x-auto">
+          <!-- Tampilan Desktop: Tabel Lengkap (Saat Filter Aktif) -->
+          <div id="productsDesktopTableWrapper" class="hidden overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-extrabold">
+              <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">
                 <tr>
                   <th class="p-3">Produk</th>
                   <th class="p-3">Kategori</th>
@@ -1110,7 +1177,7 @@
                   <th class="p-3 text-center admin-only-feature">Aksi</th>
                 </tr>
               </thead>
-              <tbody id="productsTableBody" class="divide-y divide-slate-100">
+              <tbody id="productsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
                 <!-- Diisi otomatis oleh JavaScript -->
               </tbody>
             </table>
@@ -2766,16 +2833,13 @@
     // 2. NAVIGASI TAB
     // =========================================================
     function switchTab(tabId) {
-      if (tabId !== "queue") {
-        window.isMobileQueueActive = false;
-      }
       // Periksa role jika kasir mencoba akses fitur admin
       if (userRole === "kasir" && ["dashboard", "coupons", "settings"].includes(tabId)) {
         tabId = "pos";
       }
       currentAdminTab = tabId;
 
-      const tabs = ["dashboard", "pos", "products", "members", "coupons", "settings"];
+      const tabs = ["dashboard", "pos", "queue", "products", "members", "coupons", "settings"];
       tabs.forEach(t => {
         const pane = document.getElementById(`tabContent${capitalize(t)}`);
         const btn = document.querySelector(`.admin-tab-btn[data-tab="${t}"]`);
@@ -2789,7 +2853,6 @@
         if (btn) {
           if (t === tabId) {
             btn.className = "admin-tab-btn py-2.5 px-3.5 border-b-2 border-amber-400 text-amber-300 flex items-center gap-2 whitespace-nowrap transition-all";
-            // Scroll otomatis tab atas agar selalu terpusat di layar ponsel
             try {
               btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
             } catch (eScroll) {}
@@ -2811,7 +2874,7 @@
       mobButtons.forEach(item => {
         const mBtn = document.getElementById(item.id);
         if (!mBtn) return;
-        const isActive = window.isMobileQueueActive ? (item.tab === "queue") : (item.tab === tabId);
+        const isActive = (item.tab === tabId);
         if (isActive) {
           mBtn.className = "admin-mob-nav-btn flex flex-col items-center justify-center gap-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-3 py-1 rounded-xl shadow-xs transition-all cursor-pointer";
         } else {
@@ -2822,25 +2885,32 @@
       // Update Judul Dinamis Header Mobile
       const mobileTitleEl = document.getElementById("mobileHeaderTabTitle");
       if (mobileTitleEl) {
-        if (window.isMobileQueueActive) {
-          mobileTitleEl.textContent = "Antrean Pesanan";
-        } else {
-          const titleMap = {
-            pos: "Kasir POS",
-            products: "Katalog & Stok",
-            members: "Member & Hadiah",
-            dashboard: "Dashboard Toko",
-            coupons: "Kupon Promo",
-            settings: "Profil Toko"
-          };
-          mobileTitleEl.textContent = titleMap[tabId] || capitalize(tabId);
-        }
+        const titleMap = {
+          pos: "Kasir POS",
+          queue: "Antrean Pesanan",
+          products: "Katalog & Stok",
+          members: "Member & Hadiah",
+          dashboard: "Dashboard Toko",
+          coupons: "Kupon Promo",
+          settings: "Profil Toko"
+        };
+        mobileTitleEl.textContent = titleMap[tabId] || capitalize(tabId);
+      }
+
+      // Handler pemanggilan render tab
+      if (tabId === "queue") {
+        renderOrders();
+      } else if (tabId === "pos") {
+        renderPosProductsGrid();
+        renderPosLiveCart();
+      } else if (tabId === "products") {
+        renderProductsTable();
       }
 
       // Update Visibilitas Floating Cart Bar di Layar Mobile
       const floatBar = document.getElementById("posFloatingCartBar");
       if (floatBar) {
-        if (tabId === "pos" && !window.isMobileQueueActive && typeof posLiveCart !== "undefined" && posLiveCart.length > 0) {
+        if (tabId === "pos" && typeof posLiveCart !== "undefined" && posLiveCart.length > 0) {
           floatBar.classList.remove("hidden");
           floatBar.classList.add("flex");
         } else {
@@ -2851,23 +2921,11 @@
     }
 
     function switchAdminMobileTab(tabKey) {
-      if (tabKey === "queue") {
-        window.isMobileQueueActive = true;
-        switchTab("pos");
-        const queueEl = document.getElementById("ordersCardsContainer");
-        if (queueEl) {
-          queueEl.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-        return;
-      }
-
-      window.isMobileQueueActive = false;
       if (tabKey === "dashboard" && userRole === "kasir") {
         showToastAdmin("Dashboard analitik hanya untuk Super Admin.");
         switchTab("pos");
         return;
       }
-
       switchTab(tabKey);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2930,22 +2988,18 @@
           ? ["pos", "queue", "products", "members"]
           : ["pos", "queue", "products", "members", "dashboard"];
 
-        let currentActiveTabKey = currentAdminTab || "pos";
-        if (currentAdminTab === "pos" && window.isMobileQueueActive) {
-          currentActiveTabKey = "queue";
-        }
-
+        const currentActiveTabKey = currentAdminTab || "pos";
         const currentIdx = mobileTabs.indexOf(currentActiveTabKey);
         if (currentIdx === -1) return;
 
         if (deltaX > 0) {
-          // Geser ke Kanan (Contoh: dari Kasir POS pindah ke Antrean, dst)
+          // Geser ke Kanan: pindah ke tab berikutnya
           if (currentIdx < mobileTabs.length - 1) {
             const nextTab = mobileTabs[currentIdx + 1];
             switchAdminMobileTab(nextTab);
           }
         } else {
-          // Geser ke Kiri (Pindah ke tab sebelumnya di sebelah kiri)
+          // Geser ke Kiri: pindah ke tab sebelumnya
           if (currentIdx > 0) {
             const prevTab = mobileTabs[currentIdx - 1];
             switchAdminMobileTab(prevTab);
@@ -3500,9 +3554,26 @@
 
     function renderOrders() {
       const container = document.getElementById("ordersCardsContainer");
+      const queueBadge = document.getElementById("queueOrdersCountBadge");
+      const topBadge = document.getElementById("badgePendingCount");
+      const mobBadge = document.getElementById("mobileQueueCountBadge");
       if (!container) return;
 
       let orders = adminData.orders || [];
+
+      // Update counters
+      const pendingCount = orders.filter(o => (o.orderStatus || "").toLowerCase().includes("menunggu")).length;
+      if (queueBadge) queueBadge.innerText = `${orders.length} Pesanan`;
+      if (topBadge) {
+        topBadge.innerText = pendingCount;
+        if (pendingCount > 0) topBadge.classList.remove("hidden");
+        else topBadge.classList.add("hidden");
+      }
+      if (mobBadge) {
+        mobBadge.innerText = pendingCount;
+        if (pendingCount > 0) mobBadge.classList.remove("hidden");
+        else mobBadge.classList.add("hidden");
+      }
 
       // Filter status
       if (activeOrderFilter !== "all") {
@@ -3524,7 +3595,7 @@
 
       if (orders.length === 0) {
         container.innerHTML = `
-          <div class="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 space-y-2">
+          <div class="p-12 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
             <i class="bi bi-inbox text-3xl"></i>
             <p class="text-xs">Tidak ada data pesanan yang sesuai filter.</p>
           </div>
@@ -3774,18 +3845,263 @@ ${escapeHtml(order.itemsText || "-")}
       renderProductsTable();
     }
 
+    // Helper Klasifikasi Kategori Produk Delina
+    function isProductInCategory(product, targetCategory) {
+      if (!product || !targetCategory) return false;
+      if (targetCategory === "all" || targetCategory === "Semua" || targetCategory === "Semua Produk") return true;
+
+      const pCat = String(product.category || "").toLowerCase();
+      const pName = String(product.name || "").toLowerCase();
+      const tCat = String(targetCategory).toLowerCase();
+
+      if (pCat === tCat) return true;
+
+      if (tCat.includes("atk") || tCat.includes("kantor") || tCat.includes("alat kantor") || tCat.includes("perlengkapan kantor")) {
+        return pCat.includes("atk") || pCat.includes("kantor") || pCat.includes("kertas") || 
+               pCat.includes("buku") || pCat.includes("tulis") || pCat.includes("pulpen") || 
+               pCat.includes("spidol") || pCat.includes("sekolah") || pCat.includes("map") || pCat.includes("amplop") ||
+               pName.includes("hvs") || pName.includes("buku") || pName.includes("pulpen") || pName.includes("spidol") || pName.includes("paperone");
+      }
+
+      if (tCat.includes("kosmetik") || tCat.includes("cantik") || tCat.includes("perawatan") || tCat.includes("skincare")) {
+        return pCat.includes("kosmetik") || pCat.includes("perawatan") || pCat.includes("cantik") || 
+               pCat.includes("skincare") || pCat.includes("serum") || pCat.includes("lip") || 
+               pCat.includes("facial") || pCat.includes("sabun") || pCat.includes("deodorant") || pCat.includes("kecantikan") ||
+               pName.includes("serum") || pName.includes("cream") || pName.includes("wash") || pName.includes("deodorant") || pName.includes("wardah") || pName.includes("garnier");
+      }
+
+      if (tCat.includes("sembako") || tCat.includes("kelontong") || tCat.includes("dapur")) {
+        return pCat.includes("sembako") || pCat.includes("kelontong") || pCat.includes("dapur") || 
+               pCat.includes("minyak") || pCat.includes("beras") || pCat.includes("gula") || 
+               pCat.includes("mie") || pCat.includes("mi instan") || pCat.includes("telur") ||
+               pName.includes("minyak") || pName.includes("beras") || pName.includes("gula") || pName.includes("indomie") || pName.includes("sedap");
+      }
+
+      if (tCat.includes("makan") || tCat.includes("minum") || tCat.includes("snack") || tCat.includes("fnb") || tCat.includes("segar")) {
+        return pCat.includes("makan") || pCat.includes("minum") || pCat.includes("snack") || 
+               pCat.includes("kopi") || pCat.includes("teh") || pCat.includes("susu") || 
+               pCat.includes("air mineral") || pCat.includes("fnb") || pCat.includes("kuliner") ||
+               pName.includes("kopi") || pName.includes("teh") || pName.includes("susu") || pName.includes("snack") || pName.includes("le minerale") || pName.includes("aqua");
+      }
+
+      return pCat.includes(tCat) || tCat.includes(pCat);
+    }
+
+    function resetProductsFilterAndShowRails() {
+      activeProductCategoryFilter = "all";
+      activeProductStockFilter = "all";
+      productSearchQuery = "";
+      const sInput = document.getElementById("productSearchInput");
+      if (sInput) sInput.value = "";
+      renderProductsTable();
+    }
+
+    function renderProductsCategoryRails() {
+      const container = document.getElementById("productsCategoryRailsContainer");
+      if (!container) return;
+
+      const allProducts = (adminData.products || []).filter(p => p && typeof p === "object");
+      if (allProducts.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-slate-400 text-xs">
+            <i class="bi bi-box-seam text-3xl block mb-2 text-slate-300"></i>
+            Belum ada produk terdaftar di Google Sheets.
+          </div>
+        `;
+        return;
+      }
+
+      const railsConfig = [
+        {
+          id: "atk",
+          title: "ATK & Alat Kantor",
+          subtitle: "Kertas HVS, buku tulis, pulpen gel, spidol & kebutuhan kantor",
+          icon: "bi bi-pencil-ruler",
+          color: "text-blue-600 bg-blue-50 dark:bg-blue-950/50",
+          filterKey: "ATK & Alat Kantor"
+        },
+        {
+          id: "kosmetik",
+          title: "Kosmetik & Cantik",
+          subtitle: "Skincare, serum wajah, lip cream, deodorant & kecantikan",
+          icon: "bi bi-stars",
+          color: "text-rose-600 bg-rose-50 dark:bg-rose-950/50",
+          filterKey: "Kosmetik & Cantik"
+        },
+        {
+          id: "sembako",
+          title: "Sembako & Kelontongan",
+          subtitle: "Minyak goreng, beras, gula pasir, mi instan & kebutuhan dapur",
+          icon: "bi bi-basket2-fill",
+          color: "text-amber-600 bg-amber-50 dark:bg-amber-950/50",
+          filterKey: "Sembako & Kelontongan"
+        },
+        {
+          id: "fnb",
+          title: "Makanan & Minuman Segar",
+          subtitle: "Aneka kopi, teh, susu UHT, air mineral & snack gurih",
+          icon: "bi bi-cup-hot-fill",
+          color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50",
+          filterKey: "Makanan & Minuman Segar"
+        }
+      ];
+
+      const standardKeys = ["atk", "kantor", "kosmetik", "cantik", "skincare", "sembako", "kelontong", "makan", "minum", "snack"];
+      const customCats = [...new Set(allProducts.map(p => p.category).filter(Boolean))]
+        .filter(c => !standardKeys.some(k => c.toLowerCase().includes(k)));
+
+      customCats.forEach(cat => {
+        railsConfig.push({
+          id: "cat-" + cat.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+          title: cat,
+          subtitle: `Aneka produk kategori ${cat}`,
+          icon: "bi bi-grid",
+          color: "text-teal-600 bg-teal-50 dark:bg-teal-950/50",
+          filterKey: cat
+        });
+      });
+
+      const isAdmin = userRole === "admin";
+      let html = "";
+
+      railsConfig.forEach(rail => {
+        const railProducts = allProducts.filter(p => isProductInCategory(p, rail.filterKey));
+        if (railProducts.length === 0) return;
+
+        html += `
+          <div class="space-y-2">
+            <!-- Rail Header -->
+            <div class="flex items-center justify-between px-1">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg ${rail.color} flex items-center justify-center text-xs font-bold shadow-xs">
+                  <i class="${rail.icon}"></i>
+                </span>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-none">${escapeHtml(rail.title)}</h5>
+                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${railProducts.length}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 leading-tight mt-0.5 hidden sm:block">${escapeHtml(rail.subtitle)}</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onclick="setProductCategoryFilter('${rail.filterKey.replace(/'/g, "\\'")}')" 
+                class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-0.5 active:scale-95 cursor-pointer"
+              >
+                <span>Lihat Semua</span>
+                <i class="bi bi-chevron-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <!-- Horizontal Scroll Card Rail -->
+            <div class="flex gap-3 overflow-x-auto pb-3 pt-1 px-1 no-scrollbar snap-x scroll-smooth">
+              ${railProducts.map(p => {
+                const prodName = p.name || "Produk";
+                const prodId = p.id || "-";
+                const isLow = Number(p.stock || 0) <= 3 && Number(p.stock || 0) > 0;
+                const isOut = Number(p.stock || 0) <= 0;
+                let stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock || 0}</span>`;
+                if (isOut) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">Habis</span>`;
+                else if (isLow) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Sisa: ${p.stock || 0}</span>`;
+
+                return `
+                  <div class="w-44 sm:w-52 flex-shrink-0 snap-start p-3 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-xs flex flex-col justify-between text-left">
+                    <div class="space-y-1.5">
+                      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                        <img 
+                          src="${formatImageUrl(p.image)}" 
+                          alt="${escapeHtml(prodName)}" 
+                          class="w-full h-full object-cover"
+                          onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                          loading="lazy"
+                        />
+                        <div class="absolute top-1 right-1">
+                          ${stockBadge}
+                        </div>
+                      </div>
+                      <div class="font-extrabold text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
+                        ${escapeHtml(prodName)}
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-mono">${prodId}</div>
+                      <div class="font-black text-xs text-emerald-700 dark:text-emerald-400">${formatRupiah(p.price || 0)}</div>
+                    </div>
+
+                    <!-- Quick Stock Stepper & Edit -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-2">
+                      <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-700/70 rounded-xl p-1">
+                        <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black hover:bg-rose-50 hover:text-rose-600 active:scale-90 cursor-pointer shadow-xs">-</button>
+                        <div class="text-center font-black text-xs text-slate-900 dark:text-white px-1">
+                          <span>${p.stock || 0}</span>
+                          <span class="text-[9px] font-normal text-slate-400 block leading-tight">${p.unit || 'pcs'}</span>
+                        </div>
+                        <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black hover:bg-emerald-50 hover:text-emerald-600 active:scale-90 cursor-pointer shadow-xs">+</button>
+                      </div>
+
+                      ${isAdmin ? `
+                        <button onclick="openEditProductModal('${prodId}')" class="w-full py-1.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+                          <i class="bi bi-pencil-square text-xs"></i>
+                          <span>Edit Barang</span>
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
     function renderProductsTable() {
       const tbody = document.getElementById("productsTableBody");
+      const flatList = document.getElementById("productsMobileFlatList");
+      const desktopWrapper = document.getElementById("productsDesktopTableWrapper");
+      const railsContainer = document.getElementById("productsCategoryRailsContainer");
+      const railsBanner = document.getElementById("productsCategoryRailsBanner");
+      const bannerText = document.getElementById("productsCategoryRailsBannerText");
       if (!tbody) return;
-
-      let products = (adminData.products || []).filter(p => p && typeof p === "object");
 
       // Render tombol-tombol filter kategori produk
       renderProductCategoryFilterPills();
 
+      const isDefaultView = (activeProductCategoryFilter === "all" && !productSearchQuery && activeProductStockFilter === "all");
+
+      if (isDefaultView && railsContainer) {
+        railsContainer.classList.remove("hidden");
+        if (railsBanner) railsBanner.classList.add("hidden");
+        if (flatList) flatList.classList.add("hidden");
+        if (desktopWrapper) desktopWrapper.classList.add("hidden");
+        renderProductsCategoryRails();
+        return;
+      }
+
+      // Mode Filter Aktif: Tampilkan Banner & Tabel / Flat List
+      if (railsContainer) railsContainer.classList.add("hidden");
+      if (railsBanner) {
+        railsBanner.classList.remove("hidden");
+        if (bannerText) {
+          let label = [];
+          if (activeProductCategoryFilter !== "all") label.push(`Kategori: ${activeProductCategoryFilter}`);
+          if (activeProductStockFilter !== "all") {
+            const stockMap = { low: "Stok Kritis (≤ 3)", out: "Stok Habis (0)", safe: "Stok Aman (> 3)" };
+            label.push(`Status: ${stockMap[activeProductStockFilter] || activeProductStockFilter}`);
+          }
+          if (productSearchQuery) label.push(`Cari: "${productSearchQuery}"`);
+          bannerText.innerText = `Menampilkan Filter [ ${label.join(" | ")} ]`;
+        }
+      }
+      if (flatList) flatList.classList.remove("hidden");
+      if (desktopWrapper) desktopWrapper.classList.remove("hidden");
+
+      let products = (adminData.products || []).filter(p => p && typeof p === "object");
+
       // 1. Filter Berdasarkan Kategori
       if (activeProductCategoryFilter !== "all") {
-        products = products.filter(p => (p.category || "").toLowerCase() === activeProductCategoryFilter.toLowerCase());
+        products = products.filter(p => isProductInCategory(p, activeProductCategoryFilter));
       }
 
       // 2. Filter Berdasarkan Status Ketersediaan Stok
@@ -3797,7 +4113,7 @@ ${escapeHtml(order.itemsText || "-")}
         products = products.filter(p => Number(p.stock) > 3);
       }
 
-      // 3. Filter Pencarian Cerdas (Nama, Kategori, atau Barcode / SKU)
+      // 3. Filter Pencarian Cerdas
       if (productSearchQuery) {
         const q = productSearchQuery.toLowerCase();
         products = products.filter(p => 
@@ -3812,8 +4128,6 @@ ${escapeHtml(order.itemsText || "-")}
       if (countEl) {
         countEl.innerText = `Menampilkan ${products.length} dari ${(adminData.products || []).length} produk`;
       }
-
-      const flatList = document.getElementById("productsMobileFlatList");
 
       if (products.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Tidak ada produk yang sesuai dengan filter atau kata kunci pencarian.</td></tr>`;
@@ -3835,33 +4149,33 @@ ${escapeHtml(order.itemsText || "-")}
         if (p.stock <= 3) stockColor = "text-red-700 bg-red-50 border-red-200";
 
         return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
+          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
             <td class="p-3">
               <div class="flex items-center gap-2.5">
-                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" loading="lazy" />
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200 dark:border-slate-700" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" loading="lazy" />
                 <div>
-                  <div class="font-extrabold text-slate-900 leading-tight">${escapeHtml(prodName)}</div>
+                  <div class="font-extrabold text-slate-900 dark:text-white leading-tight">${escapeHtml(prodName)}</div>
                   <span class="text-[10px] text-slate-400 font-mono">${prodId}</span>
                 </div>
               </div>
             </td>
-            <td class="p-3 text-slate-600 font-medium">${escapeHtml(prodCat)}</td>
-            <td class="p-3 font-extrabold text-slate-900">${formatRupiah(p.price || 0)}</td>
+            <td class="p-3 text-slate-600 dark:text-slate-300 font-medium">${escapeHtml(prodCat)}</td>
+            <td class="p-3 font-extrabold text-slate-900 dark:text-white">${formatRupiah(p.price || 0)}</td>
             
             <!-- Quick Edit Stok -->
             <td class="p-3">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">-</button>
+                <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-black text-slate-700 dark:text-slate-200 active:scale-90 cursor-pointer">-</button>
                 <span class="px-2.5 py-1 rounded-xl font-black text-xs border ${stockColor} min-w-[50px] text-center">
                   ${p.stock || 0} <span class="text-[10px] font-normal text-slate-500">${p.unit || 'pcs'}</span>
                 </span>
-                <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700 active:scale-90 cursor-pointer">+</button>
+                <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-black text-slate-700 dark:text-slate-200 active:scale-90 cursor-pointer">+</button>
               </div>
             </td>
 
             <!-- Aksi Edit (Admin Only) -->
             <td class="p-3 text-center ${isAdmin ? '' : 'hidden'}">
-              <button onclick="openEditProductModal('${prodId}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 font-bold text-xs transition-all cursor-pointer">
+              <button onclick="openEditProductModal('${prodId}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 dark:bg-slate-700 dark:hover:bg-emerald-950 text-slate-600 dark:text-slate-300 font-bold text-xs transition-all cursor-pointer">
                 <i class="bi bi-pencil-square"></i> Edit
               </button>
             </td>
@@ -3880,28 +4194,28 @@ ${escapeHtml(order.itemsText || "-")}
           if (p.stock <= 3) stockColor = "text-red-700 bg-red-50 border-red-200";
 
           return `
-            <div class="p-3 flex items-center justify-between gap-2.5 hover:bg-slate-50/70 transition-colors">
+            <div class="p-3 flex items-center justify-between gap-2.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors">
               <div class="flex items-center gap-3 min-w-0">
-                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-12 h-12 object-cover rounded-xl border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" loading="lazy" />
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" loading="lazy" />
                 <div class="min-w-0">
-                  <div class="font-extrabold text-xs text-slate-900 truncate leading-tight">${escapeHtml(prodName)}</div>
+                  <div class="font-extrabold text-xs text-slate-900 dark:text-white truncate leading-tight">${escapeHtml(prodName)}</div>
                   <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
                     <span>${prodId}</span>
                     <span>•</span>
                     <span class="text-slate-500 truncate max-w-[120px]">${escapeHtml(prodCat)}</span>
                   </div>
-                  <div class="font-black text-xs text-emerald-700 mt-1">${formatRupiah(p.price || 0)}</div>
+                  <div class="font-black text-xs text-emerald-700 dark:text-emerald-400 mt-1">${formatRupiah(p.price || 0)}</div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 flex-shrink-0">
-                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50 shadow-xs">
-                  <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 hover:bg-slate-200 active:scale-90 cursor-pointer">-</button>
+                <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800 shadow-xs">
+                  <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-90 cursor-pointer">-</button>
                   <span class="px-2 font-black text-xs min-w-[34px] text-center ${stockColor}">${p.stock || 0}</span>
-                  <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 hover:bg-slate-200 active:scale-90 cursor-pointer">+</button>
+                  <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-90 cursor-pointer">+</button>
                 </div>
                 ${isAdmin ? `
-                  <button onclick="openEditProductModal('${prodId}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 flex items-center justify-center active:scale-90 cursor-pointer" title="Edit Produk">
+                  <button onclick="openEditProductModal('${prodId}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center active:scale-90 cursor-pointer" title="Edit Produk">
                     <i class="bi bi-pencil-square text-xs"></i>
                   </button>
                 ` : ''}
@@ -3919,10 +4233,10 @@ ${escapeHtml(order.itemsText || "-")}
       const allProducts = adminData.products || [];
       const defaultCats = [
         "Semua",
-        "ATK & Perlengkapan Kantor",
-        "Kosmetik & Perawatan Diri",
+        "ATK & Alat Kantor",
+        "Kosmetik & Cantik",
         "Sembako & Kelontongan",
-        "Makanan & Minuman"
+        "Makanan & Minuman Segar"
       ];
       (adminData.categories || []).forEach(c => {
         const cName = c.nama || c;
@@ -3931,21 +4245,16 @@ ${escapeHtml(order.itemsText || "-")}
 
       container.innerHTML = defaultCats.map(cat => {
         const isAll = cat === "Semua";
-        const count = isAll ? allProducts.length : allProducts.filter(p => (p.category || "").toLowerCase() === cat.toLowerCase()).length;
+        const count = isAll ? allProducts.length : allProducts.filter(p => isProductInCategory(p, cat)).length;
         const isActive = isAll ? (activeProductCategoryFilter === "all") : (activeProductCategoryFilter.toLowerCase() === cat.toLowerCase());
 
         return `
           <button 
             type="button" 
-            onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
-              isActive 
-                ? 'bg-emerald-700 text-white shadow-xs' 
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }"
+            onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')" 
+            class="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}"
           >
-            <span>${escapeHtml(cat)}</span>
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600 font-extrabold'}">${count}</span>
+            ${escapeHtml(cat)} <span class="text-[10px] opacity-80">(${count})</span>
           </button>
         `;
       }).join("");
@@ -3960,9 +4269,9 @@ ${escapeHtml(order.itemsText || "-")}
       activeProductStockFilter = status;
       document.querySelectorAll(".prod-stock-filter-btn").forEach(btn => {
         if (btn.getAttribute("data-stock-filter") === status) {
-          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs cursor-pointer";
+          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-300 shadow-xs cursor-pointer";
         } else {
-          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer";
+          btn.className = "prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 cursor-pointer";
         }
       });
       renderProductsTable();
@@ -3970,7 +4279,19 @@ ${escapeHtml(order.itemsText || "-")}
 
     async function quickUpdateStock(prodId, delta, isAbsoluteAdd = false) {
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
-      showToastAdmin("Memperbarui stok...");
+      
+      // Update data lokal seketika agar UI kasir POS & tabel stok langsung responsif
+      if (adminData && Array.isArray(adminData.products)) {
+        const p = adminData.products.find(item => item && String(item.id || "").toUpperCase() === String(prodId || "").toUpperCase());
+        if (p) {
+          p.stock = isAbsoluteAdd ? Number(delta) : Math.max(0, (Number(p.stock || 0) + Number(delta)));
+        }
+      }
+      renderProductsTable();
+      renderPosProductsGrid();
+      renderLowStockTable();
+
+      showToastAdmin("Memperbarui stok ke Google Sheets...");
 
       try {
         const res = await fetch(GAS_URL, {
@@ -3985,30 +4306,22 @@ ${escapeHtml(order.itemsText || "-")}
         });
         const json = await res.json();
         if (json && json.status === "success") {
-          showToastAdmin(`Stok produk ${prodId} berhasil diperbarui.`);
-
-          try {
-            // Update data lokal seketika agar terlihat langsung di tabel stok & kasir POS
-            if (adminData && Array.isArray(adminData.products)) {
-              const p = adminData.products.find(item => item && String(item.id || "").toUpperCase() === String(prodId || "").toUpperCase());
-              if (p) {
-                p.stock = (json.newStock !== undefined) ? Number(json.newStock) : (Number(p.stock || 0) + Number(delta));
-              }
-            }
+          showToastAdmin(`Alhamdulillah, stok ${prodId} berhasil disimpan.`);
+          if (adminData && Array.isArray(adminData.products) && json.newStock !== undefined) {
+            const p = adminData.products.find(item => item && String(item.id || "").toUpperCase() === String(prodId || "").toUpperCase());
+            if (p) p.stock = Number(json.newStock);
             renderProductsTable();
             renderPosProductsGrid();
-            fetchDashboardData(true);
-          } catch (renderErr) {
-            console.warn("Notice re-render setelah update stok:", renderErr);
           }
+          fetchDashboardData(true);
           return json;
         } else {
           const errMsg = (json && json.message) ? json.message : "Gagal memperbarui stok.";
-          showToastAdmin("Gagal: " + errMsg);
+          showToastAdmin("Gagal: " + errMsg, "error");
           throw new Error(errMsg);
         }
       } catch (e) {
-        showToastAdmin("Koneksi gagal: " + (e?.message || e));
+        showToastAdmin("Koneksi gagal: " + (e?.message || e), "error");
         throw e;
       }
     }
@@ -5836,11 +6149,32 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
+    function scrollToPosCart() {
+      const card = document.getElementById("posLiveCartCard");
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function clearPosProductSearch() {
+      posSearchQuery = "";
+      const sInput = document.getElementById("posProductSearchInput");
+      const clearBtn = document.getElementById("btnClearPosSearch");
+      if (sInput) sInput.value = "";
+      if (clearBtn) clearBtn.classList.add("hidden");
+      renderPosProductsGrid();
+    }
+
     function renderPosLiveCart() {
       const tbody = document.getElementById("posLiveCartTableBody");
+      const mobileList = document.getElementById("posLiveCartMobileList");
       const drawerTbody = document.getElementById("posDrawerCartTableBody");
       const totalEl = document.getElementById("posLiveTotalText");
       const badgeEl = document.getElementById("posCartItemCountBadge");
+      const calcSection = document.getElementById("posPaymentCalculationSection");
+
+      const stickyIndicator = document.getElementById("posStickyCartIndicator");
+      const stickySummary = document.getElementById("posStickyCartSummaryText");
 
       const floatBar = document.getElementById("posFloatingCartBar");
       const floatItems = document.getElementById("posFloatingCartItemsText");
@@ -5856,9 +6190,30 @@ ${escapeHtml(order.itemsText || "-")}
       if (drawerBadge) drawerBadge.innerText = `${totalItems} Item terpilih`;
       if (drawerTotal) drawerTotal.innerText = formatRupiah(totalPrice);
 
+      // Sticky Mini Cart Pill (Freeze di batas kolom pencarian kasir)
+      if (stickyIndicator && stickySummary) {
+        if (posLiveCart.length > 0) {
+          stickyIndicator.classList.remove("hidden");
+          stickyIndicator.classList.add("flex");
+          stickySummary.innerText = `${totalItems} Item - ${formatRupiah(totalPrice)}`;
+        } else {
+          stickyIndicator.classList.add("hidden");
+          stickyIndicator.classList.remove("flex");
+        }
+      }
+
+      // Tampilkan atau sembunyikan seksi rincian pembayaran kasir
+      if (calcSection) {
+        if (posLiveCart.length > 0) {
+          calcSection.classList.remove("hidden");
+        } else {
+          calcSection.classList.add("hidden");
+        }
+      }
+
       // Update Floating Cart Bar di Layar Mobile
       if (floatBar) {
-        if (posLiveCart.length > 0 && currentAdminTab === "pos" && !window.isMobileQueueActive) {
+        if (posLiveCart.length > 0 && currentAdminTab === "pos") {
           floatBar.classList.remove("hidden");
           floatBar.classList.add("flex");
           if (floatItems) floatItems.innerText = `${totalItems} Item`;
@@ -5873,16 +6228,24 @@ ${escapeHtml(order.itemsText || "-")}
         if (tbody) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
-                Keranjang kasir masih kosong. Silakan buka kamera kasir atau pilih produk dari katalog.
+              <td colspan="5" class="p-5 text-center text-slate-400 text-xs">
+                🛒 Keranjang belanja kasir masih kosong. Silakan scan barcode atau ketuk barang pada katalog di bawah.
               </td>
             </tr>
+          `;
+        }
+        if (mobileList) {
+          mobileList.innerHTML = `
+            <div class="p-4 text-center text-slate-400 dark:text-slate-500 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
+              <i class="bi bi-cart3 text-xl block mb-1 text-slate-300 dark:text-slate-600"></i>
+              <span>Keranjang kasir masih kosong.<br>Pilih produk dari katalog di bawah.</span>
+            </div>
           `;
         }
         if (drawerTbody) {
           drawerTbody.innerHTML = `
             <tr>
-              <td colspan="4" class="p-6 text-center text-slate-400 text-xs">
+              <td colspan="4" class="p-5 text-center text-slate-400 text-xs">
                 Keranjang kasir masih kosong.
               </td>
             </tr>
@@ -5897,20 +6260,20 @@ ${escapeHtml(order.itemsText || "-")}
         tbody.innerHTML = posLiveCart.map(item => {
           const sub = item.price * item.qty;
           return `
-            <tr class="hover:bg-slate-100/70 transition-colors">
+            <tr class="hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors">
               <td class="p-2.5">
-                <strong class="text-xs text-slate-800 block">${escapeHtml(item.name)}</strong>
+                <strong class="text-xs text-slate-800 dark:text-white block">${escapeHtml(item.name)}</strong>
                 <span class="text-[10px] text-slate-400 font-mono">${item.id}</span>
               </td>
-              <td class="p-2.5 text-center text-slate-600 font-bold">${formatRupiah(item.price)}</td>
+              <td class="p-2.5 text-center text-slate-600 dark:text-slate-300 font-bold">${formatRupiah(item.price)}</td>
               <td class="p-2.5 text-center">
-                <div class="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
-                  <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">-</button>
-                  <span class="w-8 text-center text-xs font-black text-slate-800">${item.qty}</span>
-                  <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">+</button>
+                <div class="inline-flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-800 shadow-xs">
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-black cursor-pointer">-</button>
+                  <span class="w-8 text-center text-xs font-black text-slate-800 dark:text-white">${item.qty}</span>
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-black cursor-pointer">+</button>
                 </div>
               </td>
-              <td class="p-2.5 text-right font-black text-emerald-800">${formatRupiah(sub)}</td>
+              <td class="p-2.5 text-right font-black text-emerald-800 dark:text-emerald-400">${formatRupiah(sub)}</td>
               <td class="p-2.5 text-center">
                 <button type="button" onclick="removePosCartItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs cursor-pointer p-1" title="Hapus">
                   <i class="bi bi-trash"></i>
@@ -5921,7 +6284,36 @@ ${escapeHtml(order.itemsText || "-")}
         }).join("");
       }
 
-      // Render Mobile Drawer Table Rows
+      // Render Mobile Cards List View
+      if (mobileList) {
+        mobileList.innerHTML = posLiveCart.map(item => {
+          const sub = item.price * item.qty;
+          return `
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="font-extrabold text-xs text-slate-900 dark:text-white truncate">${escapeHtml(item.name)}</div>
+                <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                  <span>${formatRupiah(item.price)}</span>
+                  <span>•</span>
+                  <span class="font-black text-emerald-700 dark:text-emerald-400">${formatRupiah(sub)}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="inline-flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900 shadow-xs">
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-black active:scale-90">-</button>
+                  <span class="w-6 text-center text-xs font-black text-slate-900 dark:text-white">${item.qty}</span>
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-black active:scale-90">+</button>
+                </div>
+                <button type="button" onclick="removePosCartItem('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus">
+                  <i class="bi bi-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Drawer Table Rows
       if (drawerTbody) {
         drawerTbody.innerHTML = posLiveCart.map(item => {
           const sub = item.price * item.qty;
@@ -5957,7 +6349,6 @@ ${escapeHtml(order.itemsText || "-")}
       const drawer = document.getElementById("posMobileCartDrawer");
       if (drawer) {
         drawer.classList.remove("hidden");
-        // Sinkronisasi data member & uang diterima dari desktop ke drawer
         const deskPhone = document.getElementById("posMemberPhoneInput");
         const drawerPhone = document.getElementById("posDrawerMemberPhoneInput");
         if (deskPhone && drawerPhone) drawerPhone.value = deskPhone.value;
@@ -6004,16 +6395,16 @@ ${escapeHtml(order.itemsText || "-")}
       const drawerCashBox = document.getElementById("posDrawerCashBox");
 
       if (method === "Tunai") {
-        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (cashBox) cashBox.classList.remove("hidden");
 
         if (btnDrawerCash) btnDrawerCash.className = "py-2.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (btnDrawerQris) btnDrawerQris.className = "py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (drawerCashBox) drawerCashBox.classList.remove("hidden");
       } else {
-        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (cashBox) cashBox.classList.add("hidden");
 
         if (btnDrawerCash) btnDrawerCash.className = "py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
@@ -6035,7 +6426,7 @@ ${escapeHtml(order.itemsText || "-")}
       if (change >= 0) {
         if (changeEl) {
           changeEl.innerText = formatRupiah(change);
-          changeEl.className = "font-black text-emerald-700";
+          changeEl.className = "font-black text-emerald-700 dark:text-emerald-400";
         }
         if (drawerChangeEl) {
           drawerChangeEl.innerText = formatRupiah(change);
@@ -6074,7 +6465,7 @@ ${escapeHtml(order.itemsText || "-")}
     }
 
     // =========================================================
-    // 15b. KATALOG GRID MANUAL KASIR POS (SENTUH / KLIK CEPAT)
+    // 15b. KATALOG GRID & DERET HORIZONTAL KASIR POS
     // =========================================================
     let posActiveCategory = "all";
     let posSearchQuery = "";
@@ -6083,25 +6474,36 @@ ${escapeHtml(order.itemsText || "-")}
       const container = document.getElementById("posCategoryFilterPills");
       if (!container) return;
 
-      const cats = (adminData.categories && adminData.categories.length > 0)
-        ? adminData.categories.map(c => c.nama)
-        : ["ATK & Perlengkapan Kantor", "Kosmetik & Perawatan Diri", "Sembako & Kelontongan", "Makanan & Minuman"];
+      const defaultCats = [
+        { key: "all", label: "Semua" },
+        { key: "ATK & Alat Kantor", label: "ATK & Alat Kantor" },
+        { key: "Kosmetik & Cantik", label: "Kosmetik & Cantik" },
+        { key: "Sembako & Kelontongan", label: "Sembako & Kelontong" },
+        { key: "Makanan & Minuman Segar", label: "Makanan & Minuman" }
+      ];
 
-      let html = `
-        <button type="button" onclick="setPosCategoryFilter('all')" class="px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${posActiveCategory === 'all' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
-          Semua
-        </button>
-      `;
+      const standardKeys = ["atk", "kosmetik", "sembako", "makan", "minum", "cantik", "kelontong"];
+      (adminData.categories || []).forEach(c => {
+        const cName = c.nama || c;
+        if (cName && !standardKeys.some(k => cName.toLowerCase().includes(k))) {
+          if (!defaultCats.some(dc => dc.key.toLowerCase() === cName.toLowerCase())) {
+            defaultCats.push({ key: cName, label: cName });
+          }
+        }
+      });
 
-      cats.forEach(cat => {
-        const isActive = posActiveCategory === cat;
-        html += `
-          <button type="button" onclick="setPosCategoryFilter('${cat.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
-            ${escapeHtml(cat)}
+      container.innerHTML = defaultCats.map(cat => {
+        const isActive = (posActiveCategory === cat.key);
+        return `
+          <button 
+            type="button" 
+            onclick="setPosCategoryFilter('${cat.key.replace(/'/g, "\\'")}')" 
+            class="px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'}"
+          >
+            ${escapeHtml(cat.label)}
           </button>
         `;
-      });
-      container.innerHTML = html;
+      }).join("");
     }
 
     function setPosCategoryFilter(cat) {
@@ -6115,14 +6517,178 @@ ${escapeHtml(order.itemsText || "-")}
       renderPosProductsGrid();
     }
 
-    function renderPosProductsGrid() {
-      const container = document.getElementById("posProductsManualGrid");
+    function renderPosCategoryRails() {
+      const container = document.getElementById("posProductsManualContainer");
       const countBadge = document.getElementById("posProductCountBadge");
       if (!container) return;
 
+      const allProducts = (adminData.products || []).filter(p => p && typeof p === "object");
+      if (countBadge) countBadge.innerText = `${allProducts.length} Produk`;
+
+      if (allProducts.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-slate-400 text-xs">
+            <i class="bi bi-box-seam text-3xl block mb-2 text-slate-300"></i>
+            Katalog produk masih kosong. Tambahkan barang di tab Katalog & Stok.
+          </div>
+        `;
+        return;
+      }
+
+      const railsConfig = [
+        {
+          id: "atk",
+          title: "ATK & Alat Kantor",
+          subtitle: "Kertas HVS, buku tulis, pulpen gel, spidol & alat kantor",
+          icon: "bi bi-pencil-ruler",
+          color: "text-blue-600 bg-blue-50 dark:bg-blue-950/50",
+          filterKey: "ATK & Alat Kantor"
+        },
+        {
+          id: "kosmetik",
+          title: "Kosmetik & Cantik",
+          subtitle: "Skincare, serum wajah, lip cream, deodorant & kecantikan",
+          icon: "bi bi-stars",
+          color: "text-rose-600 bg-rose-50 dark:bg-rose-950/50",
+          filterKey: "Kosmetik & Cantik"
+        },
+        {
+          id: "sembako",
+          title: "Sembako & Kelontongan",
+          subtitle: "Minyak goreng, beras, gula pasir, mi instan & bumbu",
+          icon: "bi bi-basket2-fill",
+          color: "text-amber-600 bg-amber-50 dark:bg-amber-950/50",
+          filterKey: "Sembako & Kelontongan"
+        },
+        {
+          id: "fnb",
+          title: "Makanan & Minuman Segar",
+          subtitle: "Aneka kopi, teh, susu UHT, air mineral & snack gurih",
+          icon: "bi bi-cup-hot-fill",
+          color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50",
+          filterKey: "Makanan & Minuman Segar"
+        }
+      ];
+
+      const standardKeys = ["atk", "kantor", "kosmetik", "cantik", "skincare", "sembako", "kelontong", "makan", "minum", "snack"];
+      const customCats = [...new Set(allProducts.map(p => p.category).filter(Boolean))]
+        .filter(c => !standardKeys.some(k => c.toLowerCase().includes(k)));
+
+      customCats.forEach(cat => {
+        railsConfig.push({
+          id: "cat-" + cat.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+          title: cat,
+          subtitle: `Aneka produk kategori ${cat}`,
+          icon: "bi bi-grid",
+          color: "text-teal-600 bg-teal-50 dark:bg-teal-950/50",
+          filterKey: cat
+        });
+      });
+
+      let html = "";
+      railsConfig.forEach(rail => {
+        const railProducts = allProducts.filter(p => isProductInCategory(p, rail.filterKey));
+        if (railProducts.length === 0) return;
+
+        html += `
+          <div class="space-y-2">
+            <!-- Rail Header -->
+            <div class="flex items-center justify-between px-1">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg ${rail.color} flex items-center justify-center text-xs font-bold shadow-xs">
+                  <i class="${rail.icon}"></i>
+                </span>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-none">${escapeHtml(rail.title)}</h5>
+                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${railProducts.length}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 leading-tight mt-0.5 hidden sm:block">${escapeHtml(rail.subtitle)}</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onclick="setPosCategoryFilter('${rail.filterKey.replace(/'/g, "\\'")}')" 
+                class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-0.5 active:scale-95 cursor-pointer"
+              >
+                <span>Lihat Semua</span>
+                <i class="bi bi-chevron-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <!-- Horizontal Scroll Card Rail -->
+            <div class="flex gap-2.5 overflow-x-auto pb-2.5 pt-1 px-1 no-scrollbar snap-x scroll-smooth">
+              ${railProducts.map(p => {
+                const prodName = p.name || "Produk";
+                const prodId = p.id || "-";
+                const isLow = Number(p.stock || 0) <= 3 && Number(p.stock || 0) > 0;
+                const isOut = Number(p.stock || 0) <= 0;
+                let stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock || 0}</span>`;
+                if (isOut) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">Habis</span>`;
+                else if (isLow) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Sisa: ${p.stock || 0}</span>`;
+
+                return `
+                  <div 
+                    onclick="handlePosManualItemClick('${prodId}')" 
+                    class="group w-36 sm:w-44 flex-shrink-0 snap-start p-2 sm:p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/90 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between active:scale-95 text-left relative"
+                    title="Klik untuk +1 ke keranjang kasir"
+                  >
+                    <div class="space-y-1.5">
+                      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                        <img 
+                          src="${formatImageUrl(p.image)}" 
+                          alt="${escapeHtml(prodName)}" 
+                          class="w-full h-full object-cover group-hover:scale-105 transition-all"
+                          onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                          loading="lazy"
+                        />
+                        <div class="absolute top-1 right-1">
+                          ${stockBadge}
+                        </div>
+                      </div>
+                      <div class="font-extrabold text-[11px] sm:text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
+                        ${escapeHtml(prodName)}
+                      </div>
+                    </div>
+                    <div class="mt-2 pt-1 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                      <strong class="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-black">${formatRupiah(p.price || 0)}</strong>
+                      <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xs font-black group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">+</span>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html || `
+        <div class="py-12 text-center text-slate-400 text-xs">
+          Tidak ada produk yang tersedia.
+        </div>
+      `;
+    }
+
+    function renderPosProductsGrid() {
+      const container = document.getElementById("posProductsManualContainer");
+      const countBadge = document.getElementById("posProductCountBadge");
+      const clearBtn = document.getElementById("btnClearPosSearch");
+      if (!container) return;
+
+      if (clearBtn) {
+        if (posSearchQuery) clearBtn.classList.remove("hidden");
+        else clearBtn.classList.add("hidden");
+      }
+
+      // Jika kategori 'all' dan tidak ada pencarian, tampilkan deret rel horizontal scroll!
+      if (posActiveCategory === "all" && !posSearchQuery) {
+        renderPosCategoryRails();
+        return;
+      }
+
       let products = (adminData.products || []).filter(p => p && typeof p === "object");
       if (posActiveCategory !== "all") {
-        products = products.filter(p => (p.category || "").toLowerCase() === posActiveCategory.toLowerCase());
+        products = products.filter(p => isProductInCategory(p, posActiveCategory));
       }
       if (posSearchQuery) {
         products = products.filter(p => 
@@ -6134,55 +6700,74 @@ ${escapeHtml(order.itemsText || "-")}
 
       if (countBadge) countBadge.innerText = `${products.length} Produk`;
 
+      let filterBanner = `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs mb-3">
+          <span class="font-bold text-slate-700 dark:text-slate-300">
+            Menampilkan: <strong>${escapeHtml(posSearchQuery ? `"${posSearchQuery}"` : posActiveCategory)}</strong> (${products.length} produk)
+          </span>
+          <button 
+            type="button" 
+            onclick="setPosCategoryFilter('all'); clearPosProductSearch();" 
+            class="text-xs text-emerald-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1 active:scale-95"
+          >
+            <span>← Tampilkan Semua Deret</span>
+          </button>
+        </div>
+      `;
+
       if (products.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full py-8 text-center text-slate-400 text-xs">
-            <i class="bi bi-box-seam text-2xl block mb-1 text-slate-300"></i>
-            Tidak ada produk yang cocok dengan filter / pencarian.
+        container.innerHTML = filterBanner + `
+          <div class="py-12 text-center text-slate-400 text-xs">
+            <i class="bi bi-box-seam text-3xl block mb-2 text-slate-300"></i>
+            Tidak ada produk yang cocok dengan pencarian / filter ini.
           </div>
         `;
         return;
       }
 
-      container.innerHTML = products.map(p => {
-        const prodName = p.name || "Produk";
-        const prodId = p.id || "-";
-        const isLow = Number(p.stock || 0) <= 3;
-        const isMedium = Number(p.stock || 0) <= 10 && !isLow;
-        let stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock || 0}</span>`;
-        if (isLow) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Sisa: ${p.stock || 0}</span>`;
-        else if (isMedium) stockBadge = `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Stok: ${p.stock || 0}</span>`;
+      container.innerHTML = filterBanner + `
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+          ${products.map(p => {
+            const prodName = p.name || "Produk";
+            const prodId = p.id || "-";
+            const isLow = Number(p.stock || 0) <= 3 && Number(p.stock || 0) > 0;
+            const isOut = Number(p.stock || 0) <= 0;
+            let stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Stok: ${p.stock || 0}</span>`;
+            if (isOut) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">Habis</span>`;
+            else if (isLow) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Sisa: ${p.stock || 0}</span>`;
 
-        return `
-          <div 
-            onclick="handlePosManualItemClick('${prodId}')" 
-            class="group p-2 rounded-xl border border-slate-200/90 bg-white hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between active:scale-95 text-left relative overflow-hidden"
-            title="Klik untuk +1 ke keranjang kasir"
-          >
-            <div class="space-y-1.5">
-              <div class="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100">
-                <img 
-                  src="${formatImageUrl(p.image)}" 
-                  alt="${escapeHtml(prodName)}" 
-                  class="w-full h-full object-cover group-hover:scale-105 transition-all"
-                  onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
-                  loading="lazy"
-                />
-                <div class="absolute top-1 right-1">
-                  ${stockBadge}
+            return `
+              <div 
+                onclick="handlePosManualItemClick('${prodId}')" 
+                class="group p-2 sm:p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between active:scale-95 text-left relative"
+                title="Klik untuk +1 ke keranjang kasir"
+              >
+                <div class="space-y-1.5">
+                  <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                    <img 
+                      src="${formatImageUrl(p.image)}" 
+                      alt="${escapeHtml(prodName)}" 
+                      class="w-full h-full object-cover group-hover:scale-105 transition-all"
+                      onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                      loading="lazy"
+                    />
+                    <div class="absolute top-1 right-1">
+                      ${stockBadge}
+                    </div>
+                  </div>
+                  <div class="font-extrabold text-[11px] sm:text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
+                    ${escapeHtml(prodName)}
+                  </div>
+                </div>
+                <div class="mt-2 pt-1 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                  <strong class="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-black">${formatRupiah(p.price || 0)}</strong>
+                  <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xs font-black group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">+</span>
                 </div>
               </div>
-              <div class="font-extrabold text-[11px] text-slate-800 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
-                ${escapeHtml(prodName)}
-              </div>
-            </div>
-            <div class="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between">
-              <strong class="text-xs text-emerald-700 font-black">${formatRupiah(p.price || 0)}</strong>
-              <span class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-black group-hover:bg-emerald-600 group-hover:text-white transition-all">+</span>
-            </div>
-          </div>
-        `;
-      }).join("");
+            `;
+          }).join("")}
+        </div>
+      `;
     }
 
     function handlePosManualItemClick(prodId) {
@@ -6200,7 +6785,6 @@ ${escapeHtml(order.itemsText || "-")}
       showToastAdmin(`✅ +1 ${product.name}`);
     }
 
-    // Shortcut Tes Scan untuk Tablet / PC tanpa kamera fisik
     function simulatePosContinuousBarcodeScan() {
       if (!adminData.products || adminData.products.length === 0) {
         showToastAdmin("Belum ada katalog produk untuk disimulasikan.");
@@ -6210,7 +6794,6 @@ ${escapeHtml(order.itemsText || "-")}
       handlePosContinuousScan(randomProd.id);
     }
 
-    // Cetak Struk Bluetooth Thermal dari Keranjang Kasir
     function printPosCartBluetooth(memberPhoneArg) {
       if (posLiveCart.length === 0) {
         showToastAdmin("Keranjang kasir masih kosong. Scan barang terlebih dahulu.", "warning");
@@ -6241,7 +6824,6 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
-    // Selesaikan Transaksi Kasir (Kirim ke GAS & Tambah Poin Member)
     async function submitPosDirectTransaction() {
       if (posLiveCart.length === 0) {
         showToastAdmin("Keranjang kasir masih kosong. Scan atau pilih barang terlebih dahulu.", "warning");
@@ -6292,7 +6874,15 @@ ${escapeHtml(order.itemsText || "-")}
       const cartSnapshot = [...posLiveCart];
       const itemsSummaryText = cartSnapshot.map((i, idx) => `${idx + 1}. ${i.name} [${i.qty}x @ Rp ${Number(i.price).toLocaleString("id-ID")}]`).join("\n") + (memberPhone ? `\n[🎁 Member: ${memberPhone}]` : "");
 
-      // 2. Buat objek transaksi lokal seketika
+      // 2. Kurangi stok produk lokal seketika
+      cartSnapshot.forEach(item => {
+        const prod = (adminData.products || []).find(p => p && String(p.id).toUpperCase() === String(item.id).toUpperCase());
+        if (prod) {
+          prod.stock = Math.max(0, (Number(prod.stock) || 0) - (Number(item.qty) || 1));
+        }
+      });
+
+      // 3. Buat objek transaksi lokal seketika
       const newPosOrder = {
         orderId: orderId,
         orderTime: orderTime,
@@ -6311,13 +6901,12 @@ ${escapeHtml(order.itemsText || "-")}
       if (!adminData.orders) adminData.orders = [];
       adminData.orders.unshift(newPosOrder);
 
-      // 3. Update summary & omzet hari ini seketika
+      // 4. Update ringkasan & omzet hari ini seketika
       if (!adminData.summary) adminData.summary = {};
       adminData.summary.omzetHariIni = (Number(adminData.summary.omzetHariIni) || 0) + totalPrice;
       adminData.summary.pesananHariIni = (Number(adminData.summary.pesananHariIni) || 0) + 1;
       adminData.summary.pesananSelesai = (Number(adminData.summary.pesananSelesai) || 0) + 1;
 
-      // Update batang hari ini pada weeklyOmzet jika ada
       if (adminData.summary.weeklyOmzet && Array.isArray(adminData.summary.weeklyOmzet)) {
         const todayObj = adminData.summary.weeklyOmzet.find(d => d.isToday);
         if (todayObj) {
@@ -6326,10 +6915,14 @@ ${escapeHtml(order.itemsText || "-")}
         }
       }
 
-      // 4. Perbarui tampilan dashboard & rekap transaksi seketika
+      // 5. Perbarui seluruh tampilan UI toko seketika
       renderDashboardSummary();
+      renderPosProductsGrid();
+      renderProductsTable();
+      renderLowStockTable();
+      renderOrders();
 
-      // Kirim transaksi kasir ke backend GAS
+      // 6. Kirim transaksi kasir ke backend Google Apps Script di latar belakang
       try {
         const gasUrl = (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) ? CONFIG.GAS_API_URL : GAS_URL;
         fetch(gasUrl, {
@@ -6347,7 +6940,7 @@ ${escapeHtml(order.itemsText || "-")}
             paymentMethod: posSelectedPayMethod === "Tunai" ? "Tunai Kasir" : "QRIS Toko"
           })
         }).then(r => r.json()).then(resJson => {
-          if (resJson.status === "success") {
+          if (resJson && resJson.status === "success") {
             if (resJson.member) {
               showToastAdmin(`Alhamdulillah! +1 Stempel ditambahkan ke ${resJson.member.name} (${resJson.member.belanjaCount}/30)`);
               newPosOrder.customerName = resJson.member.name;
@@ -6358,7 +6951,7 @@ ${escapeHtml(order.itemsText || "-")}
       } catch (err) {}
 
       beepSuccess();
-      showToastAdmin(`Alhamdulillah, transaksi ${formatRupiah(totalPrice)} selesai!`);
+      showToastAdmin(`Alhamdulillah, transaksi ${formatRupiah(totalPrice)} berhasil selesai!`);
 
       // Cetak Bluetooth
       printPosCartBluetooth(memberPhone);
@@ -6375,6 +6968,7 @@ ${escapeHtml(order.itemsText || "-")}
       if (drawerMemberInput) drawerMemberInput.value = "";
       const memberInfo = document.getElementById("posMemberInfoBox");
       if (memberInfo) memberInfo.classList.add("hidden");
+
       renderPosLiveCart();
       closePosMobileCartDrawer();
     }
