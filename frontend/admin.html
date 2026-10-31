@@ -61,8 +61,13 @@
   <style>
     /* Styling Dasar & Scrollbar */
     body {
-      background-color: #F8FAF9;
+      background-color: #ffffff;
       font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    @media (min-width: 768px) {
+      body {
+        background-color: #F8FAF9;
+      }
     }
     ::-webkit-scrollbar {
       width: 6px;
@@ -77,6 +82,24 @@
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+
+    /* Utility No Scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Bottom Sheet Slide Up Animation */
+    @keyframes slideUpDrawer {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-slideUp {
+      animation: slideUpDrawer 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* Animasi Keypad PIN */
@@ -234,63 +257,71 @@
        ========================================================================= -->
   <div id="mainDashboard" class="hidden min-h-screen flex flex-col">
     
-    <!-- Top Header Bar -->
+    <!-- Top Header Bar (Ultra-Slim Edge-to-Edge App Bar on Mobile) -->
     <header class="bg-gradient-to-r from-delina-emerald to-slate-900 text-white sticky top-0 z-40 shadow-md">
-      <div class="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3.5 flex items-center justify-between h-14 sm:h-auto">
         
-        <!-- Logo & Nama Toko -->
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white p-0.5 flex items-center justify-center text-amber-300 text-lg border border-white/20 overflow-hidden shadow-xs">
-            <img id="headerLogoImg" src="assets/logo.png" alt="Logo" class="w-full h-full object-contain" />
+        <!-- Sisi Kiri: Logo Delina & Judul Tab Aktif -->
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white p-0.5 flex items-center justify-center text-amber-300 text-lg border border-white/20 overflow-hidden shadow-xs flex-shrink-0">
+            <img id="headerLogoImg" src="assets/logo.png" alt="Logo" class="w-full h-full object-contain rounded-full" />
             <i id="headerLogoIcon" class="bi bi-shop hidden"></i>
           </div>
-          <div>
-            <div class="flex items-center gap-2">
+          <div class="min-w-0">
+            <!-- Tampilan Mobile: Judul Tab Dinamis yang Sedang Dibuka -->
+            <div class="flex items-center gap-1.5 md:hidden">
+              <span id="mobileHeaderTabTitle" class="font-black text-xs sm:text-sm text-white truncate leading-tight">Kasir POS</span>
+              <span id="roleBadgeMobile" class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-amber-400 text-slate-950 uppercase">
+                Admin
+              </span>
+            </div>
+            <!-- Tampilan Desktop: Nama Toko & Slogan -->
+            <div class="hidden md:flex items-center gap-2">
               <h1 id="headerNamaToko" class="font-black text-sm sm:text-base leading-tight">Toko Delina</h1>
               <span id="roleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-xs uppercase tracking-wider">
                 Admin
               </span>
             </div>
-            <p id="headerSlogan" class="text-[11px] text-emerald-200/80 hidden sm:block">Lengkap, Murah & Berkah</p>
+            <p id="headerSlogan" class="text-[11px] text-emerald-200/80 hidden md:block">Lengkap, Murah & Berkah</p>
           </div>
         </div>
 
-        <!-- Tombol Aksi Header -->
-        <div class="flex items-center gap-2">
+        <!-- Sisi Kanan: Tombol Aksi Minimalis Header -->
+        <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <button 
             onclick="fetchDashboardData(true)" 
             id="btnRefreshData"
-            class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15"
+            class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15"
             title="Segarkan Data Real-Time"
           >
-            <i class="bi bi-arrow-clockwise"></i>
+            <i class="bi bi-arrow-clockwise text-sm"></i>
             <span class="hidden sm:inline">Segarkan</span>
           </button>
 
           <a 
             href="index.html" 
             target="_blank"
-            class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15"
+            class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15"
             title="Buka Website Etalase Toko"
           >
-            <i class="bi bi-globe"></i>
+            <i class="bi bi-globe text-sm"></i>
             <span class="hidden md:inline">Lihat Web</span>
           </a>
 
           <button 
             onclick="logoutAdmin()" 
-            class="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+            class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
             title="Kunci Panel / Logout"
           >
-            <i class="bi bi-box-arrow-right"></i>
+            <i class="bi bi-box-arrow-right text-sm"></i>
             <span class="hidden sm:inline">Keluar</span>
           </button>
         </div>
 
       </div>
 
-      <!-- Navigation Tabs (Bento Switcher) -->
-      <div id="adminTopTabsContainer" class="border-t border-white/10 bg-black/15 overflow-x-auto scroll-smooth">
+      <!-- Navigation Tabs (Bento Switcher) - DISEMBUNYIKAN DI LAYAR MOBILE, HANYA TAMPIL DI DESKTOP -->
+      <div id="adminTopTabsContainer" class="hidden md:block border-t border-white/10 bg-black/15 overflow-x-auto scroll-smooth">
         <div class="max-w-7xl mx-auto px-4 flex gap-1 text-xs font-bold">
           
           <!-- Tab 1: Dashboard Keuangan (Admin Only) -->
@@ -358,8 +389,8 @@
       </div>
     </header>
 
-    <!-- Kontainer Konten Utama -->
-    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 pb-28 sm:pb-8">
+    <!-- Kontainer Konten Utama (Edge-to-Edge Canvas di Layar Mobile) -->
+    <main class="w-full max-w-full md:max-w-7xl mx-auto p-0 md:p-6 flex-1 pb-28 md:pb-8 bg-white md:bg-transparent overflow-x-hidden">
 
       <!-- =========================================================
            TAB 1: DASHBOARD & KEUANGAN (KHUSUS SUPER ADMIN)
@@ -614,13 +645,43 @@
       <!-- =========================================================
            TAB 2: KASIR POS & KELOLA PESANAN (KASIR & ADMIN)
            ========================================================= -->
-      <section id="tabContentPos" class="tab-pane hidden space-y-5">
+      <section id="tabContentPos" class="tab-pane hidden space-y-4 md:space-y-5">
         
         <!-- =========================================================
              STASIUN KASIR CEPAT (CONTINUOUS SCANNER & POS LIVE CART)
              ========================================================= -->
-        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 rounded-none md:rounded-3xl p-0 md:p-5 border-0 md:border border-slate-200/80 shadow-none md:shadow-xs space-y-3 md:space-y-4">
+          
+          <!-- Baris Aksi Scanner Cepat (Tampilan Mobile Native Retail: 3 Tombol Kapsul) -->
+          <div class="grid grid-cols-3 gap-1.5 px-3 pt-3 md:hidden">
+            <button 
+              type="button" 
+              onclick="togglePosContinuousCamera()" 
+              class="py-2.5 px-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            >
+              <i class="bi bi-camera-fill text-sm"></i>
+              <span class="truncate">Kamera Scan</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="openLembarSaktiModal()" 
+              class="py-2.5 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            >
+              <i class="bi bi-upc-scan text-sm"></i>
+              <span class="truncate">Lembar Sakti</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="openManualPosItemModal()" 
+              class="py-2.5 px-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-95 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            >
+              <i class="bi bi-plus-circle-fill text-sm"></i>
+              <span class="truncate">+ Manual</span>
+            </button>
+          </div>
+
+          <!-- Header Stasiun Kasir & Scanner (Tampilan Desktop) -->
+          <div class="hidden md:flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div class="flex items-center gap-2.5">
               <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center text-xl shadow-xs">
                 <i class="bi bi-calculator"></i>
@@ -634,7 +695,7 @@
               </div>
             </div>
 
-            <!-- Kontrol Scanner Kasir -->
+            <!-- Kontrol Scanner Kasir Desktop -->
             <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
               <button 
                 type="button" 
@@ -669,7 +730,7 @@
           </div>
 
           <!-- Viewport Kamera Kasir Continuous (Collapsible) -->
-          <div id="posCameraContainer" class="hidden bg-slate-950 border-2 border-emerald-500 rounded-2xl p-3 sm:p-4 text-center space-y-2.5 animate-fadeIn">
+          <div id="posCameraContainer" class="hidden bg-slate-950 border-2 border-emerald-500 rounded-2xl p-3 sm:p-4 text-center space-y-2.5 animate-fadeIn mx-3 md:mx-0">
             <div class="flex items-center justify-between text-white pb-2 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
@@ -709,92 +770,99 @@
             </p>
           </div>
 
-          <!-- Bento Grid: Kiri Daftar Belanja Kasir, Kanan Ringkasan & Pembayaran -->
+          <!-- Bento Grid: Kiri Katalog & Daftar Belanja Kasir, Kanan Ringkasan & Pembayaran (Desktop) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            <!-- Sisi Kiri (2 Kolom): Tabel Keranjang Kasir -->
+            <!-- Sisi Kiri (2 Kolom): Katalog Kasir & Tabel Keranjang -->
             <div class="lg:col-span-2 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <i class="bi bi-cart3 text-emerald-700"></i>
-                  <span>Daftar Item Belanja Kasir</span>
-                  <span id="posCartItemCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0 Item</span>
-                </span>
-                <button type="button" onclick="clearPosLiveCart()" class="text-[11px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer">
-                  Kosongkan Keranjang
-                </button>
-              </div>
+              
+              <!-- Tabel Keranjang Kasir (Desktop Only - di Mobile menggunakan Bottom Sheet Drawer) -->
+              <div class="hidden md:block space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <i class="bi bi-cart3 text-emerald-700"></i>
+                    <span>Daftar Item Belanja Kasir</span>
+                    <span id="posCartItemCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0 Item</span>
+                  </span>
+                  <button type="button" onclick="clearPosLiveCart()" class="text-[11px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer">
+                    Kosongkan Keranjang
+                  </button>
+                </div>
 
-              <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden max-h-64 overflow-y-auto">
-                <table class="w-full text-left text-xs">
-                  <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-extrabold sticky top-0">
-                    <tr>
-                      <th class="p-2.5">Barang / Jasa</th>
-                      <th class="p-2.5 text-center">Harga</th>
-                      <th class="p-2.5 text-center">Qty</th>
-                      <th class="p-2.5 text-right">Subtotal</th>
-                      <th class="p-2.5 text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody id="posLiveCartTableBody" class="divide-y divide-slate-200">
-                    <!-- Diisi dinamis -->
-                    <tr>
-                      <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
-                        Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden max-h-56 overflow-y-auto">
+                  <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-extrabold sticky top-0">
+                      <tr>
+                        <th class="p-2.5">Barang / Jasa</th>
+                        <th class="p-2.5 text-center">Harga</th>
+                        <th class="p-2.5 text-center">Qty</th>
+                        <th class="p-2.5 text-right">Subtotal</th>
+                        <th class="p-2.5 text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="posLiveCartTableBody" class="divide-y divide-slate-200">
+                      <!-- Diisi dinamis -->
+                      <tr>
+                        <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
+                          Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <!-- KATALOG GRID MANUAL POS (TOUCH TO ADD) -->
-              <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                  <div class="flex items-center gap-2">
-                    <i class="bi bi-grid-fill text-emerald-700 text-sm"></i>
-                    <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Katalog Cepat Kasir POS</h4>
-                    <span id="posProductCountBadge" class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200">0 Produk</span>
-                  </div>
-                  
-                  <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <!-- Tombol + Barang Manual -->
+              <div class="bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/90 shadow-none md:shadow-xs space-y-2.5">
+                
+                <!-- Baris Judul, Search & Tambah Manual -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 md:px-0 pt-1 md:pt-0">
+                  <div class="flex items-center justify-between w-full sm:w-auto">
+                    <div class="flex items-center gap-2">
+                      <i class="bi bi-grid-fill text-emerald-700 text-sm"></i>
+                      <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Katalog Cepat Kasir</h4>
+                      <span id="posProductCountBadge" class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200">0 Produk</span>
+                    </div>
+                    <!-- Tombol + Barang Manual (Desktop) -->
                     <button 
                       type="button" 
                       onclick="openManualPosItemModal()" 
-                      class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap"
+                      class="hidden md:flex px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs shadow-xs transition-all items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap"
                       title="Tambah transaksi barang kilat tanpa barcode / non-katalog"
                     >
                       <i class="bi bi-plus-circle-fill"></i>
                       <span>+ Barang Manual</span>
                     </button>
-                    <!-- Kolom Pencarian Instan POS -->
-                    <div class="relative w-full sm:w-56">
-                      <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                      <input 
-                        type="text" 
-                        id="posProductSearchInput" 
-                        oninput="handlePosProductSearch(this.value)" 
-                        placeholder="Cari nama / barcode..." 
-                        class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600"
-                      />
-                    </div>
+                  </div>
+                  
+                  <!-- Kolom Pencarian Instan POS -->
+                  <div class="relative w-full sm:w-64">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="posProductSearchInput" 
+                      oninput="handlePosProductSearch(this.value)" 
+                      placeholder="Cari nama barang / barcode..." 
+                      class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium"
+                    />
                   </div>
                 </div>
 
-                <!-- Filter Kategori POS (Pills Horizontal Scroll) -->
-                <div id="posCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
+                <!-- Filter Kategori POS (Baris Kapsul Geser Horizontal) -->
+                <div id="posCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto py-2 px-3 bg-slate-50 border-y border-slate-150 no-scrollbar text-[11px]">
                   <!-- Diisi dinamis -->
                 </div>
 
-                <!-- Grid Kartu Produk Manual POS -->
-                <div id="posProductsManualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-72 overflow-y-auto pr-1">
-                  <!-- Diisi dinamis -->
+                <!-- Grid Kartu Produk Sentuh POS (2 Kolom di Layar HP) -->
+                <div id="posProductsManualGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 px-2.5 pt-1 pb-4">
+                  <!-- Diisi dinamis oleh renderPosProductsGrid() -->
                 </div>
+
               </div>
             </div>
 
-            <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth -->
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-3">
+            <!-- Sisi Kanan (1 Kolom): Rincian Pembayaran & Cetak Bluetooth (Desktop Only) -->
+            <div class="hidden lg:flex bg-slate-50 p-4 rounded-2xl border border-slate-200 flex-col justify-between space-y-3">
               <div class="space-y-3">
                 <!-- Input Nomor HP Member Kasir (Program Loyalitas 30x Belanja) -->
                 <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/80 space-y-1.5">
@@ -896,20 +964,20 @@
         <!-- =========================================================
              BAGIAN ANTREAN PESANAN ONLINE & PENGAMBILAN TANPA ANTRE
              ========================================================= -->
-        <div class="border-t border-slate-200 pt-3 space-y-3">
+        <div class="border-t border-slate-200 pt-3 md:pt-5 space-y-3 px-3 md:px-0">
           <div class="flex items-center justify-between">
             <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
               <i class="bi bi-inbox-fill text-delina-emerald"></i>
               <span>Antrean Pesanan Masuk (Online / Express Pick-up)</span>
             </h3>
-            <span class="text-xs text-slate-500">Scan QR nota pelanggan untuk mencari cepat</span>
+            <span class="text-xs text-slate-500 hidden sm:inline">Scan QR nota pelanggan untuk mencari cepat</span>
           </div>
 
           <!-- Filter & Search Bar Antrean -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div class="bg-white p-3 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-2.5 md:gap-3 items-center justify-between">
             
             <!-- Filter Status Pesanan -->
-            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold">
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold no-scrollbar">
               <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
               <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Menunggu</button>
               <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Diproses</button>
@@ -925,14 +993,14 @@
                 id="orderSearchInput"
                 oninput="handleOrderSearch(this.value)"
                 placeholder="Cari No. Nota, Nama, No. WA..." 
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium"
               />
             </div>
 
           </div>
 
-          <!-- Daftar Kartu Pesanan -->
-          <div id="ordersCardsContainer" class="space-y-3">
+          <!-- Daftar Antrean Pesanan (Flat List Native Android Retail) -->
+          <div id="ordersCardsContainer" class="divide-y divide-slate-150 bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 shadow-none md:shadow-xs overflow-hidden">
             <!-- Diisi otomatis oleh JavaScript -->
           </div>
         </div>
@@ -942,10 +1010,10 @@
       <!-- =========================================================
            TAB 3: KATALOG PRODUK & MANAJEMEN STOK
            ========================================================= -->
-      <section id="tabContentProducts" class="tab-pane hidden space-y-4">
+      <section id="tabContentProducts" class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
         
         <!-- Header Aksi Katalog -->
-        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center justify-between">
           <div class="relative w-full sm:w-80">
             <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
             <input 
@@ -966,7 +1034,7 @@
               title="Pindai barcode kemasan barang menggunakan kamera HP/tablet untuk cek stok atau tambah barang baru"
             >
               <i class="bi bi-camera text-amber-400"></i>
-              <span>📷 Scan Barcode Barang</span>
+              <span>📷 Scan Barcode</span>
             </button>
 
             <!-- Tombol Kelola Kategori -->
@@ -986,28 +1054,28 @@
               class="admin-only-feature flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
             >
               <i class="bi bi-plus-lg"></i>
-              <span>Tambah Barang Baru</span>
+              <span>Tambah Barang</span>
             </button>
           </div>
         </div>
 
         <!-- Filter Kategori & Filter Status Stok Produk -->
-        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+        <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs space-y-2.5 md:space-y-3">
           <!-- Baris 1: Filter Kategori Horizontal -->
           <div class="flex items-center gap-2 overflow-hidden">
             <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5 flex-shrink-0">
               <i class="bi bi-funnel-fill text-emerald-600"></i> Kategori:
             </span>
-            <div id="productCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 flex-1">
+            <div id="productCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 flex-1 no-scrollbar">
               <!-- Diisi dinamis oleh renderProductCategoryFilterPills() -->
             </div>
           </div>
 
           <!-- Baris 2: Filter Status Ketersediaan Stok -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-extrabold text-slate-600 mr-1 flex items-center gap-1">
-                <i class="bi bi-box-seam text-slate-400"></i> Status Stok:
+                <i class="bi bi-box-seam text-slate-400"></i> Status:
               </span>
               <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                 <button type="button" onclick="setProductStockFilter('all')" data-stock-filter="all" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs cursor-pointer">Semua Stok</button>
@@ -1022,9 +1090,16 @@
           </div>
         </div>
 
-        <!-- Tabel Daftar Produk & Quick Stock Edit -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div class="overflow-x-auto">
+        <!-- Daftar Produk & Quick Stock Edit (Flat List di Mobile, Tabel di Desktop) -->
+        <div class="bg-white rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 shadow-none md:shadow-xs overflow-hidden">
+          
+          <!-- Tampilan Mobile Native Retail: Flat List Bersih dengan Garis Pembatas Tipis -->
+          <div id="productsMobileFlatList" class="block md:hidden divide-y divide-slate-150 bg-white">
+            <!-- Diisi otomatis oleh renderProductsTable() -->
+          </div>
+
+          <!-- Tampilan Desktop: Tabel Lengkap -->
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-extrabold">
                 <tr>
@@ -1047,7 +1122,7 @@
       <!-- =========================================================
            TAB 4: KELOLA MEMBER & 10 HADIAH ROYALTY
            ========================================================= -->
-      <section id="tabContentMembers" class="tab-pane hidden space-y-6">
+      <section id="tabContentMembers" class="tab-pane hidden space-y-4 md:space-y-6 px-3 md:px-0">
         
         <!-- Header Info Tab Member -->
         <div class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 p-5 rounded-2xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md border border-emerald-700/40">
@@ -1354,6 +1429,185 @@
       </section>
 
     </main>
+
+    <!-- =========================================================================
+         FLOATING CART SUMMARY BAR (MOBILE POS RETAIL)
+         ========================================================================= -->
+    <div 
+      id="posFloatingCartBar" 
+      onclick="openPosMobileCartDrawer()"
+      class="hidden md:hidden fixed bottom-16 left-3 right-3 z-30 bg-emerald-700 hover:bg-emerald-800 text-white p-3 rounded-2xl shadow-xl items-center justify-between cursor-pointer active:scale-98 transition-all"
+    >
+      <div class="flex items-center gap-2.5">
+        <span class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">🛒</span>
+        <div>
+          <div id="posFloatingCartItemsText" class="font-extrabold text-xs">0 Item</div>
+          <div id="posFloatingCartTotalText" class="text-sm font-black text-amber-300 font-mono">Rp 0</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">
+        <span>Lihat Keranjang & Bayar</span>
+        <i class="bi bi-arrow-right"></i>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         MOBILE POS CART BOTTOM SHEET DRAWER
+         ========================================================================= -->
+    <div 
+      id="posMobileCartDrawer" 
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex flex-col justify-end transition-opacity duration-300"
+      onclick="if(event.target === this) closePosMobileCartDrawer()"
+    >
+      <div class="w-full bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slideUp">
+        
+        <!-- Drawer Header & Handle -->
+        <div class="p-3 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-sm">
+              <i class="bi bi-cart3"></i>
+            </span>
+            <div>
+              <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Keranjang Belanja Kasir</h3>
+              <p id="posDrawerCartBadge" class="text-[11px] text-slate-500 font-medium">0 Item terpilih</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="clearPosLiveCart()" 
+              class="text-[11px] text-red-600 hover:text-red-700 font-bold px-2 py-1 rounded-lg hover:bg-red-50"
+            >
+              Kosongkan
+            </button>
+            <button 
+              type="button" 
+              onclick="closePosMobileCartDrawer()" 
+              class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 flex items-center justify-center font-black text-sm active:scale-95"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Drawer Body (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Tabel Belanja Kasir Drawer -->
+          <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold sticky top-0">
+                <tr>
+                  <th class="p-2.5">Barang</th>
+                  <th class="p-2.5 text-center">Qty</th>
+                  <th class="p-2.5 text-right">Subtotal</th>
+                  <th class="p-2.5 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="posDrawerCartTableBody" class="divide-y divide-slate-200 dark:divide-slate-700">
+                <!-- Diisi otomatis oleh renderPosLiveCart() -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Input Nomor HP Member Kasir (Drawer) -->
+          <div class="bg-amber-50/70 dark:bg-amber-950/40 p-3 rounded-2xl border border-amber-200 dark:border-amber-800 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                <i class="bi bi-person-badge-fill text-amber-600"></i>
+                <span>Nomor HP Member (Opsional):</span>
+              </label>
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900 px-2 py-0.5 rounded-full">+1 Stempel</span>
+            </div>
+            <input 
+              type="tel" 
+              id="posDrawerMemberPhoneInput" 
+              placeholder="Contoh: 081234567890" 
+              oninput="syncPosMemberInput(this.value)" 
+              class="w-full text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:border-emerald-600 focus:outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            />
+          </div>
+
+          <!-- Total Tagihan (Drawer) -->
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800">
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Total Tagihan:</span>
+            <strong id="posDrawerTotalText" class="text-xl font-black text-emerald-800 dark:text-emerald-400">Rp 0</strong>
+          </div>
+
+          <!-- Pilihan Metode Pembayaran (Drawer) -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300">Metode Bayar:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                type="button" 
+                id="btnDrawerPayCash" 
+                onclick="setPosPayMethod('Tunai')" 
+                class="py-2.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <i class="bi bi-cash-stack"></i> <span>Tunai</span>
+              </button>
+              <button 
+                type="button" 
+                id="btnDrawerPayQris" 
+                onclick="setPosPayMethod('QRIS')" 
+                class="py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <i class="bi bi-qr-code"></i> <span>QRIS</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Input Uang Tunai & Kembalian (Drawer) -->
+          <div id="posDrawerCashBox" class="space-y-2 bg-slate-50 dark:bg-slate-800/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-600 dark:text-slate-400 font-bold">Uang Diterima:</span>
+              <input 
+                type="number" 
+                id="posDrawerCashReceivedInput" 
+                placeholder="0" 
+                oninput="syncPosCashReceived(this.value)"
+                class="w-36 text-right font-black text-sm border border-slate-300 dark:border-slate-600 rounded-xl p-1.5 focus:border-emerald-600 focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <!-- Quick Cash Buttons -->
+            <div class="grid grid-cols-5 gap-1.5 pt-1">
+              <button type="button" onclick="setPosQuickCash('exact')" class="py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-black border border-emerald-300 text-center active:scale-95">Uang Pas</button>
+              <button type="button" onclick="setPosQuickCash(10000)" class="py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95">+10k</button>
+              <button type="button" onclick="setPosQuickCash(20000)" class="py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95">+20k</button>
+              <button type="button" onclick="setPosQuickCash(50000)" class="py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95">+50k</button>
+              <button type="button" onclick="setPosQuickCash(100000)" class="py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-600 text-center active:scale-95">+100k</button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200 dark:border-slate-700">
+              <span class="text-slate-600 dark:text-slate-400 font-bold">Kembalian:</span>
+              <strong id="posDrawerCashChangeText" class="font-black text-emerald-700 dark:text-emerald-400 text-sm">Rp 0</strong>
+            </div>
+          </div>
+
+          <!-- Tombol Cetak & Selesaikan Transaksi (Drawer) -->
+          <div class="space-y-2 pt-2">
+            <button 
+              type="button" 
+              onclick="printPosCartBluetooth()" 
+              class="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 active:scale-98 transition-all"
+            >
+              <i class="bi bi-bluetooth text-blue-400"></i>
+              <span>🖨️ Cetak Struk Bluetooth</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="submitPosDirectTransaction()" 
+              class="w-full py-3 px-4 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 active:scale-98 transition-all"
+            >
+              <i class="bi bi-check2-circle text-lg"></i>
+              <span>Selesaikan Transaksi Kasir</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
 
     <!-- =========================================================================
          NAVBAR BAWAH KHUSUS MOBILE ADMIN POS (5 MENU)
@@ -2564,6 +2818,36 @@
           mBtn.className = "admin-mob-nav-btn relative flex flex-col items-center justify-center gap-0.5 py-1 px-2.5 rounded-xl transition-all cursor-pointer text-slate-500 hover:text-emerald-700";
         }
       });
+
+      // Update Judul Dinamis Header Mobile
+      const mobileTitleEl = document.getElementById("mobileHeaderTabTitle");
+      if (mobileTitleEl) {
+        if (window.isMobileQueueActive) {
+          mobileTitleEl.textContent = "Antrean Pesanan";
+        } else {
+          const titleMap = {
+            pos: "Kasir POS",
+            products: "Katalog & Stok",
+            members: "Member & Hadiah",
+            dashboard: "Dashboard Toko",
+            coupons: "Kupon Promo",
+            settings: "Profil Toko"
+          };
+          mobileTitleEl.textContent = titleMap[tabId] || capitalize(tabId);
+        }
+      }
+
+      // Update Visibilitas Floating Cart Bar di Layar Mobile
+      const floatBar = document.getElementById("posFloatingCartBar");
+      if (floatBar) {
+        if (tabId === "pos" && !window.isMobileQueueActive && typeof posLiveCart !== "undefined" && posLiveCart.length > 0) {
+          floatBar.classList.remove("hidden");
+          floatBar.classList.add("flex");
+        } else {
+          floatBar.classList.add("hidden");
+          floatBar.classList.remove("flex");
+        }
+      }
     }
 
     function switchAdminMobileTab(tabKey) {
@@ -3268,7 +3552,7 @@
         : "";
 
       return `
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="p-3.5 sm:p-5 bg-white dark:bg-slate-900 hover:bg-slate-50/70 transition-colors space-y-2.5">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
               <div class="flex items-center gap-2">
@@ -3529,11 +3813,19 @@ ${escapeHtml(order.itemsText || "-")}
         countEl.innerText = `Menampilkan ${products.length} dari ${(adminData.products || []).length} produk`;
       }
 
+      const flatList = document.getElementById("productsMobileFlatList");
+
       if (products.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Tidak ada produk yang sesuai dengan filter atau kata kunci pencarian.</td></tr>`;
+        if (flatList) {
+          flatList.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium text-xs">Tidak ada produk yang sesuai filter.</div>`;
+        }
         return;
       }
 
+      const isAdmin = userRole === "admin";
+
+      // Render Tampilan Desktop (Tabel)
       tbody.innerHTML = products.map(p => {
         const prodName = p.name || "Produk";
         const prodId = p.id || "-";
@@ -3542,13 +3834,11 @@ ${escapeHtml(order.itemsText || "-")}
         if (p.stock <= 10) stockColor = "text-amber-700 bg-amber-50 border-amber-200";
         if (p.stock <= 3) stockColor = "text-red-700 bg-red-50 border-red-200";
 
-        const isAdmin = userRole === "admin";
-
         return `
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="p-3">
               <div class="flex items-center gap-2.5">
-                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" />
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-10 h-10 object-cover rounded-xl border border-slate-200" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500'" loading="lazy" />
                 <div>
                   <div class="font-extrabold text-slate-900 leading-tight">${escapeHtml(prodName)}</div>
                   <span class="text-[10px] text-slate-400 font-mono">${prodId}</span>
@@ -3578,6 +3868,48 @@ ${escapeHtml(order.itemsText || "-")}
           </tr>
         `;
       }).join("");
+
+      // Render Tampilan Mobile (Flat List Native Retail)
+      if (flatList) {
+        flatList.innerHTML = products.map(p => {
+          const prodName = p.name || "Produk";
+          const prodId = p.id || "-";
+          const prodCat = p.category || "Umum";
+          let stockColor = "text-emerald-700 bg-emerald-50 border-emerald-200";
+          if (p.stock <= 10) stockColor = "text-amber-700 bg-amber-50 border-amber-200";
+          if (p.stock <= 3) stockColor = "text-red-700 bg-red-50 border-red-200";
+
+          return `
+            <div class="p-3 flex items-center justify-between gap-2.5 hover:bg-slate-50/70 transition-colors">
+              <div class="flex items-center gap-3 min-w-0">
+                <img src="${formatImageUrl(p.image)}" alt="${escapeHtml(prodName)}" class="w-12 h-12 object-cover rounded-xl border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" loading="lazy" />
+                <div class="min-w-0">
+                  <div class="font-extrabold text-xs text-slate-900 truncate leading-tight">${escapeHtml(prodName)}</div>
+                  <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                    <span>${prodId}</span>
+                    <span>•</span>
+                    <span class="text-slate-500 truncate max-w-[120px]">${escapeHtml(prodCat)}</span>
+                  </div>
+                  <div class="font-black text-xs text-emerald-700 mt-1">${formatRupiah(p.price || 0)}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50 shadow-xs">
+                  <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 hover:bg-slate-200 active:scale-90 cursor-pointer">-</button>
+                  <span class="px-2 font-black text-xs min-w-[34px] text-center ${stockColor}">${p.stock || 0}</span>
+                  <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-8 flex items-center justify-center font-black text-slate-600 hover:bg-slate-200 active:scale-90 cursor-pointer">+</button>
+                </div>
+                ${isAdmin ? `
+                  <button onclick="openEditProductModal('${prodId}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 flex items-center justify-center active:scale-90 cursor-pointer" title="Edit Produk">
+                    <i class="bi bi-pencil-square text-xs"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
     }
 
     function renderProductCategoryFilterPills() {
@@ -5506,55 +5838,159 @@ ${escapeHtml(order.itemsText || "-")}
 
     function renderPosLiveCart() {
       const tbody = document.getElementById("posLiveCartTableBody");
+      const drawerTbody = document.getElementById("posDrawerCartTableBody");
       const totalEl = document.getElementById("posLiveTotalText");
       const badgeEl = document.getElementById("posCartItemCountBadge");
-      if (!tbody) return;
+
+      const floatBar = document.getElementById("posFloatingCartBar");
+      const floatItems = document.getElementById("posFloatingCartItemsText");
+      const floatTotal = document.getElementById("posFloatingCartTotalText");
+      const drawerBadge = document.getElementById("posDrawerCartBadge");
+      const drawerTotal = document.getElementById("posDrawerTotalText");
 
       const totalItems = posLiveCart.reduce((sum, i) => sum + i.qty, 0);
       const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
       if (badgeEl) badgeEl.innerText = `${totalItems} Item`;
       if (totalEl) totalEl.innerText = formatRupiah(totalPrice);
+      if (drawerBadge) drawerBadge.innerText = `${totalItems} Item terpilih`;
+      if (drawerTotal) drawerTotal.innerText = formatRupiah(totalPrice);
+
+      // Update Floating Cart Bar di Layar Mobile
+      if (floatBar) {
+        if (posLiveCart.length > 0 && currentAdminTab === "pos" && !window.isMobileQueueActive) {
+          floatBar.classList.remove("hidden");
+          floatBar.classList.add("flex");
+          if (floatItems) floatItems.innerText = `${totalItems} Item`;
+          if (floatTotal) floatTotal.innerText = formatRupiah(totalPrice);
+        } else {
+          floatBar.classList.add("hidden");
+          floatBar.classList.remove("flex");
+        }
+      }
 
       if (posLiveCart.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
-              Keranjang kasir masih kosong. Silakan buka kamera kasir atau klik "Tes Scan ATK" di atas.
-            </td>
-          </tr>
-        `;
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="p-6 text-center text-slate-400 text-xs">
+                Keranjang kasir masih kosong. Silakan buka kamera kasir atau pilih produk dari katalog.
+              </td>
+            </tr>
+          `;
+        }
+        if (drawerTbody) {
+          drawerTbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="p-6 text-center text-slate-400 text-xs">
+                Keranjang kasir masih kosong.
+              </td>
+            </tr>
+          `;
+        }
         calculatePosChange();
         return;
       }
 
-      tbody.innerHTML = posLiveCart.map(item => {
-        const sub = item.price * item.qty;
-        return `
-          <tr class="hover:bg-slate-100/70 transition-colors">
-            <td class="p-2.5">
-              <strong class="text-xs text-slate-800 block">${escapeHtml(item.name)}</strong>
-              <span class="text-[10px] text-slate-400 font-mono">${item.id}</span>
-            </td>
-            <td class="p-2.5 text-center text-slate-600 font-bold">${formatRupiah(item.price)}</td>
-            <td class="p-2.5 text-center">
-              <div class="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
-                <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">-</button>
-                <span class="w-8 text-center text-xs font-black text-slate-800">${item.qty}</span>
-                <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">+</button>
-              </div>
-            </td>
-            <td class="p-2.5 text-right font-black text-emerald-800">${formatRupiah(sub)}</td>
-            <td class="p-2.5 text-center">
-              <button type="button" onclick="removePosCartItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs cursor-pointer p-1" title="Hapus">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      // Render Desktop Table Rows
+      if (tbody) {
+        tbody.innerHTML = posLiveCart.map(item => {
+          const sub = item.price * item.qty;
+          return `
+            <tr class="hover:bg-slate-100/70 transition-colors">
+              <td class="p-2.5">
+                <strong class="text-xs text-slate-800 block">${escapeHtml(item.name)}</strong>
+                <span class="text-[10px] text-slate-400 font-mono">${item.id}</span>
+              </td>
+              <td class="p-2.5 text-center text-slate-600 font-bold">${formatRupiah(item.price)}</td>
+              <td class="p-2.5 text-center">
+                <div class="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">-</button>
+                  <span class="w-8 text-center text-xs font-black text-slate-800">${item.qty}</span>
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-black cursor-pointer">+</button>
+                </div>
+              </td>
+              <td class="p-2.5 text-right font-black text-emerald-800">${formatRupiah(sub)}</td>
+              <td class="p-2.5 text-center">
+                <button type="button" onclick="removePosCartItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs cursor-pointer p-1" title="Hapus">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      // Render Mobile Drawer Table Rows
+      if (drawerTbody) {
+        drawerTbody.innerHTML = posLiveCart.map(item => {
+          const sub = item.price * item.qty;
+          return `
+            <tr class="hover:bg-slate-100/70 transition-colors">
+              <td class="p-2.5">
+                <strong class="text-xs text-slate-900 dark:text-white block truncate max-w-[120px]">${escapeHtml(item.name)}</strong>
+                <span class="text-[10px] text-slate-400 font-mono">${formatRupiah(item.price)}</span>
+              </td>
+              <td class="p-2.5 text-center">
+                <div class="inline-flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-800 shadow-xs">
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-black cursor-pointer">-</button>
+                  <span class="w-7 text-center text-xs font-black text-slate-900 dark:text-white">${item.qty}</span>
+                  <button type="button" onclick="updatePosCartItemQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-black cursor-pointer">+</button>
+                </div>
+              </td>
+              <td class="p-2.5 text-right font-black text-emerald-700 dark:text-emerald-400 text-xs">${formatRupiah(sub)}</td>
+              <td class="p-2.5 text-center">
+                <button type="button" onclick="removePosCartItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs p-1" title="Hapus">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
 
       calculatePosChange();
+    }
+
+    // Kontrol Drawer Keranjang Mobile
+    function openPosMobileCartDrawer() {
+      const drawer = document.getElementById("posMobileCartDrawer");
+      if (drawer) {
+        drawer.classList.remove("hidden");
+        // Sinkronisasi data member & uang diterima dari desktop ke drawer
+        const deskPhone = document.getElementById("posMemberPhoneInput");
+        const drawerPhone = document.getElementById("posDrawerMemberPhoneInput");
+        if (deskPhone && drawerPhone) drawerPhone.value = deskPhone.value;
+
+        const deskCash = document.getElementById("posCashReceivedInput");
+        const drawerCash = document.getElementById("posDrawerCashReceivedInput");
+        if (deskCash && drawerCash) drawerCash.value = deskCash.value;
+
+        calculatePosChange();
+      }
+    }
+
+    function closePosMobileCartDrawer() {
+      const drawer = document.getElementById("posMobileCartDrawer");
+      if (drawer) {
+        drawer.classList.add("hidden");
+      }
+    }
+
+    function syncPosMemberInput(val) {
+      const deskPhone = document.getElementById("posMemberPhoneInput");
+      if (deskPhone) {
+        deskPhone.value = val;
+        handlePosMemberPhoneInput(val);
+      }
+    }
+
+    function syncPosCashReceived(val) {
+      const deskCash = document.getElementById("posCashReceivedInput");
+      if (deskCash) {
+        deskCash.value = val;
+        calculatePosChange();
+      }
     }
 
     function setPosPayMethod(method) {
@@ -5563,57 +5999,77 @@ ${escapeHtml(order.itemsText || "-")}
       const btnQris = document.getElementById("btnPosPayQris");
       const cashBox = document.getElementById("posCashCalculationBox");
 
+      const btnDrawerCash = document.getElementById("btnDrawerPayCash");
+      const btnDrawerQris = document.getElementById("btnDrawerPayQris");
+      const drawerCashBox = document.getElementById("posDrawerCashBox");
+
       if (method === "Tunai") {
-        if (btnCash) {
-          btnCash.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        }
-        if (btnQris) {
-          btnQris.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        }
+        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (cashBox) cashBox.classList.remove("hidden");
+
+        if (btnDrawerCash) btnDrawerCash.className = "py-2.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnDrawerQris) btnDrawerQris.className = "py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (drawerCashBox) drawerCashBox.classList.remove("hidden");
       } else {
-        if (btnCash) {
-          btnCash.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        }
-        if (btnQris) {
-          btnQris.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-        }
+        if (btnCash) btnCash.className = "py-1.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnQris) btnQris.className = "py-1.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
         if (cashBox) cashBox.classList.add("hidden");
+
+        if (btnDrawerCash) btnDrawerCash.className = "py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (btnDrawerQris) btnDrawerQris.className = "py-2.5 px-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+        if (drawerCashBox) drawerCashBox.classList.add("hidden");
       }
     }
 
     function calculatePosChange() {
       const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
       const cashInput = document.getElementById("posCashReceivedInput");
+      const drawerCashInput = document.getElementById("posDrawerCashReceivedInput");
       const changeEl = document.getElementById("posCashChangeText");
-      if (!changeEl) return;
+      const drawerChangeEl = document.getElementById("posDrawerCashChangeText");
 
-      const received = parseFloat(cashInput ? cashInput.value : 0) || 0;
+      const received = parseFloat(cashInput ? cashInput.value : (drawerCashInput ? drawerCashInput.value : 0)) || 0;
       const change = received - totalPrice;
 
       if (change >= 0) {
-        changeEl.innerText = formatRupiah(change);
-        changeEl.className = "font-black text-emerald-700";
+        if (changeEl) {
+          changeEl.innerText = formatRupiah(change);
+          changeEl.className = "font-black text-emerald-700";
+        }
+        if (drawerChangeEl) {
+          drawerChangeEl.innerText = formatRupiah(change);
+          drawerChangeEl.className = "font-black text-emerald-700 dark:text-emerald-400 text-sm";
+        }
       } else {
-        changeEl.innerText = `Kurang ${formatRupiah(Math.abs(change))}`;
-        changeEl.className = "font-black text-red-600";
+        if (changeEl) {
+          changeEl.innerText = `Kurang ${formatRupiah(Math.abs(change))}`;
+          changeEl.className = "font-black text-red-600";
+        }
+        if (drawerChangeEl) {
+          drawerChangeEl.innerText = `Kurang ${formatRupiah(Math.abs(change))}`;
+          drawerChangeEl.className = "font-black text-red-600 text-sm";
+        }
       }
     }
 
     function setPosQuickCash(val) {
       const totalPrice = posLiveCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
       const cashInput = document.getElementById("posCashReceivedInput");
-      if (!cashInput) return;
+      const drawerCashInput = document.getElementById("posDrawerCashReceivedInput");
+      if (!cashInput && !drawerCashInput) return;
+
+      let targetVal = 0;
       if (val === "exact") {
-        cashInput.value = totalPrice > 0 ? totalPrice : 0;
+        targetVal = totalPrice > 0 ? totalPrice : 0;
       } else {
-        const cur = Number(cashInput.value) || 0;
-        if (cur === 0) {
-          cashInput.value = val;
-        } else {
-          cashInput.value = cur + val;
-        }
+        const cur = Number(cashInput ? cashInput.value : (drawerCashInput ? drawerCashInput.value : 0)) || 0;
+        targetVal = (cur === 0) ? val : (cur + val);
       }
+
+      if (cashInput) cashInput.value = targetVal;
+      if (drawerCashInput) drawerCashInput.value = targetVal;
+
       calculatePosChange();
     }
 
@@ -5911,11 +6367,16 @@ ${escapeHtml(order.itemsText || "-")}
       posLiveCart = [];
       const cashInput = document.getElementById("posCashReceivedInput");
       if (cashInput) cashInput.value = "";
+      const drawerCashInput = document.getElementById("posDrawerCashReceivedInput");
+      if (drawerCashInput) drawerCashInput.value = "";
       const memberInput = document.getElementById("posMemberPhoneInput");
       if (memberInput) memberInput.value = "";
+      const drawerMemberInput = document.getElementById("posDrawerMemberPhoneInput");
+      if (drawerMemberInput) drawerMemberInput.value = "";
       const memberInfo = document.getElementById("posMemberInfoBox");
       if (memberInfo) memberInfo.classList.add("hidden");
       renderPosLiveCart();
+      closePosMobileCartDrawer();
     }
 
     // =========================================================
