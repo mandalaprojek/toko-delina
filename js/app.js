@@ -2214,11 +2214,29 @@ function sendConfirmationWhatsApp() {
   if (!latestOrderData) return;
   const itemsText = latestOrderData.items
     .map((item, idx) => `${idx + 1}. ${item.name} (${item.qty}x)`)
-    .join("%0A");
+    .join("\n");
 
-  const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh Toko Delina,%0A%0ASaya ingin konfirmasi pesanan dengan rincian:%0A- No. Nota: *${latestOrderData.orderId}*%0A- Nama: *${latestOrderData.customerName}*%0A- Pengambilan: *${latestOrderData.deliveryMethod}*%0A- Total: *${latestOrderData.totalAkhir}*%0A%0ARincian Barang:%0A${itemsText}%0A%0AMohon diproses nggih, terima kasih.`;
+  const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh Toko Delina,\n\nSaya ingin konfirmasi pesanan dengan rincian:\n- No. Nota: *${latestOrderData.orderId}*\n- Nama: *${latestOrderData.customerName}*\n- Pengambilan: *${latestOrderData.deliveryMethod}*\n- Total: *${latestOrderData.totalAkhir}*\n\nRincian Barang:\n${itemsText}\n\nMohon diproses nggih, terima kasih.`;
   
-  window.open(`https://wa.me/?text=${message}`, "_blank");
+  // Ambil nomor WhatsApp toko (kompatibel WhatsApp reguler & WhatsApp Business)
+  let storePhone = "";
+  if (window.currentTokoInfo && window.currentTokoInfo.wa) {
+    storePhone = window.currentTokoInfo.wa;
+  } else if (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_PHONE) {
+    storePhone = CONFIG.WHATSAPP_PHONE;
+  } else {
+    storePhone = "6282185355316";
+  }
+
+  let cleanWa = String(storePhone || "").replace(/\D/g, "");
+  if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.slice(1);
+  else if (cleanWa.startsWith("8")) cleanWa = "62" + cleanWa;
+
+  const waUrl = cleanWa
+    ? `https://api.whatsapp.com/send?phone=${cleanWa}&text=${encodeURIComponent(message)}`
+    : `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+
+  window.open(waUrl, "_blank");
 }
 
 // =========================================================================
@@ -2752,6 +2770,7 @@ async function fetchProductsFromGAS() {
 
     // 4. Sinkron Profil Toko, QRIS, Rekening Bank, Telegram & Google Maps
     if (json.toko) {
+      window.currentTokoInfo = json.toko;
       const t = json.toko;
 
       // Checkout Modal Rekening & QRIS
@@ -2835,7 +2854,8 @@ async function fetchProductsFromGAS() {
       if (footerWaLink && t.wa) {
         let cleanWa = String(t.wa).replace(/\D/g, "");
         if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.slice(1);
-        footerWaLink.href = `https://wa.me/${cleanWa}`;
+        else if (cleanWa.startsWith("8")) cleanWa = "62" + cleanWa;
+        footerWaLink.href = `https://api.whatsapp.com/send?phone=${cleanWa}`;
       }
 
       const footerTgLink = document.getElementById("footerTgLink");
