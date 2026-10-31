@@ -104,7 +104,7 @@ const DUMMY_PRODUCTS = [
     originalPrice: 11000,
     rating: 4.9,
     sold: 1840,
-    image: "https://images.unsplash.com/photo-1585336261026-6218f2705574?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
     badge: "Awet",
     stock: 90,
     unit: "Pcs"

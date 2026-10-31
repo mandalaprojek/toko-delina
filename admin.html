@@ -938,7 +938,7 @@
           <div class="bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/90 dark:border-slate-800 shadow-none md:shadow-xs space-y-3">
             
             <!-- STICKY HEADER KATALOG (FREEZE DI BATAS KOLOM PENCARIAN) -->
-            <div id="posStickyCatalogHeader" class="sticky top-12 sm:top-14 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 py-2.5 px-3 -mx-2 md:mx-0 shadow-xs space-y-2">
+            <div id="posStickyCatalogHeader" class="sticky top-14 md:top-[98px] z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-y border-slate-200/90 dark:border-slate-800 py-2.5 px-3 -mx-2 md:mx-0 shadow-sm space-y-2">
               
               <!-- Baris 1: Judul Katalog, Counter, & Sticky Mini Cart Pill -->
               <div class="flex items-center justify-between gap-2">
@@ -968,11 +968,29 @@
                     class="hidden px-2.5 py-1 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[11px] items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
                     title="Klik untuk ke keranjang belanja kasir di atas"
                   >
-                    <span>🛒</span>
+                    <i class="bi bi-cart3"></i>
                     <span id="posStickyCartSummaryText">0 Item - Rp 0</span>
                     <i class="bi bi-arrow-up-short text-sm"></i>
                   </button>
                 </div>
+              </div>
+
+              <!-- Baris Alert Keranjang Kasir Aktif (Sticky Saat Ada Item) -->
+              <div id="posStickyLiveCartBar" class="hidden items-center justify-between p-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-800 text-white shadow-xs transition-all">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs flex-shrink-0">
+                    <i class="bi bi-cart-check-fill"></i>
+                  </span>
+                  <span id="posStickyLiveCartSummaryText" class="text-xs font-black truncate">0 Item • Rp 0</span>
+                </div>
+                <button 
+                  type="button" 
+                  onclick="scrollToPosCart()" 
+                  class="text-[11px] font-black bg-white text-emerald-800 hover:bg-emerald-50 px-2.5 py-1 rounded-lg flex items-center gap-1 active:scale-95 transition-all shadow-xs cursor-pointer flex-shrink-0"
+                >
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Bayar / Keranjang</span>
+                </button>
               </div>
 
               <!-- Baris 2: Kolom Pencarian Instan POS -->
@@ -2651,6 +2669,18 @@
       if (!clean) {
         return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
       }
+
+      // Perbaiki link Unsplash yang kadaluwarsa / 404 dari database dummy
+      if (clean.includes("1585336261026")) {
+        return "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80";
+      }
+      if (clean.includes("1608248597359")) {
+        return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
+      }
+      if (clean.includes("1556228722")) {
+        return "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80";
+      }
+
       if (clean.includes("lh3.googleusercontent.com/d/")) {
         return clean;
       }
@@ -3015,7 +3045,8 @@
     // =========================================================
     // 3. AMBIL DATA ADMIN DARI BACKEND
     // =========================================================
-    window.fetchAdminData = function(isManual = false) { return fetchDashboardData(isManual); };
+    function fetchAdminData(isManual = false) { return fetchDashboardData(isManual); }
+    window.fetchAdminData = fetchAdminData;
     async function fetchDashboardData(isManual = false) {
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       const btnRefresh = document.getElementById("btnRefreshData");
@@ -3139,51 +3170,70 @@
       }
 
       // Render tabel barang kritis
-      const tableContainer = document.getElementById("lowStockTableContainer");
-      if (tableContainer) {
-        const items = (sum.lowStockItems || []).filter(it => it && typeof it === "object");
-        if (items.length === 0) {
-          tableContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">Alhamdulillah, seluruh stok produk dalam batas aman (&gt; 3 pcs).</p>`;
-        } else {
-          tableContainer.innerHTML = `
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
-                <tr>
-                  <th class="p-2">Nama Barang</th>
-                  <th class="p-2">Kategori</th>
-                  <th class="p-2 text-center">Sisa Stok</th>
-                  <th class="p-2 text-right">Tambah Stok Cepat</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${items.map(it => {
-                  const itName = it.name || "Barang";
-                  const itCat = it.category || "Umum";
-                  const itId = it.id || "-";
-                  return `
-                  <tr>
-                    <td class="p-2 font-bold text-slate-800">${escapeHtml(itName)}</td>
-                    <td class="p-2 text-slate-500">${escapeHtml(itCat)}</td>
-                    <td class="p-2 text-center font-extrabold text-red-600">${it.stock || 0} ${it.unit || 'pcs'}</td>
-                    <td class="p-2 text-right">
-                      <button onclick="quickUpdateStock('${itId}', 10, true)" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[11px] transition-all cursor-pointer">
-                        +10 Stok
-                      </button>
-                    </td>
-                  </tr>
-                  `;
-                }).join("")}
-              </tbody>
-            </table>
-          `;
-        }
-      }
+      renderLowStockTable();
 
       // Render Diagram Omzet Sepekan (Senin - Minggu)
       renderWeeklyOmzetChart();
 
       // Render Rekap Semua Transaksi Berhasil
       renderCompletedOrdersTable();
+    }
+
+    function renderLowStockTable() {
+      const lowEl = document.getElementById("statLowStockCount");
+      const tableContainer = document.getElementById("lowStockTableContainer");
+      
+      const sum = adminData.summary || {};
+      const prods = (adminData.products || []).filter(p => p && typeof p === "object");
+      const lowItems = prods.filter(p => Number(p.stock) <= 3);
+
+      if (lowEl) lowEl.innerText = String(lowItems.length);
+      if (!tableContainer) return;
+
+      if (lowItems.length === 0) {
+        tableContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">Alhamdulillah, seluruh stok produk dalam batas aman (&gt; 3 pcs).</p>`;
+        return;
+      }
+
+      tableContainer.innerHTML = `
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-bold">
+            <tr>
+              <th class="p-2">Nama Barang</th>
+              <th class="p-2">Kategori</th>
+              <th class="p-2 text-center">Sisa Stok</th>
+              <th class="p-2 text-right">Tambah Stok Cepat</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            ${lowItems.map(it => {
+              const itName = it.name || "Barang";
+              const itCat = it.category || "Umum";
+              const itId = it.id || "-";
+              const isOut = Number(it.stock || 0) <= 0;
+              return `
+              <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                <td class="p-2 font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full ${isOut ? 'bg-red-500' : 'bg-amber-500'}"></span>
+                  <span>${escapeHtml(itName)}</span>
+                </td>
+                <td class="p-2 text-slate-500 dark:text-slate-400">${escapeHtml(itCat)}</td>
+                <td class="p-2 text-center">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isOut ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}">
+                    ${it.stock || 0} ${it.unit || 'pcs'}
+                  </span>
+                </td>
+                <td class="p-2 text-right">
+                  <button onclick="quickUpdateStock('${itId}', 10, true)" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[11px] transition-all cursor-pointer">
+                    +10 Stok
+                  </button>
+                </td>
+              </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
     }
 
     // =========================================================
@@ -6199,6 +6249,20 @@ ${escapeHtml(order.itemsText || "-")}
         } else {
           stickyIndicator.classList.add("hidden");
           stickyIndicator.classList.remove("flex");
+        }
+      }
+
+      // Sticky Alert Live Cart Bar (Muncul di batas kolom pencarian saat kasir scroll)
+      const stickyLiveBar = document.getElementById("posStickyLiveCartBar");
+      const stickyLiveText = document.getElementById("posStickyLiveCartSummaryText");
+      if (stickyLiveBar && stickyLiveText) {
+        if (posLiveCart.length > 0) {
+          stickyLiveBar.classList.remove("hidden");
+          stickyLiveBar.classList.add("flex");
+          stickyLiveText.innerText = `${totalItems} Item terpilih • Total: ${formatRupiah(totalPrice)}`;
+        } else {
+          stickyLiveBar.classList.add("hidden");
+          stickyLiveBar.classList.remove("flex");
         }
       }
 

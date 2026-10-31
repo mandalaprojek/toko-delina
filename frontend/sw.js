@@ -48,10 +48,20 @@ self.addEventListener("activate", (event) => {
 // 3. Fetch Event: Network-First untuk Google Apps Script & Stale-While-Revalidate untuk aset lokal
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+
+  // Hanya proses skema HTTP / HTTPS (abaikan chrome-extension, file, blob, dll.)
+  if (!req.url.startsWith("http://") && !req.url.startsWith("https://")) {
+    return;
+  }
+
   const url = new URL(req.url);
 
-  // Jangan cache POST/PUT/DELETE atau request ke Google Apps Script / CDN dinamis
-  if (req.method !== "GET" || url.hostname.includes("script.google.com") || url.hostname.includes("script.googleusercontent.com")) {
+  // Jangan cache non-GET atau request ke Google Apps Script / CDN dinamis
+  if (req.method !== "GET" || (url.protocol !== "http:" && url.protocol !== "https:")) {
+    return;
+  }
+
+  if (url.hostname.includes("script.google.com") || url.hostname.includes("script.googleusercontent.com")) {
     return;
   }
 
@@ -61,8 +71,8 @@ self.addEventListener("fetch", (event) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(req, responseToCache);
-          });
+            cache.put(req, responseToCache).catch(() => {});
+          }).catch(() => {});
         }
         return networkResponse;
       }).catch(() => {
