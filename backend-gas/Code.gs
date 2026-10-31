@@ -1202,7 +1202,7 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       const name = String(payload.name || "Produk Baru").trim();
       const category = String(payload.category || "Umum").trim();
       const hargaJual = Number(payload.price || payload.hargaJual || payload.harga_jual) || 0;
-      const hargaBeli = Number(payload.costPrice || payload.hargaBeli || payload.harga_beli) || Math.round(hargaJual * 0.8);
+      const hargaBeli = Number(payload.costPrice || payload.hargaBeli || payload.harga_beli || payload.hargaModal || payload.harga_modal || payload.hpp) || Math.round(hargaJual * 0.8);
       const stock = Number(payload.stock || payload.stok) || 0;
       const unit = String(payload.unit || payload.satuan || "Pcs").trim();
       const description = String(payload.description || payload.deskripsi || "").trim();
@@ -1472,7 +1472,9 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
           const itName = (item && item.name) ? item.name : "Barang";
           const itQty = Number(item && item.qty) || 1;
           const itPrice = Number(item && item.price) || 0;
-          return `${idx + 1}. ${itName} [${itQty}x @ Rp ${itPrice.toLocaleString("id-ID")}]${grosirInfo}${extra}`;
+          const itCost = Number(item && (item.costPrice || item.hargaBeli || item.hpp || item.hargaModal)) || 0;
+          const costPart = itCost > 0 ? ` [HPP: Rp ${itCost.toLocaleString("id-ID")}]` : "";
+          return `${idx + 1}. ${itName} [${itQty}x @ Rp ${itPrice.toLocaleString("id-ID")}]${grosirInfo}${costPart}${extra}`;
         })
         .join("\n");
     }
@@ -1639,7 +1641,11 @@ function getProdukColIndices(sheetProduk) {
   }
 
   const header = sheetProduk.getRange(1, 1, 1, Math.max(1, sheetProduk.getLastColumn())).getValues()[0].map(h => String(h || "").trim().toLowerCase());
-  const idxHargaBeli = header.indexOf("harga_beli") > -1 ? header.indexOf("harga_beli") : header.indexOf("harga beli");
+  let idxHargaBeli = header.indexOf("harga_beli");
+  if (idxHargaBeli === -1) idxHargaBeli = header.indexOf("harga beli");
+  if (idxHargaBeli === -1) idxHargaBeli = header.indexOf("harga_modal");
+  if (idxHargaBeli === -1) idxHargaBeli = header.indexOf("harga modal");
+  if (idxHargaBeli === -1) idxHargaBeli = header.indexOf("hpp");
   const idxHargaJual = header.indexOf("harga_jual") > -1 ? header.indexOf("harga_jual") : (header.indexOf("harga jual") > -1 ? header.indexOf("harga jual") : header.indexOf("harga"));
   const idxFoto = header.indexOf("url_foto") > -1 ? header.indexOf("url_foto") : (header.indexOf("foto") > -1 ? header.indexOf("foto") : header.indexOf("url foto"));
 
@@ -1662,7 +1668,7 @@ function upgradeTabProduk(sheetProduk) {
   if (!sheetProduk || sheetProduk.getLastRow() < 1) return;
   const lastCol = sheetProduk.getLastColumn();
   const header = sheetProduk.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || "").trim().toLowerCase());
-  if (header.includes("harga_beli") || header.includes("harga beli")) {
+  if (header.includes("harga_beli") || header.includes("harga beli") || header.includes("harga_modal") || header.includes("harga modal") || header.includes("hpp")) {
     return; // Sudah versi 10 kolom
   }
 
@@ -1762,12 +1768,25 @@ function hitungRingkasanDashboard(orders, products) {
   const todayDashStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
 
   let omzetHariIni = 0;
+  let labaKotorHariIni = 0;
   let omzetTotal = 0;
   let pesananHariIni = 0;
   let pesananMenunggu = 0;
   let pesananDiproses = 0;
   let pesananSiap = 0;
   let pesananSelesai = 0;
+
+  // Pemetaan katalog produk untuk pencarian HPP / Harga Modal
+  const prodCostMap = {};
+  if (Array.isArray(products)) {
+    products.forEach(p => {
+      if (p) {
+        const cost = Number(p.costPrice) || Math.round((Number(p.price) || 0) * 0.8);
+        if (p.id) prodCostMap[String(p.id).toLowerCase()] = cost;
+        if (p.name) prodCostMap[String(p.name).toLowerCase().trim()] = cost;
+      }
+    });
+  }
 
   orders.forEach(o => {
     const t = String(o.orderTime || "");
@@ -1778,7 +1797,51 @@ function hitungRingkasanDashboard(orders, products) {
     if (isToday) {
       pesananHariIni++;
       if (!isBatal) {
-        omzetHariIni += (Number(o.total) || 0);
+        const orderTotal = (Number(o.total) || 0);
+        omzetHariIni += orderTotal;
+
+        // Hitung estimasi Laba Kotor dari rincian item
+        let orderProfit = 0;
+        const lines = String(o.itemsText || "").split("\n");
+        let parsedCount = 0;
+
+        lines.forEach(line => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("[") || trimmed.startsWith("🎟️")) return;
+
+          // Cek pola: 1. Nama Barang [2x @ Rp 10.000] [HPP: Rp 8.000]
+          const hppMatch = trimmed.match(/\[HPP:\s*(?:Rp\s*)?([\d\.]+)\]/i);
+          const qtyPriceMatch = trimmed.match(/\[(\d+)(?:x|\s*pcs|\s*buah)?\s*@\s*(?:Rp\s*)?([\d\.]+)\]/i);
+
+          if (qtyPriceMatch) {
+            const qty = Number(qtyPriceMatch[1]) || 1;
+            const jual = Number(qtyPriceMatch[2].replace(/\./g, "")) || 0;
+            let beli = 0;
+
+            if (hppMatch) {
+              beli = Number(hppMatch[1].replace(/\./g, "")) || 0;
+            } else {
+              // Cari nama produk
+              const nameMatch = trimmed.match(/^\d+[\.\)]\s*(.+?)\s*\[/);
+              const itemName = nameMatch ? nameMatch[1].trim().toLowerCase() : "";
+              if (itemName && prodCostMap[itemName] !== undefined) {
+                beli = prodCostMap[itemName];
+              } else {
+                const matchedKey = Object.keys(prodCostMap).find(k => k.includes(itemName) || (itemName && itemName.includes(k)));
+                beli = matchedKey ? prodCostMap[matchedKey] : Math.round(jual * 0.8);
+              }
+            }
+            const itemProfit = Math.max(0, (jual - beli) * qty);
+            orderProfit += itemProfit;
+            parsedCount++;
+          }
+        });
+
+        if (parsedCount === 0 && orderTotal > 0) {
+          // Estimasi fallback profit jika rincian bebas (asumsi marjin rata-rata 20%)
+          orderProfit = Math.round(orderTotal * 0.20);
+        }
+        labaKotorHariIni += orderProfit;
       }
     }
 
@@ -1796,6 +1859,8 @@ function hitungRingkasanDashboard(orders, products) {
       pesananSelesai++;
     }
   });
+
+  const marginPersenHariIni = omzetHariIni > 0 ? Math.round((labaKotorHariIni / omzetHariIni) * 100) : 0;
 
   // Hitung Omzet Mingguan (Senin s/d Minggu)
   const dayOfWeek = now.getDay();
@@ -1839,6 +1904,8 @@ function hitungRingkasanDashboard(orders, products) {
 
   return {
     omzetHariIni: omzetHariIni,
+    labaKotorHariIni: labaKotorHariIni,
+    marginPersenHariIni: marginPersenHariIni,
     omzetTotal: omzetTotal,
     pesananHariIni: pesananHariIni,
     pesananMenunggu: pesananMenunggu,
@@ -3700,7 +3767,11 @@ function prosesCreatePosOrder(payload, ss) {
   // 3. Catat ke Tab Pesanan sebagai Transaksi Selesai
   const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
   if (sheetPesanan) {
-    let rincianText = items.map((i, idx) => `${idx + 1}. ${(i && i.name) || 'Barang'} [${Number(i && i.qty) || 1}x @ Rp ${Number(i && i.price || 0).toLocaleString("id-ID")}]`).join("\n");
+    let rincianText = items.map((i, idx) => {
+      const itemCost = Number(i && (i.costPrice || i.hargaBeli || i.hpp || i.hargaModal)) || 0;
+      const costPart = itemCost > 0 ? ` [HPP: Rp ${itemCost.toLocaleString("id-ID")}]` : "";
+      return `${idx + 1}. ${(i && i.name) || 'Barang'} [${Number(i && i.qty) || 1}x @ Rp ${Number(i && i.price || 0).toLocaleString("id-ID")}]${costPart}`;
+    }).join("\n");
     if (memberPhoneInput && memberResult) {
       rincianText += `\n[🎁 Member: ${(memberResult && memberResult.name) || 'Member'} (${(memberResult && memberResult.phone) || memberPhoneInput}) | Total Belanja: ${(memberResult && memberResult.belanjaCount) || 1}/30]`;
     }
