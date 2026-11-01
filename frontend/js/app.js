@@ -1714,7 +1714,46 @@ function removeCouponCode() {
   renderCheckoutSummary();
 }
 
-// Hitung Ulang & Render Rincian di Modal Checkout
+// Helper Gambar Thumbnail Produk di Keranjang / Checkout
+function resolveCartItemImageUrl(item) {
+  if (!item) return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200";
+  if (item.image) return formatImageUrl(item.image);
+  if (typeof products !== "undefined" && Array.isArray(products)) {
+    const found = products.find(p =>
+      p && (
+        (item.id && String(p.id).toUpperCase() === String(item.id).toUpperCase()) ||
+        (item.name && String(p.name).toLowerCase() === String(item.name).toLowerCase())
+      )
+    );
+    if (found && found.image) return formatImageUrl(found.image);
+  }
+  if (item.isFotokopi || String(item.name || "").toLowerCase().includes("fotokopi") || String(item.name || "").toLowerCase().includes("cetak")) {
+    return "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=200&auto=format&fit=crop&q=80";
+  }
+  return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200&auto=format&fit=crop&q=80";
+}
+
+let isStickyCheckoutCollapsed = false;
+function toggleStickyCheckoutSummaryBody() {
+  if (typeof playCuteSound === "function") playCuteSound("pop");
+  const body = document.getElementById("checkoutStickyCollapsibleBody");
+  const text = document.getElementById("stickyCheckoutToggleText");
+  const icon = document.getElementById("stickyCheckoutToggleIcon");
+  if (!body) return;
+
+  isStickyCheckoutCollapsed = !isStickyCheckoutCollapsed;
+  if (isStickyCheckoutCollapsed) {
+    body.classList.add("hidden");
+    if (text) text.textContent = "Lihat Barang";
+    if (icon) icon.classList.add("rotate-180");
+  } else {
+    body.classList.remove("hidden");
+    if (text) text.textContent = "Ringkas";
+    if (icon) icon.classList.remove("rotate-180");
+  }
+}
+
+// Hitung Ulang & Render Rincian di Modal Checkout (Lengkap dengan Foto Barang)
 function renderCheckoutSummary() {
   const container = document.getElementById("checkoutItemsList");
   const countElem = document.getElementById("checkoutItemCount");
@@ -1767,7 +1806,7 @@ function renderCheckoutSummary() {
   const totalPotongan = diskonGrosir + diskonKupon;
   const grandTotal = Math.max(0, subtotal - totalPotongan + deliveryFee);
 
-  if (countElem) countElem.textContent = `${totalItemsCount} Item`;
+  if (countElem) countElem.textContent = `${totalItemsCount} Barang`;
   if (subtotalElem) subtotalElem.textContent = formatRupiah(subtotal);
 
   if (ongkirElem) {
@@ -1781,46 +1820,132 @@ function renderCheckoutSummary() {
 
   container.innerHTML = cart
     .map(item => {
+      const thumbUrl = resolveCartItemImageUrl(item);
       let badgeGrosirHtml = item.isGrosir
         ? `<span class="inline-block bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded ml-1">🏷️ Grosir</span>`
         : "";
       return `
-      <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-100 last:border-none">
-        <div class="flex-1 truncate pr-2">
-          <div class="font-semibold text-gray-800 truncate">${item.name}</div>
-          <div class="text-gray-400 text-[10px] flex items-center gap-1">
-            <span>Qty: ${item.qty} x ${formatRupiah(item.price)}</span>
-            ${badgeGrosirHtml}
+      <div class="flex items-center justify-between gap-2.5 text-xs py-1.5 border-b border-gray-100 dark:border-slate-800 last:border-none">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 flex-shrink-0 shadow-2xs">
+            <img src="${thumbUrl}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+            <span class="absolute bottom-0 right-0 bg-emerald-800/95 text-amber-300 text-[8px] font-black px-1 py-0.2 rounded-tl-md leading-tight">${item.qty}x</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-gray-800 dark:text-slate-100 truncate leading-snug">${escapeHtml(item.name)}</div>
+            <div class="text-gray-400 dark:text-slate-400 text-[10px] flex items-center gap-1 mt-0.5">
+              <span>${item.qty} x ${formatRupiah(item.price)}</span>
+              ${badgeGrosirHtml}
+            </div>
           </div>
         </div>
-        <span class="font-bold text-gray-700 flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
+        <span class="font-extrabold text-emerald-800 dark:text-emerald-400 font-mono flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
       </div>
     `;
     })
     .join("");
 }
 
-// Pergantian Metode Pengambilan (Ambil di Toko vs Kurir Toko)
-function handleDeliveryChange(method) {
+let selectedDeliveryTimeSlotVal = "";
+
+function selectDeliveryTimeSlot(slotText) {
+  selectedDeliveryTimeSlotVal = String(slotText || "").trim();
+  if (typeof playCuteSound === "function") playCuteSound("pop");
+
+  const hiddenInput = document.getElementById("selectedDeliveryTimeSlot");
+  if (hiddenInput) hiddenInput.value = selectedDeliveryTimeSlotVal;
+
+  // Update visual tombol slot waktu
+  document.querySelectorAll(".time-slot-btn").forEach(btn => {
+    const val = btn.getAttribute("data-slot");
+    if (val === selectedDeliveryTimeSlotVal) {
+      btn.className = "time-slot-btn py-2 px-2.5 rounded-xl border-2 border-emerald-600 bg-emerald-700 text-white text-left transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm ring-2 ring-amber-400/50";
+      btn.querySelectorAll("span").forEach(sp => {
+        sp.classList.remove("text-slate-800", "text-slate-400", "text-emerald-700");
+        sp.classList.add("text-white");
+      });
+    } else {
+      btn.className = "time-slot-btn py-2 px-2.5 rounded-xl border border-emerald-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 text-left transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-2xs";
+      const spans = btn.querySelectorAll("div span");
+      if (spans[0]) spans[0].className = "font-extrabold text-[11px] text-slate-800 dark:text-white block truncate";
+      if (spans[1]) spans[1].className = "text-[9px] text-slate-400 block";
+    }
+  });
+
+  const summaryBox = document.getElementById("selectedScheduleSummaryBox");
+  const summaryText = document.getElementById("selectedScheduleSummaryText");
+  const topBadge = document.getElementById("selectedScheduleBadgeTop");
+  const pickupSub = document.getElementById("pickupTimeSubLabel");
+  const courierSub = document.getElementById("courierTimeSubLabel");
+
+  const methodPrefix = selectedDeliveryMethod === "courier" ? "Diantar Kurir" : "Ambil di Toko";
+  if (summaryBox && summaryText) {
+    summaryBox.classList.remove("hidden");
+    summaryText.textContent = `${methodPrefix}: ${selectedDeliveryTimeSlotVal}`;
+  }
+  if (topBadge) {
+    topBadge.textContent = `✅ ${selectedDeliveryTimeSlotVal}`;
+    topBadge.className = "text-[9px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300";
+  }
+  if (selectedDeliveryMethod === "pickup" && pickupSub) {
+    pickupSub.innerHTML = `<i class="bi bi-check-circle-fill text-emerald-700"></i> Jam Ambil: ${escapeHtml(selectedDeliveryTimeSlotVal)}`;
+    pickupSub.className = "inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 font-extrabold text-[9px] border border-emerald-400";
+  } else if (selectedDeliveryMethod === "courier" && courierSub) {
+    courierSub.innerHTML = `<i class="bi bi-check-circle-fill text-emerald-700"></i> Jam Antar: ${escapeHtml(selectedDeliveryTimeSlotVal)}`;
+    courierSub.className = "inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 font-extrabold text-[9px] border border-emerald-400";
+  }
+}
+
+// Pergantian Metode Pengambilan (Ambil di Toko vs Kurir Toko) + Panel Atur Jam Wajib
+function handleDeliveryChange(method, fromClick = false) {
   selectedDeliveryMethod = method;
   deliveryFee = method === "courier" ? 5000 : 0;
+  if (fromClick && typeof playCuteSound === "function") playCuteSound("pop");
 
   const labelPickup = document.getElementById("labelPickup");
   const labelCourier = document.getElementById("labelCourier");
   const addressContainer = document.getElementById("addressFieldContainer");
+  const scheduleTitle = document.getElementById("scheduleSectionTitle");
+  const slotContainer = document.getElementById("deliveryTimeSlotContainer");
+
+  const radios = document.querySelectorAll('input[name="deliveryMethod"]');
+  radios.forEach(r => { r.checked = (r.value === method); });
 
   if (method === "pickup") {
-    labelPickup.className =
-      "delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 bg-emerald-50/60 border-emerald-400 transition-all";
-    labelCourier.className =
-      "delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 border-gray-200 hover:border-emerald-300 transition-all";
+    if (labelPickup) {
+      labelPickup.className =
+        "delivery-radio-card cursor-pointer border-2 rounded-2xl p-3 flex items-start justify-between gap-2 bg-emerald-50/70 border-emerald-500 transition-all active:scale-98 shadow-2xs";
+    }
+    if (labelCourier) {
+      labelCourier.className =
+        "delivery-radio-card cursor-pointer border-2 rounded-2xl p-3 flex items-start justify-between gap-2 border-gray-200 hover:border-emerald-300 transition-all active:scale-98";
+    }
     if (addressContainer) addressContainer.classList.add("hidden");
+    if (scheduleTitle) {
+      scheduleTitle.innerHTML = `Atur Jam Pengambilan di Toko <span class="text-red-500">*Wajib</span>`;
+    }
   } else {
-    labelPickup.className =
-      "delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 border-gray-200 hover:border-emerald-300 transition-all";
-    labelCourier.className =
-      "delivery-radio-card cursor-pointer border rounded-xl p-2.5 flex items-center gap-2.5 bg-emerald-50/60 border-emerald-400 transition-all";
+    if (labelPickup) {
+      labelPickup.className =
+        "delivery-radio-card cursor-pointer border-2 rounded-2xl p-3 flex items-start justify-between gap-2 border-gray-200 hover:border-emerald-300 transition-all active:scale-98";
+    }
+    if (labelCourier) {
+      labelCourier.className =
+        "delivery-radio-card cursor-pointer border-2 rounded-2xl p-3 flex items-start justify-between gap-2 bg-emerald-50/70 border-emerald-500 transition-all active:scale-98 shadow-2xs";
+    }
     if (addressContainer) addressContainer.classList.remove("hidden");
+    if (scheduleTitle) {
+      scheduleTitle.innerHTML = `Atur Jam Pengantaran Kurir Toko <span class="text-red-500">*Wajib</span>`;
+    }
+  }
+
+  if (selectedDeliveryTimeSlotVal) {
+    selectDeliveryTimeSlot(selectedDeliveryTimeSlotVal);
+  }
+
+  if (fromClick && slotContainer) {
+    slotContainer.classList.add("ring-2", "ring-amber-400");
+    setTimeout(() => slotContainer.classList.remove("ring-2", "ring-amber-400"), 800);
   }
 
   renderCheckoutSummary();
@@ -2100,6 +2225,21 @@ function submitOrderCheckout() {
     return;
   }
 
+  // Validasi Wajib Pilih Jam Pengambilan / Pengantaran
+  const slotInput = document.getElementById("selectedDeliveryTimeSlot");
+  const chosenSlot = selectedDeliveryTimeSlotVal || (slotInput ? slotInput.value.trim() : "");
+  if (!chosenSlot) {
+    if (typeof playCuteSound === "function") playCuteSound("reminder");
+    const slotBox = document.getElementById("deliveryTimeSlotContainer");
+    if (slotBox) {
+      slotBox.scrollIntoView({ behavior: "smooth", block: "center" });
+      slotBox.classList.add("ring-4", "ring-rose-500");
+      setTimeout(() => slotBox.classList.remove("ring-4", "ring-rose-500"), 1500);
+    }
+    showToast("⏰ Mohon pilih Jam Pengambilan / Pengantaran pesanan terlebih dahulu!", "warning");
+    return;
+  }
+
   // Wajib Unggah Bukti Bayar
   if (!uploadedPaymentProof) {
     showDelinaAlert({
@@ -2134,15 +2274,17 @@ function submitOrderCheckout() {
   const totalPotongan = diskonGrosir + diskonKupon;
   const totalAkhir = Math.max(0, subtotal - totalPotongan + deliveryFee);
 
+  const formattedDeliveryWithSlot = selectedDeliveryMethod === "courier"
+    ? `Diantar Kurir (+ ${formatRupiah(5000)}) • Jam: ${chosenSlot}`
+    : `Ambil Sendiri di Toko • Jam: ${chosenSlot}`;
+
   latestOrderData = {
     orderId,
     customerName,
     customerPhone,
     customerAddress: customerAddress || "-",
-    deliveryMethod:
-      selectedDeliveryMethod === "courier"
-        ? `Diantar Kurir (+ ${formatRupiah(5000)}) - Alamat: ${customerAddress}`
-        : "Ambil Sendiri di Toko Delina",
+    deliveryMethod: formattedDeliveryWithSlot,
+    scheduleSlot: chosenSlot,
     deliveryFee: deliveryFee,
     subtotalNumeric: subtotal,
     totalNumeric: totalAkhir,
@@ -2174,7 +2316,7 @@ function submitOrderCheckout() {
       orderTime: orderTime,
       customerName: customerName,
       customerPhone: customerPhone,
-      deliveryMethod: selectedDeliveryMethod === 'courier' ? `Diantar Kurir (+ ${formatRupiah(5000)})` : 'Ambil Sendiri di Toko Delina',
+      deliveryMethod: formattedDeliveryWithSlot,
       customerAddress: customerAddress || "-",
       paymentMethod: uploadedPaymentProof ? "QRIS" : "Bayar Tunai di Toko",
       totalAkhir: totalAkhir,
@@ -2242,8 +2384,7 @@ function openSuccessModal(order) {
   document.getElementById("successCustName").textContent = order.customerName;
   document.getElementById("successOrderId").textContent = order.orderId;
   document.getElementById("successOrderTime").textContent = formatWaktuWIB(order.orderTime);
-  document.getElementById("successDeliveryMethod").textContent =
-    selectedDeliveryMethod === "courier" ? "Diantar Kurir Toko" : "Ambil di Toko";
+  document.getElementById("successDeliveryMethod").textContent = order.deliveryMethod || (selectedDeliveryMethod === "courier" ? "Diantar Kurir Toko" : "Ambil di Toko");
   document.getElementById("successOrderTotal").textContent = order.totalAkhir;
 
   modal.classList.remove("hidden");
@@ -4198,6 +4339,37 @@ function triggerProfilePhotoUpload() {
   }
 }
 
+// Sinkronisasi Cloud Cadangan ke Google Sheets agar Pindah Perangkat / HP Lain 100% Otomatis Terhubung
+function syncMemberCloudProfileToSheets(phone, dataObj) {
+  if (!phone || typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
+  const cleanP = String(phone).replace(/\D/g, "");
+  if (!cleanP) return;
+
+  const existing = getMemberProfileLocalMap(cleanP);
+  const merged = {
+    photoUrl: (dataObj && dataObj.photoUrl) || existing.photoUrl || (currentMemberSession && currentMemberSession.photoUrl) || "",
+    ktpUrl: (dataObj && dataObj.ktpUrl) || existing.ktpUrl || (currentMemberSession && currentMemberSession.ktpUrl) || "",
+    address: (dataObj && dataObj.address !== undefined) ? dataObj.address : (existing.address || (currentMemberSession && currentMemberSession.address) || "")
+  };
+
+  try {
+    fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "saveCoupon",
+        pin: "9999",
+        code: "MPROF_" + cleanP,
+        type: "MEMBER_SYNC",
+        value: 0,
+        minSpend: 0,
+        status: "MEMBER_SYNC",
+        description: JSON.stringify(merged)
+      })
+    }).catch(() => {});
+  } catch (e) {}
+}
+
 async function handleProfilePhotoSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
@@ -4207,10 +4379,10 @@ async function handleProfilePhotoSelected(event) {
     return;
   }
 
-  showToast("Memproses & menyimpan foto profil...", "info");
+  showToast("Memproses & mengunggah foto profil ke Google Drive...", "info");
   try {
-    // Kompres foto ke 320x320px JPEG agar ringan (~25 KB), tajam, tidak pernah gagal simpan di localStorage & cepat upload ke Google Drive
-    const compressedBase64 = await compressImageToBase64(file, 320, 320, 0.82);
+    // Kompres foto ke 220x220px JPEG agar ringan (~12 KB), tajam, cepat diunggah ke folder Google Drive & lintas perangkat
+    const compressedBase64 = await compressImageToBase64(file, 220, 220, 0.76);
     if (!currentMemberSession) return;
 
     currentMemberSession.photoUrl = compressedBase64;
@@ -4225,6 +4397,9 @@ async function handleProfilePhotoSelected(event) {
     }
     if (placeholder) placeholder.classList.add("hidden");
 
+    // Simpan ke Cloud Sync & Folder Google Drive (Foto_Profil_dan_KTP_Member)
+    syncMemberCloudProfileToSheets(currentMemberSession.phone, { photoUrl: compressedBase64 });
+
     if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
       fetch(CONFIG.GAS_API_URL, {
         method: "POST",
@@ -4232,19 +4407,21 @@ async function handleProfilePhotoSelected(event) {
         body: JSON.stringify({
           action: "uploadMemberPhoto",
           phone: currentMemberSession.phone,
+          name: currentMemberSession.name || "Member",
           photo: compressedBase64
         })
       }).then(r => r.json()).then(res => {
-        if (res && res.status === "success" && res.photoUrl) {
+        if (res && res.status === "success" && res.photoUrl && !String(res.photoUrl).startsWith("Gagal")) {
           currentMemberSession.photoUrl = res.photoUrl;
           localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
           saveMemberProfileLocalMap(currentMemberSession.phone, { photoUrl: res.photoUrl });
+          syncMemberCloudProfileToSheets(currentMemberSession.phone, { photoUrl: res.photoUrl });
         }
       }).catch(err => console.warn("Notice uploadMemberPhoto GAS:", err));
     }
 
     playCuteSound("sparkle");
-    showToast("Alhamdulillah, foto profil berhasil diperbarui & tersimpan!", "success");
+    showToast("Alhamdulillah, foto profil berhasil disimpan ke Google Drive & sinkron lintas perangkat!", "success");
   } catch (err) {
     console.error("Gagal proses foto profil:", err);
     showToast("Gagal memproses foto profil.", "error");
@@ -4295,8 +4472,8 @@ async function handleKtpPhotoSelected(event) {
   }
 
   try {
-    // Kompres foto KTP ke 800x600px agar tulisan jelas tetapi hemat memori (~60 KB)
-    tempKtpBase64 = await compressImageToBase64(file, 800, 600, 0.8);
+    // Kompres foto KTP ke 520x360px agar tulisan jelas, ringan (~22 KB) & sinkron cepat ke Google Drive
+    tempKtpBase64 = await compressImageToBase64(file, 520, 360, 0.72);
     const img = document.getElementById("ktpPreviewImg");
     const placeholder = document.getElementById("ktpPlaceholderText");
     if (img) {
@@ -4305,7 +4482,7 @@ async function handleKtpPhotoSelected(event) {
     }
     if (placeholder) placeholder.classList.add("hidden");
     playCuteSound("confirm");
-    showToast("Foto KTP berhasil dimuat, silakan klik Simpan.", "info");
+    showToast("Foto KTP berhasil dimuat, silakan klik Simpan untuk klaim Voucher Rahasia!", "info");
   } catch (e) {
     showToast("Gagal memproses file KTP.", "error");
   }
@@ -4338,6 +4515,12 @@ async function saveMemberKtpAndAddress() {
   const ktpLabel = document.getElementById("ktpStatusLabelText");
   if (ktpLabel) ktpLabel.textContent = "✅ Tersimpan";
 
+  // Sinkron ke Cloud Sheets & Folder Google Drive (Foto_Profil_dan_KTP_Member)
+  syncMemberCloudProfileToSheets(currentMemberSession.phone, {
+    address: address,
+    ktpUrl: currentMemberSession.ktpUrl || ""
+  });
+
   if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
     try {
       fetch(CONFIG.GAS_API_URL, {
@@ -4346,22 +4529,86 @@ async function saveMemberKtpAndAddress() {
         body: JSON.stringify({
           action: "saveMemberKtp",
           phone: currentMemberSession.phone,
+          name: currentMemberSession.name || "Member",
           address: address,
           ktpPhoto: tempKtpBase64 || currentMemberSession.ktpUrl || null
         })
       }).then(r => r.json()).then(res => {
-        if (res && res.status === "success" && res.ktpUrl) {
+        if (res && res.status === "success" && res.ktpUrl && !String(res.ktpUrl).startsWith("Gagal")) {
           currentMemberSession.ktpUrl = res.ktpUrl;
           localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
           saveMemberProfileLocalMap(currentMemberSession.phone, { ktpUrl: res.ktpUrl });
+          syncMemberCloudProfileToSheets(currentMemberSession.phone, { ktpUrl: res.ktpUrl, address: address });
         }
       }).catch(e => console.warn("Notice saveMemberKtp GAS:", e));
     } catch (e) {}
   }
 
-  playCuteSound("sparkle");
-  showToast("Alhamdulillah, data verifikasi KTP & alamat berhasil disimpan!", "success");
+  playCuteSound("fanfare");
+  showToast("Alhamdulillah, KTP & Alamat tersimpan ke Google Drive!", "success");
   toggleKtpVerificationSection();
+
+  // Munculkan Pop-up Konfirmasi Kirim ke WhatsApp Admin untuk Verifikasi & Klaim Voucher Rahasia
+  openKtpWhatsappConfirmModal(address);
+}
+
+function openKtpWhatsappConfirmModal(addressVal) {
+  const modal = document.getElementById("modalKtpWhatsappConfirm");
+  if (!modal || !currentMemberSession) return;
+
+  const elName = document.getElementById("ktpConfirmMemberName");
+  const elPhone = document.getElementById("ktpConfirmMemberPhone");
+  const elAddr = document.getElementById("ktpConfirmMemberAddress");
+
+  if (elName) elName.textContent = currentMemberSession.name || "Member VIP Delina";
+  if (elPhone) elPhone.textContent = currentMemberSession.phone || "-";
+  if (elAddr) elAddr.textContent = addressVal || currentMemberSession.address || "Sudah Diunggah";
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (typeof pushModalState === "function") pushModalState("modalKtpWhatsappConfirm");
+}
+
+function closeKtpWhatsappConfirmModal() {
+  const modal = document.getElementById("modalKtpWhatsappConfirm");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
+}
+
+function sendKtpVerificationToAdminWhatsApp(appMode = "regular") {
+  if (!currentMemberSession) return;
+  playCuteSound("confirm");
+
+  const name = currentMemberSession.name || "Member VIP";
+  const phone = currentMemberSession.phone || "-";
+  const address = currentMemberSession.address || "-";
+  const ktpLinkInfo = (currentMemberSession.ktpUrl && String(currentMemberSession.ktpUrl).startsWith("http"))
+    ? `\n🔗 *Link Berkas KTP Drive:* ${currentMemberSession.ktpUrl}`
+    : `\n📎 *Status Berkas KTP:* Sudah Terunggah di Sistem Member VIP Delina`;
+  const wibNow = formatWaktuWIB(new Date());
+
+  const message =
+    `🎁 *VERIFIKASI KTP MEMBER VIP & KLAIM VOUCHER RAHASIA* 🎁\n` +
+    `Assalamu'alaikum Admin *Toko Delina* 🙏\n\n` +
+    `Saya telah mengunggah *Identitas KTP & Alamat Pengantaran* di akun Member VIP Delina.store. Mohon ditinjau & diverifikasi nggih Admin:\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `👤 *Nama Member:* *${name}*\n` +
+    `📱 *No. WhatsApp:* \`${phone}\`\n` +
+    `📍 *Alamat Lengkap:* ${address}\n` +
+    `🕒 *Waktu Unggah:* ${wibNow}${ktpLinkInfo}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `✨ _Mohon kiranya saya dapat diberikan *Voucher Rahasia dari Toko Delina* setelah verifikasi selesai. Jazakumullah Khairan Katsiran!_ 🤲`;
+
+  const rawStorePhone = (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_ADMIN)
+    ? CONFIG.WHATSAPP_ADMIN
+    : "6282185355316";
+
+  openWhatsAppWithAppChoice(rawStorePhone, message, appMode);
+  closeKtpWhatsappConfirmModal();
 }
 
 function openMemberBarcodeModal() {
@@ -4474,34 +4721,28 @@ function mergeMemberOrdersSources(memberPhone, memberName, gasOrdersList) {
   const cleanName = String(memberName || "").trim().toLowerCase();
   const mergedMap = new Map();
 
-  function addOrderIfValid(o) {
+  function addOrMergeOrder(o, isAuthoritativeStatus = false) {
     if (!o) return;
     const id = String(o.orderId || o.nota || "").trim();
     if (!id) return;
     if (!mergedMap.has(id)) {
-      mergedMap.set(id, o);
+      mergedMap.set(id, Object.assign({}, o));
+    } else {
+      const existing = mergedMap.get(id);
+      const newStatus = String(o.status || o.orderStatus || "").trim();
+      if (isAuthoritativeStatus && newStatus) {
+        existing.status = newStatus;
+        existing.orderStatus = newStatus;
+      } else if (!existing.status && newStatus) {
+        existing.status = newStatus;
+      }
+      if (!existing.items && o.items) existing.items = o.items;
+      if (!existing.itemsText && o.itemsText) existing.itemsText = o.itemsText;
+      if (!existing.deliveryMethod && o.deliveryMethod) existing.deliveryMethod = o.deliveryMethod;
     }
   }
 
-  // 1. Dari response langsung getMemberData
-  if (Array.isArray(gasOrdersList)) {
-    gasOrdersList.forEach(addOrderIfValid);
-  }
-
-  // 2. Dari posOrders global (yang ditarik via ?action=getOrders)
-  if (typeof posOrders !== "undefined" && Array.isArray(posOrders)) {
-    posOrders.forEach(o => {
-      const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
-      const oName = String(o.customerName || "").trim().toLowerCase();
-      const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
-      const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
-      if (phoneMatch || nameMatch) {
-        addOrderIfValid(o);
-      }
-    });
-  }
-
-  // 3. Dari riwayat checkout lokal di perangkat ini
+  // 1. Dari riwayat checkout lokal di perangkat ini (sebagai basis awal item detail)
   const localHistory = getCustomerOrdersFromLocalHistory();
   localHistory.forEach(o => {
     const oPhone = String(o.customerPhone || "").replace(/\D/g, "");
@@ -4509,9 +4750,46 @@ function mergeMemberOrdersSources(memberPhone, memberName, gasOrdersList) {
     const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
     const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
     if (phoneMatch || nameMatch) {
-      addOrderIfValid(o);
+      addOrMergeOrder(o, false);
     }
   });
+
+  // 2. Dari cache POS Admin lokal (jika admin & pelanggan di browser yang sama)
+  try {
+    const posCacheRaw = localStorage.getItem("delina_pos_orders_cache");
+    if (posCacheRaw) {
+      const posCacheList = JSON.parse(posCacheRaw);
+      if (Array.isArray(posCacheList)) {
+        posCacheList.forEach(o => {
+          const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
+          const oName = String(o.customerName || "").trim().toLowerCase();
+          const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
+          const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
+          if (phoneMatch || nameMatch) {
+            addOrMergeOrder(o, true);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  // 3. Dari response langsung getMemberData (Google Sheets Tab Pesanan)
+  if (Array.isArray(gasOrdersList)) {
+    gasOrdersList.forEach(o => addOrMergeOrder(o, true));
+  }
+
+  // 4. Dari posOrders global (yang ditarik langsung via ?action=getOrders&pin=1234 dari Google Sheets) -> PALING OTORITATIF UNTUK STATUS ADMIN!
+  if (typeof posOrders !== "undefined" && Array.isArray(posOrders)) {
+    posOrders.forEach(o => {
+      const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
+      const oName = String(o.customerName || "").trim().toLowerCase();
+      const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
+      const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
+      if (phoneMatch || nameMatch) {
+        addOrMergeOrder(o, true);
+      }
+    });
+  }
 
   const finalOrders = Array.from(mergedMap.values());
   finalOrders.forEach(o => {
@@ -4544,13 +4822,34 @@ function renderMemberOrderHistory(ordersList) {
   }
 
   container.innerHTML = orders.map(o => {
-    const statusStr = String(o.status || o.orderStatus || "Diproses");
-    const isCompleted = statusStr.toLowerCase().includes("selesai") || statusStr.toLowerCase().includes("lunas") || statusStr.toLowerCase().includes("siap");
-    const isWaiting = statusStr.toLowerCase().includes("menunggu");
+    const statusStr = String(o.status || o.orderStatus || "Menunggu Verifikasi");
+    const lowerStatus = statusStr.toLowerCase();
+    const isCompleted = lowerStatus.includes("selesai") || lowerStatus.includes("lunas");
+    const isReady = lowerStatus.includes("siap") || lowerStatus.includes("diantar") || lowerStatus.includes("dikirim");
+    const isProcessing = lowerStatus.includes("diproses") || lowerStatus.includes("proses");
+    const isCancelled = lowerStatus.includes("batal") || lowerStatus.includes("ditolak");
 
-    let statusBadgeClass = "bg-blue-100 text-blue-800";
-    if (isCompleted) statusBadgeClass = "bg-emerald-100 text-emerald-800";
-    else if (isWaiting) statusBadgeClass = "bg-amber-100 text-amber-800";
+    let statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
+    let statusIcon = "bi-hourglass-split";
+    let stepIndex = 1; // 1: Menunggu, 2: Sedang Diproses, 3: Siap Diambil/Diantar, 4: Selesai
+
+    if (isCompleted) {
+      statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+      statusIcon = "bi-check-circle-fill";
+      stepIndex = 4;
+    } else if (isReady) {
+      statusBadgeClass = "bg-teal-100 text-teal-800 border border-teal-300";
+      statusIcon = "bi-box-seam-fill";
+      stepIndex = 3;
+    } else if (isProcessing) {
+      statusBadgeClass = "bg-blue-100 text-blue-800 border border-blue-300";
+      statusIcon = "bi-gear-wide-connected";
+      stepIndex = 2;
+    } else if (isCancelled) {
+      statusBadgeClass = "bg-red-100 text-red-800 border border-red-300";
+      statusIcon = "bi-x-circle-fill";
+      stepIndex = 0;
+    }
 
     const rawTotal = o.total !== undefined ? o.total : (o.totalAkhir !== undefined ? o.totalAkhir : (o.totalNumeric || 0));
     const formattedTotal = typeof rawTotal === "number" ? formatRupiah(rawTotal) : (String(rawTotal).startsWith("Rp") ? rawTotal : formatRupiah(Number(String(rawTotal).replace(/\D/g, "")) || 0));
@@ -4567,6 +4866,15 @@ function renderMemberOrderHistory(ordersList) {
     const orderIdStr = String(o.orderId || o.nota || "#DLN-2026");
     const timeWib = formatWaktuWIB(o.orderTime || o.timestamp || "");
 
+    const progressStepsHtml = stepIndex > 0 ? `
+      <div class="grid grid-cols-4 gap-1 pt-1">
+        <div class="h-1.5 rounded-full ${stepIndex >= 1 ? 'bg-amber-400' : 'bg-slate-200 dark:bg-slate-700'}" title="Menunggu Verifikasi"></div>
+        <div class="h-1.5 rounded-full ${stepIndex >= 2 ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}" title="Sedang Diproses"></div>
+        <div class="h-1.5 rounded-full ${stepIndex >= 3 ? 'bg-teal-500' : 'bg-slate-200 dark:bg-slate-700'}" title="Siap Diambil / Diantar"></div>
+        <div class="h-1.5 rounded-full ${stepIndex >= 4 ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-700'}" title="Selesai"></div>
+      </div>
+    ` : "";
+
     return `
       <div class="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-2xs space-y-1.5 transition-all">
         <div class="flex items-center justify-between text-xs gap-2">
@@ -4574,10 +4882,12 @@ function renderMemberOrderHistory(ordersList) {
             <span class="font-mono font-black text-emerald-800 dark:text-emerald-400 truncate">${escapeHtml(orderIdStr)}</span>
             <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate">• ${escapeHtml(timeWib)}</span>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${statusBadgeClass}">
-            ${escapeHtml(statusStr)}
+          <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1 ${statusBadgeClass}">
+            <i class="bi ${statusIcon}"></i>
+            <span>${escapeHtml(statusStr)}</span>
           </span>
         </div>
+        ${progressStepsHtml}
         <div class="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
           <span class="font-bold text-slate-500">🛍️ Barang:</span> ${escapeHtml(itemsText)}
         </div>
@@ -4610,20 +4920,51 @@ function viewMemberOrderReceipt(orderId) {
   }
 }
 
+async function manualSyncMemberOrders() {
+  playCuteSound("pop");
+  if (!currentMemberSession || !currentMemberSession.phone) {
+    showToast("Silakan login member terlebih dahulu.", "warning");
+    return;
+  }
+  const icon = document.getElementById("syncMemberOrdersIcon");
+  if (icon) icon.classList.add("animate-spin");
+  showToast("Menyinkronkan status pesanan terbaru dengan Admin...", "info");
+  await refreshMemberDataOnline(currentMemberSession.phone);
+  if (icon) setTimeout(() => icon.classList.remove("animate-spin"), 500);
+  showToast("✅ Status pesanan & profil sinkron dengan database Admin!");
+}
+
 async function refreshMemberDataOnline(phone) {
   if (!phone || typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
   try {
-    // Tarik data member dan daftar pesanan secara paralel agar Riwayat Transaksi Belanja langsung terhubung 100%
+    // Tarik data member dan daftar pesanan (&pin=1234) secara paralel agar Riwayat Transaksi Belanja & Profil Lintas Perangkat 100% sinkron
+    const ts = Date.now();
     const [memberRes, ordersRes] = await Promise.allSettled([
-      fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}`).then(r => r.json()),
-      fetch(`${CONFIG.GAS_API_URL}?action=getOrders`).then(r => r.json())
+      fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}&_t=${ts}`).then(r => r.json()),
+      fetch(`${CONFIG.GAS_API_URL}?action=getOrders&pin=1234&_t=${ts}`).then(r => r.json())
     ]);
+
+    let cloudSyncedProfile = null;
+    const cleanP = String(phone || "").replace(/\D/g, "").slice(-9);
 
     if (ordersRes.status === "fulfilled" && ordersRes.value) {
       const oData = ordersRes.value;
       const allOrders = Array.isArray(oData) ? oData : (Array.isArray(oData.orders) ? oData.orders : (Array.isArray(oData.data) ? oData.data : []));
       if (allOrders.length > 0) {
         posOrders = allOrders;
+        try {
+          localStorage.setItem("delina_pos_orders_cache", JSON.stringify(allOrders));
+        } catch (e) {}
+      }
+      // Cek apakah ada profil lintas perangkat di coupons (MPROF_<phone>)
+      if (Array.isArray(oData.coupons) && cleanP) {
+        const profCode = "MPROF_" + cleanP;
+        const foundProfRow = oData.coupons.find(c => String(c.code || "").trim() === profCode);
+        if (foundProfRow && foundProfRow.description) {
+          try {
+            cloudSyncedProfile = JSON.parse(foundProfRow.description);
+          } catch (e) {}
+        }
       }
     }
 
@@ -4635,13 +4976,13 @@ async function refreshMemberDataOnline(phone) {
         json.member.password = currentMemberSession.password;
       }
       if (!json.member.photoUrl) {
-        json.member.photoUrl = (currentMemberSession && currentMemberSession.photoUrl) || localProf.photoUrl || "";
+        json.member.photoUrl = (cloudSyncedProfile && cloudSyncedProfile.photoUrl) || (currentMemberSession && currentMemberSession.photoUrl) || localProf.photoUrl || "";
       }
       if (!json.member.address) {
-        json.member.address = (currentMemberSession && currentMemberSession.address) || localProf.address || "";
+        json.member.address = (cloudSyncedProfile && cloudSyncedProfile.address) || (currentMemberSession && currentMemberSession.address) || localProf.address || "";
       }
       if (!json.member.ktpUrl) {
-        json.member.ktpUrl = (currentMemberSession && currentMemberSession.ktpUrl) || localProf.ktpUrl || "";
+        json.member.ktpUrl = (cloudSyncedProfile && cloudSyncedProfile.ktpUrl) || (currentMemberSession && currentMemberSession.ktpUrl) || localProf.ktpUrl || "";
       }
 
       saveMemberProfileLocalMap(phone, {
@@ -4654,11 +4995,37 @@ async function refreshMemberDataOnline(phone) {
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
       renderMemberDashboardUI(json.member, json.claims || [], json.orders || []);
     } else if (currentMemberSession) {
+      if (cloudSyncedProfile) {
+        if (!currentMemberSession.photoUrl && cloudSyncedProfile.photoUrl) currentMemberSession.photoUrl = cloudSyncedProfile.photoUrl;
+        if (!currentMemberSession.ktpUrl && cloudSyncedProfile.ktpUrl) currentMemberSession.ktpUrl = cloudSyncedProfile.ktpUrl;
+        if (!currentMemberSession.address && cloudSyncedProfile.address) currentMemberSession.address = cloudSyncedProfile.address;
+        saveMemberProfileLocalMap(phone, {
+          photoUrl: currentMemberSession.photoUrl || "",
+          ktpUrl: currentMemberSession.ktpUrl || "",
+          address: currentMemberSession.address || ""
+        });
+        localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+      }
       renderMemberDashboardUI(currentMemberSession, [], []);
     }
   } catch (e) {
     console.warn("Online member refresh notice:", e);
   }
+}
+
+// Dengarkan perubahan storage lintas tab (misal Admin mengubah status pesanan di tab sebelah)
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (!currentMemberSession) return;
+    if (e.key === "delina_pos_orders_cache" || e.key === "delina_customer_orders_history" || e.key === "delina_last_order_status_update") {
+      try {
+        if (e.key === "delina_pos_orders_cache" && e.newValue) {
+          posOrders = JSON.parse(e.newValue);
+        }
+      } catch (err) {}
+      renderMemberOrderHistory(currentMemberSession.orders || []);
+    }
+  });
 }
 
 function renderMemberDashboardUI(member, claims, orders) {
@@ -5127,15 +5494,26 @@ function populateAndOpenVerifyCartModal(mode = "file") {
   }
 
   if (listEl) {
-    listEl.innerHTML = cart.map((item, idx) => `
-      <div class="flex items-center justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700 last:border-none text-xs">
-        <div class="min-w-0 pr-2">
-          <div class="font-extrabold text-slate-800 dark:text-slate-100 truncate">${idx + 1}. ${escapeHtml(item.name)}</div>
-          <div class="text-[10px] text-slate-500 font-semibold">${item.qty} x ${formatRupiah(item.price)}</div>
+    listEl.innerHTML = cart.map((item, idx) => {
+      const thumbUrl = resolveCartItemImageUrl(item);
+      return `
+        <div class="flex items-center justify-between gap-2.5 py-2 border-b border-slate-200/70 dark:border-slate-700 last:border-none text-xs">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <img
+              src="${escapeHtml(thumbUrl)}"
+              alt="${escapeHtml(item.name)}"
+              class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0 bg-white"
+              onerror="this.src='https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=200&auto=format&fit=crop&q=80'"
+            />
+            <div class="min-w-0 flex-1">
+              <div class="font-extrabold text-slate-800 dark:text-slate-100 truncate leading-snug">${idx + 1}. ${escapeHtml(item.name)}</div>
+              <div class="text-[10px] text-slate-500 font-semibold mt-0.5">${item.qty} x ${formatRupiah(item.price)}</div>
+            </div>
+          </div>
+          <span class="font-mono font-black text-emerald-700 dark:text-emerald-400 flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
         </div>
-        <span class="font-mono font-black text-emerald-700 dark:text-emerald-400 flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
-      </div>
-    `).join("");
+      `;
+    }).join("");
   }
 
   modal.classList.remove("hidden");
@@ -5495,6 +5873,12 @@ if (typeof window !== "undefined") {
   window.closeModernDigitalReceiptModal = closeModernDigitalReceiptModal;
   window.executePrintModernDigitalReceipt = executePrintModernDigitalReceipt;
   window.openWhatsAppWithAppChoice = openWhatsAppWithAppChoice;
+  window.selectDeliveryTimeSlot = selectDeliveryTimeSlot;
+  window.toggleStickyCheckoutSummaryBody = toggleStickyCheckoutSummaryBody;
+  window.manualSyncMemberOrders = manualSyncMemberOrders;
+  window.openKtpWhatsappConfirmModal = openKtpWhatsappConfirmModal;
+  window.closeKtpWhatsappConfirmModal = closeKtpWhatsappConfirmModal;
+  window.sendKtpVerificationToAdminWhatsApp = sendKtpVerificationToAdminWhatsApp;
 
   // Hero Carousel Handlers
   window.initHeroCarousel = initHeroCarousel;
@@ -5645,6 +6029,7 @@ function isAnyModalOpen() {
   if (drawer && !drawer.classList.contains("translate-x-full")) return true;
 
   const modalIds = [
+    "modalKtpWhatsappConfirm",
     "modalVerifyCartBeforeUpload",
     "modernDigitalReceiptModal",
     "rewardClaimBarcodeModal",
@@ -5670,6 +6055,12 @@ function closeAllModals(isFromPopState = false) {
   let closedAny = false;
 
   // Tutup modal lapis atas (sub-modal) terlebih dahulu jika terbuka
+  const ktpWaConfirm = document.getElementById("modalKtpWhatsappConfirm");
+  if (ktpWaConfirm && !ktpWaConfirm.classList.contains("hidden")) {
+    closeKtpWhatsappConfirmModal();
+    return true;
+  }
+
   const verifyCart = document.getElementById("modalVerifyCartBeforeUpload");
   if (verifyCart && !verifyCart.classList.contains("hidden")) {
     closeVerifyCartBeforeUploadModal(false);

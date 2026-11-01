@@ -3309,6 +3309,31 @@
           adminMembersList = json.members || [];
           adminRewardsList = json.rewards || [];
           adminClaimsList = json.claims || [];
+          try {
+            if (Array.isArray(json.orders)) {
+              localStorage.setItem("delina_pos_orders_cache", JSON.stringify(json.orders));
+              const custHistRaw = localStorage.getItem("delina_customer_orders_history");
+              if (custHistRaw) {
+                const custHist = JSON.parse(custHistRaw);
+                if (Array.isArray(custHist)) {
+                  let changed = false;
+                  custHist.forEach(co => {
+                    const cid = String(co.orderId || co.nota || "").trim();
+                    const match = json.orders.find(ao => String(ao.orderId || ao.nota || "").trim() === cid);
+                    if (match && (match.orderStatus || match.status)) {
+                      const newestStatus = match.orderStatus || match.status;
+                      if (co.status !== newestStatus) {
+                        co.status = newestStatus;
+                        co.orderStatus = newestStatus;
+                        changed = true;
+                      }
+                    }
+                  });
+                  if (changed) localStorage.setItem("delina_customer_orders_history", JSON.stringify(custHist));
+                }
+              }
+            }
+          } catch (e) {}
           renderAllModules();
           if (isManual) showToastAdmin("Alhamdulillah, seluruh data berhasil disegarkan!");
         } else {
@@ -4014,6 +4039,30 @@ ${escapeHtml(order.itemsText || "-")}
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
       showToastAdmin(`Memperbarui status ${orderId}...`);
 
+      // Sinkronkan juga ke localStorage secara instan agar halaman pelanggan langsung berubah real-time
+      function syncStatusToLocalCache(idStr, statusVal) {
+        try {
+          const cleanId = String(idStr || "").trim();
+          const custHistRaw = localStorage.getItem("delina_customer_orders_history");
+          if (custHistRaw) {
+            const custHist = JSON.parse(custHistRaw);
+            if (Array.isArray(custHist)) {
+              custHist.forEach(co => {
+                if (String(co.orderId || co.nota || "").trim() === cleanId) {
+                  co.status = statusVal;
+                  co.orderStatus = statusVal;
+                }
+              });
+              localStorage.setItem("delina_customer_orders_history", JSON.stringify(custHist));
+            }
+          }
+          if (adminData && Array.isArray(adminData.orders)) {
+            localStorage.setItem("delina_pos_orders_cache", JSON.stringify(adminData.orders));
+          }
+          localStorage.setItem("delina_last_order_status_update", JSON.stringify({ orderId: cleanId, status: statusVal, time: Date.now() }));
+        } catch (e) {}
+      }
+
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
@@ -4028,13 +4077,15 @@ ${escapeHtml(order.itemsText || "-")}
         const json = await res.json();
 
         if (json.status === "success") {
-          showToastAdmin(`Alhamdulillah, status ${orderId} berhasil diubah.`);
+          showToastAdmin(`Alhamdulillah, status ${orderId} berhasil diubah menjadi "${newStatus}".`);
           const targetOrder = (adminData.orders || []).find(o => o.orderId === orderId);
           if (targetOrder) {
             targetOrder.orderStatus = newStatus;
+            targetOrder.status = newStatus;
             renderOrders();
             renderDashboardSummary();
           }
+          syncStatusToLocalCache(orderId, newStatus);
           fetchDashboardData();
         } else {
           showToastAdmin("Gagal: " + json.message);

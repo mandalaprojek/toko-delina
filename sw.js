@@ -3,15 +3,15 @@
  * Memenuhi syarat PWA installable browser Chromium (Chrome/Edge/Brave/Samsung Internet)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261101-06";
+const CACHE_NAME = "delina-store-pwa-v20261102-01";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
   "./css/custom.css",
-  "./js/app.js?v=20261101_06",
-  "./js/config.js?v=20261101_06",
-  "./js/printer.js?v=20261101_06",
+  "./js/app.js?v=20261102_01",
+  "./js/config.js?v=20261102_01",
+  "./js/printer.js?v=20261102_01",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
