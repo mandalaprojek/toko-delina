@@ -1495,6 +1495,30 @@ function openCheckoutModal() {
   toggleCartDrawer(false, false);
   renderCheckoutSummary();
 
+  // 1. Auto-fill Data Pemesan jika Akun Member Sedang Login (Fitur Integrasi Member VIP)
+  const memberBadge = document.getElementById("checkoutMemberBadgeIndicator");
+  const memberBanner = document.getElementById("checkoutMemberBanner");
+  const nameInput = document.getElementById("custName");
+  const phoneInput = document.getElementById("custPhone");
+  const addressInput = document.getElementById("custAddress");
+
+  if (currentMemberSession) {
+    if (nameInput && (!nameInput.value || nameInput.value === "Ahmad Fauzi")) {
+      nameInput.value = currentMemberSession.name || "";
+    }
+    if (phoneInput && !phoneInput.value) {
+      phoneInput.value = currentMemberSession.phone || "";
+    }
+    if (addressInput && !addressInput.value && currentMemberSession.address) {
+      addressInput.value = currentMemberSession.address;
+    }
+    if (memberBadge) memberBadge.classList.remove("hidden");
+    if (memberBanner) memberBanner.classList.remove("hidden");
+  } else {
+    if (memberBadge) memberBadge.classList.add("hidden");
+    if (memberBanner) memberBanner.classList.add("hidden");
+  }
+
   const modal = document.getElementById("checkoutModal");
   if (modal) {
     modal.classList.remove("hidden");
@@ -3757,6 +3781,293 @@ async function handleMemberLogout() {
   }
 }
 
+// Helper Inisial Nama Member (Avatar Default)
+function getMemberInitials(name) {
+  if (!name) return "VIP";
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  } else if (parts.length === 1 && parts[0].length >= 2) {
+    return parts[0].substring(0, 2).toUpperCase();
+  } else if (parts.length === 1) {
+    return parts[0][0].toUpperCase();
+  }
+  return "VIP";
+}
+
+function triggerProfilePhotoUpload() {
+  const input = document.getElementById("memberProfilePhotoInput");
+  if (input) input.click();
+}
+
+async function handleProfilePhotoSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("Ukuran foto maksimal 5 MB.", "warning");
+    return;
+  }
+
+  showToast("Mengunggah foto profil...", "info");
+  try {
+    const base64 = await fileToBase64(file);
+    if (!currentMemberSession) return;
+
+    currentMemberSession.photoUrl = base64;
+    localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+
+    const img = document.getElementById("memberAvatarImg");
+    const placeholder = document.getElementById("memberAvatarPlaceholder");
+    if (img) {
+      img.src = base64;
+      img.classList.remove("hidden");
+    }
+    if (placeholder) placeholder.classList.add("hidden");
+
+    if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
+      fetch(CONFIG.GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "uploadMemberPhoto",
+          phone: currentMemberSession.phone,
+          photo: base64
+        })
+      }).then(r => r.json()).then(res => {
+        if (res && res.status === "success" && res.photoUrl) {
+          currentMemberSession.photoUrl = res.photoUrl;
+          localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+        }
+      }).catch(err => console.warn("Notice uploadMemberPhoto GAS:", err));
+    }
+
+    showToast("Alhamdulillah, foto profil berhasil diperbarui!", "success");
+  } catch (err) {
+    console.error("Gagal proses foto profil:", err);
+    showToast("Gagal memproses foto profil.", "error");
+  }
+}
+
+let tempKtpBase64 = null;
+let isKtpSectionOpen = false;
+
+function toggleKtpVerificationSection() {
+  const content = document.getElementById("ktpVerificationContent");
+  const icon = document.getElementById("ktpToggleIcon");
+  const label = document.getElementById("ktpStatusLabelText");
+  if (!content) return;
+
+  isKtpSectionOpen = !isKtpSectionOpen;
+  if (isKtpSectionOpen) {
+    content.classList.remove("hidden");
+    if (icon) icon.classList.add("rotate-180");
+    if (label) label.textContent = "Tutup";
+  } else {
+    content.classList.add("hidden");
+    if (icon) icon.classList.remove("rotate-180");
+    if (label) label.textContent = (currentMemberSession && currentMemberSession.ktpUrl) ? "Tersimpan" : "Buka";
+  }
+}
+
+function triggerKtpPhotoUpload() {
+  const input = document.getElementById("memberKtpInput");
+  if (input) input.click();
+}
+
+async function handleKtpPhotoSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("Ukuran foto KTP maksimal 5 MB.", "warning");
+    return;
+  }
+
+  try {
+    tempKtpBase64 = await fileToBase64(file);
+    const img = document.getElementById("ktpPreviewImg");
+    const placeholder = document.getElementById("ktpPlaceholderText");
+    if (img) {
+      img.src = tempKtpBase64;
+      img.classList.remove("hidden");
+    }
+    if (placeholder) placeholder.classList.add("hidden");
+    showToast("Foto KTP siap disimpan.", "info");
+  } catch (e) {
+    showToast("Gagal memproses file KTP.", "error");
+  }
+}
+
+async function saveMemberKtpAndAddress() {
+  if (!currentMemberSession) {
+    showToast("Silakan masuk ke akun member terlebih dahulu.", "warning");
+    return;
+  }
+
+  const addrInput = document.getElementById("memberAddressInput");
+  const address = addrInput ? addrInput.value.trim() : "";
+
+  currentMemberSession.address = address;
+  if (tempKtpBase64) {
+    currentMemberSession.ktpUrl = tempKtpBase64;
+  }
+  localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+
+  const ktpLabel = document.getElementById("ktpStatusLabelText");
+  if (ktpLabel) ktpLabel.textContent = "Tersimpan";
+
+  showToast("Menyimpan data identitas & alamat...", "info");
+
+  if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
+    try {
+      fetch(CONFIG.GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "saveMemberKtp",
+          phone: currentMemberSession.phone,
+          address: address,
+          ktpPhoto: tempKtpBase64 || currentMemberSession.ktpUrl || null
+        })
+      }).then(r => r.json()).then(res => {
+        if (res && res.status === "success" && res.ktpUrl) {
+          currentMemberSession.ktpUrl = res.ktpUrl;
+          localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+        }
+      }).catch(e => console.warn("Notice saveMemberKtp GAS:", e));
+    } catch (e) {}
+  }
+
+  showToast("Alhamdulillah, data verifikasi KTP & alamat berhasil disimpan!", "success");
+  toggleKtpVerificationSection();
+}
+
+function openMemberBarcodeModal() {
+  if (!currentMemberSession) {
+    showToast("Silakan masuk ke akun member terlebih dahulu.", "warning");
+    return;
+  }
+
+  const modal = document.getElementById("memberBarcodeModal");
+  const nameEl = document.getElementById("barcodeMemberNameText");
+  const phoneEl = document.getElementById("barcodeMemberPhoneText");
+  const imgEl = document.getElementById("barcodeMemberImg");
+
+  if (!modal) return;
+
+  const phone = currentMemberSession.phone || "";
+  const cleanP = phone.replace(/\D/g, "");
+
+  if (nameEl) nameEl.textContent = currentMemberSession.name || "Member Delina";
+  if (phoneEl) phoneEl.textContent = phone;
+
+  if (imgEl) {
+    imgEl.src = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${cleanP}&scale=2&height=10&includetext`;
+    imgEl.onerror = function() {
+      imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${cleanP}`;
+    };
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (typeof pushModalState === "function") pushModalState("memberBarcodeModal");
+}
+
+function closeMemberBarcodeModal() {
+  const modal = document.getElementById("memberBarcodeModal");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
+}
+
+function renderMemberOrderHistory(ordersList) {
+  const container = document.getElementById("memberOrderHistoryContainer");
+  const countBadge = document.getElementById("memberOrderHistoryCountBadge");
+  if (!container) return;
+
+  let orders = Array.isArray(ordersList) ? [...ordersList] : [];
+
+  if (orders.length === 0 && currentMemberSession && currentMemberSession.phone) {
+    const cleanP = String(currentMemberSession.phone).replace(/\D/g, "").slice(-8);
+    if (typeof posOrders !== "undefined" && Array.isArray(posOrders)) {
+      orders = posOrders.filter(o => {
+        const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
+        return oPhone && oPhone.endsWith(cleanP);
+      });
+    }
+  }
+
+  if (countBadge) countBadge.textContent = `${orders.length} Belanja`;
+
+  if (orders.length === 0) {
+    container.innerHTML = `
+      <div class="py-6 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+        <i class="bi bi-bag-heart text-2xl text-slate-300 dark:text-slate-600 mb-1 block"></i>
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Belum ada riwayat transaksi belanja</p>
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Sebutkan nomor WhatsApp Anda saat belanja untuk kumpulkan stempel</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = orders.map(o => {
+    const isCompleted = (o.status || o.orderStatus || "").toLowerCase().includes("selesai");
+    const isWaiting = (o.status || o.orderStatus || "").toLowerCase().includes("menunggu");
+
+    let statusBadgeClass = "bg-blue-100 text-blue-800";
+    if (isCompleted) statusBadgeClass = "bg-emerald-100 text-emerald-800";
+    else if (isWaiting) statusBadgeClass = "bg-amber-100 text-amber-800";
+
+    const formattedTotal = typeof o.total === "number" ? formatRupiah(o.total) : (o.total || "Rp 0");
+
+    let itemsText = o.itemsText || "";
+    if (Array.isArray(o.items) && o.items.length > 0) {
+      itemsText = o.items.map(i => `${i.qty || 1}x ${i.name}`).join(", ");
+    } else if (itemsText) {
+      itemsText = itemsText.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(l => l && !l.startsWith("[🎁")).join(", ");
+    } else {
+      itemsText = "Belanjaan Toko Delina";
+    }
+
+    return `
+      <div class="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-2xs space-y-1.5 transition-all">
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono font-black text-slate-900 dark:text-white truncate">${escapeHtml(o.orderId || o.nota || "#DLN-2026")}</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500">• ${escapeHtml(o.orderTime || o.timestamp || "-")}</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadgeClass}">
+            ${escapeHtml(o.status || o.orderStatus || "Diproses")}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-xl border border-slate-100 dark:border-slate-800">
+          <span class="font-semibold text-slate-500">Barang:</span> ${escapeHtml(itemsText)}
+        </div>
+        <div class="flex items-center justify-between pt-1 text-xs">
+          <span class="font-black text-emerald-700 dark:text-emerald-400 font-mono">${formattedTotal}</span>
+          <button 
+            type="button" 
+            onclick="viewMemberOrderReceipt('${escapeHtml(o.orderId || o.nota || "")}')" 
+            class="py-1 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+          >
+            <i class="bi bi-receipt"></i>
+            <span>Lihat Nota</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function viewMemberOrderReceipt(orderId) {
+  if (!orderId) return;
+  openLacakPesananModal(orderId);
+}
+
 async function refreshMemberDataOnline(phone) {
   if (!phone || typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
   try {
@@ -3766,26 +4077,74 @@ async function refreshMemberDataOnline(phone) {
       if (currentMemberSession && currentMemberSession.password) {
         json.member.password = currentMemberSession.password;
       }
+      if (!json.member.photoUrl && currentMemberSession && currentMemberSession.photoUrl) {
+        json.member.photoUrl = currentMemberSession.photoUrl;
+      }
+      if (!json.member.address && currentMemberSession && currentMemberSession.address) {
+        json.member.address = currentMemberSession.address;
+      }
+      if (!json.member.ktpUrl && currentMemberSession && currentMemberSession.ktpUrl) {
+        json.member.ktpUrl = currentMemberSession.ktpUrl;
+      }
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
-      renderMemberDashboardUI(json.member, json.claims || []);
+      renderMemberDashboardUI(json.member, json.claims || [], json.orders || []);
     }
   } catch (e) {
     console.warn("Online member refresh notice:", e);
   }
 }
 
-function renderMemberDashboardUI(member, claims) {
+function renderMemberDashboardUI(member, claims, orders) {
   if (!member) return;
 
-  const nameEl = document.getElementById("cardMemberName");
-  const phoneEl = document.getElementById("cardMemberPhone");
+  const profNameEl = document.getElementById("memberProfileNameText");
+  const profPhoneEl = document.getElementById("memberProfilePhoneText");
+  const avatarImg = document.getElementById("memberAvatarImg");
+  const avatarPlaceholder = document.getElementById("memberAvatarPlaceholder");
+
+  if (profNameEl) profNameEl.textContent = member.name;
+  if (profPhoneEl) profPhoneEl.textContent = member.phone;
+
+  if (member.photoUrl) {
+    if (avatarImg) {
+      avatarImg.src = member.photoUrl;
+      avatarImg.classList.remove("hidden");
+    }
+    if (avatarPlaceholder) avatarPlaceholder.classList.add("hidden");
+  } else {
+    if (avatarImg) avatarImg.classList.add("hidden");
+    if (avatarPlaceholder) {
+      avatarPlaceholder.textContent = getMemberInitials(member.name);
+      avatarPlaceholder.classList.remove("hidden");
+    }
+  }
+
+  // Isi KTP & Alamat
+  const ktpImg = document.getElementById("ktpPreviewImg");
+  const ktpPlaceholder = document.getElementById("ktpPlaceholderText");
+  const addrInput = document.getElementById("memberAddressInput");
+  const ktpLabel = document.getElementById("ktpStatusLabelText");
+
+  if (member.address && addrInput && !addrInput.value) {
+    addrInput.value = member.address;
+  }
+  if (member.ktpUrl) {
+    if (ktpImg) {
+      ktpImg.src = member.ktpUrl;
+      ktpImg.classList.remove("hidden");
+    }
+    if (ktpPlaceholder) ktpPlaceholder.classList.add("hidden");
+    if (ktpLabel) ktpLabel.textContent = "Tersimpan";
+  } else {
+    if (ktpImg) ktpImg.classList.add("hidden");
+    if (ktpPlaceholder) ktpPlaceholder.classList.remove("hidden");
+  }
+
   const dateEl = document.getElementById("memberRegisteredDateText");
   const progressBar = document.getElementById("stampsProgressBar");
   const unlockBtn = document.getElementById("btnClaimRewardUnlock");
 
-  if (nameEl) nameEl.textContent = member.name;
-  if (phoneEl) phoneEl.textContent = member.phone;
   if (dateEl) dateEl.textContent = member.registeredAt || "-";
 
   const count = Number(member.belanjaCount) || 0;
@@ -3816,6 +4175,9 @@ function renderMemberDashboardUI(member, claims) {
 
   // Render Riwayat Klaim
   renderMemberClaimsHistory(claims || []);
+
+  // Render Riwayat Transaksi Belanja
+  renderMemberOrderHistory(orders || member.orders || []);
 }
 
 function renderMemberStamps(count) {
@@ -4089,6 +4451,17 @@ if (typeof window !== "undefined") {
   window.claimSelectedReward = claimSelectedReward;
   window.formatImageUrl = formatImageUrl;
 
+  // New Profile, KTP & Member VIP Handlers
+  window.triggerProfilePhotoUpload = triggerProfilePhotoUpload;
+  window.handleProfilePhotoSelected = handleProfilePhotoSelected;
+  window.toggleKtpVerificationSection = toggleKtpVerificationSection;
+  window.triggerKtpPhotoUpload = triggerKtpPhotoUpload;
+  window.handleKtpPhotoSelected = handleKtpPhotoSelected;
+  window.saveMemberKtpAndAddress = saveMemberKtpAndAddress;
+  window.openMemberBarcodeModal = openMemberBarcodeModal;
+  window.closeMemberBarcodeModal = closeMemberBarcodeModal;
+  window.viewMemberOrderReceipt = viewMemberOrderReceipt;
+
   // Hero Carousel Handlers
   window.initHeroCarousel = initHeroCarousel;
   window.goToHeroSlide = goToHeroSlide;
@@ -4240,6 +4613,7 @@ function isAnyModalOpen() {
   const modalIds = [
     "productDetailModal",
     "memberModal",
+    "memberBarcodeModal",
     "modalPromoInfo",
     "lacakPesananModal",
     "checkoutModal",
@@ -4290,6 +4664,13 @@ function closeAllModals(isFromPopState = false) {
   const member = document.getElementById("memberModal");
   if (member && !member.classList.contains("hidden")) {
     closeMemberModal();
+    closedAny = true;
+  }
+
+  // 5b. Member Barcode Modal
+  const barcode = document.getElementById("memberBarcodeModal");
+  if (barcode && !barcode.classList.contains("hidden")) {
+    closeMemberBarcodeModal();
     closedAny = true;
   }
 

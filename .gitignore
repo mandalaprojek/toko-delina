@@ -1,6 +1,7 @@
 # Antigravity & Scratch Logs
 *.log
 scratch/
+.antigravity/
 
 # Clasp local auth (jika ada)
 .clasprc.json

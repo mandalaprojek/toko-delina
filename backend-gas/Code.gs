@@ -963,6 +963,18 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       return createJsonResponse(res);
     }
 
+    // C1. Upload Foto Profil Member ke Google Drive
+    if (action === "uploadMemberPhoto") {
+      const res = prosesUploadMemberPhoto(payload, ss);
+      return createJsonResponse(res);
+    }
+
+    // C2. Simpan Data KTP & Alamat Member ke Google Drive
+    if (action === "saveMemberKtp") {
+      const res = prosesSaveMemberKtp(payload, ss);
+      return createJsonResponse(res);
+    }
+
     // D. Klaim 1 Hadiah Gratis (Dipotong 30 Poin Belanja)
     if (action === "claimReward") {
       const res = prosesClaimReward(payload, ss);
@@ -3558,14 +3570,103 @@ function prosesGetMemberData(phone, ss) {
         name: String(data[i][2] || "Member Delina"),
         belanjaCount: Number(data[i][3]) || 0,
         totalClaimed: Number(data[i][4]) || 0,
-        registeredAt: String(data[i][5] || "-")
+        registeredAt: String(data[i][5] || "-"),
+        photoUrl: String(data[i][6] || ""),
+        ktpUrl: String(data[i][7] || ""),
+        address: String(data[i][8] || "")
       };
       const claims = ambilDaftarKlaim(ss, cleanPhone);
-      return { status: "success", member: member, claims: claims };
+      const orders = ambilDaftarPesananMember(ss, cleanPhone);
+      return { status: "success", member: member, claims: claims, orders: orders };
     }
   }
 
   return { status: "error", message: "Member dengan nomor " + cleanPhone + " tidak ditemukan." };
+}
+
+function ambilDaftarPesananMember(ss, cleanPhone) {
+  const memberOrders = [];
+  const sheetPesanan = ss.getSheetByName(TAB_PESANAN);
+  if (!sheetPesanan || sheetPesanan.getLastRow() <= 1) return memberOrders;
+
+  const data = sheetPesanan.getDataRange().getValues();
+  const phoneSuffix = cleanPhone.slice(-8);
+
+  for (let i = data.length - 1; i >= 1; i--) {
+    const rowPhone = normalizePhoneNumber(data[i][3]);
+    if (rowPhone && (rowPhone === cleanPhone || rowPhone.endsWith(phoneSuffix))) {
+      memberOrders.push({
+        orderId: String(data[i][0] || ""),
+        orderTime: String(data[i][1] || ""),
+        customerName: String(data[i][2] || ""),
+        deliveryMethod: String(data[i][4] || ""),
+        itemsText: String(data[i][6] || ""),
+        total: Number(data[i][7]) || 0,
+        status: String(data[i][10] || "Diproses")
+      });
+      if (memberOrders.length >= 30) break;
+    }
+  }
+  return memberOrders;
+}
+
+function prosesUploadMemberPhoto(payload, ss) {
+  const cleanPhone = normalizePhoneNumber(payload.phone);
+  if (!cleanPhone) return { status: "error", message: "Nomor HP diperlukan." };
+
+  const photoBase64 = payload.photo || payload.photoBase64;
+  if (!photoBase64) return { status: "error", message: "File foto profil tidak ditemukan." };
+
+  let photoUrl = "";
+  try {
+    photoUrl = saveFileToDrive(photoBase64, `profile_${cleanPhone}_${Date.now()}.jpg`, "image/jpeg", "Foto_Profil_Member");
+  } catch (err) {
+    return { status: "error", message: "Gagal menyimpan foto ke Drive: " + err.toString() };
+  }
+
+  const sheet = ss.getSheetByName(TAB_MEMBER);
+  if (sheet) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (normalizePhoneNumber(data[i][0]) === cleanPhone) {
+        sheet.getRange(i + 1, 7).setValue(photoUrl);
+        break;
+      }
+    }
+  }
+
+  return { status: "success", message: "Foto profil berhasil diunggah!", photoUrl: photoUrl };
+}
+
+function prosesSaveMemberKtp(payload, ss) {
+  const cleanPhone = normalizePhoneNumber(payload.phone);
+  if (!cleanPhone) return { status: "error", message: "Nomor HP diperlukan." };
+
+  const address = String(payload.address || "").trim();
+  const ktpBase64 = payload.ktpPhoto || payload.ktpBase64 || null;
+
+  let ktpUrl = "";
+  if (ktpBase64 && String(ktpBase64).startsWith("data:")) {
+    try {
+      ktpUrl = saveFileToDrive(ktpBase64, `ktp_${cleanPhone}_${Date.now()}.jpg`, "image/jpeg", "Foto_KTP_Member");
+    } catch (err) {
+      Logger.log("Notice save KTP Drive: " + err.toString());
+    }
+  }
+
+  const sheet = ss.getSheetByName(TAB_MEMBER);
+  if (sheet) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (normalizePhoneNumber(data[i][0]) === cleanPhone) {
+        if (ktpUrl) sheet.getRange(i + 1, 8).setValue(ktpUrl);
+        if (address) sheet.getRange(i + 1, 9).setValue(address);
+        break;
+      }
+    }
+  }
+
+  return { status: "success", message: "Data KTP dan Alamat berhasil disimpan!", ktpUrl: ktpUrl, address: address };
 }
 
 function prosesClaimReward(payload, ss) {

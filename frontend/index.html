@@ -810,9 +810,23 @@
 
         <!-- 2. Data Pemesan -->
         <div class="space-y-3">
-          <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-            <i class="bi bi-person-fill text-tokopedia-green"></i> Data Pemesan
-          </h4>
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+              <i class="bi bi-person-fill text-tokopedia-green"></i> Data Pemesan
+            </h4>
+            <span id="checkoutMemberBadgeIndicator" class="hidden text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              ⭐ VIP Member Terhubung
+            </span>
+          </div>
+
+          <!-- Banner Notifikasi Otomatis Tambah Stempel Member -->
+          <div id="checkoutMemberBanner" class="hidden p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-[11px] font-medium flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="bi bi-stars text-amber-500"></i>
+              <span>Pesanan ini otomatis menambah <strong>+1 Stempel Belanja</strong> ke akun Anda!</span>
+            </span>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label class="block text-[11px] font-semibold text-gray-600 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
@@ -1803,32 +1817,172 @@
         </div>
 
         <!-- ================= VIEW 2: DASHBOARD MEMBER (JIKA SUDAH LOGIN) ================= -->
-        <div id="memberDashboardContainer" class="hidden space-y-5">
+        <div id="memberDashboardContainer" class="hidden space-y-4">
           
-          <!-- KARTU MEMBER VIP ELEGAN ISLAMI -->
-          <div class="rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-white border-2 border-amber-400/40 shadow-xl relative overflow-hidden">
-            
-            <div class="flex items-center justify-between border-b border-emerald-800/80 pb-3 mb-4">
-              <div class="flex items-center gap-2">
-                <span class="text-base font-black tracking-tight text-white">DELINA<span class="text-amber-400">.store</span></span>
-                <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">VIP MEMBER</span>
+          <!-- 1. KARTU PROFIL PELANGGAN (AVATAR, NAMA, NO HP, BARCODE & KTP OPSIONAL) -->
+          <div class="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white border border-emerald-700/60 shadow-lg relative overflow-hidden">
+            <!-- Hiasan Glow Elegan -->
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-400/15 rounded-full blur-xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex items-center justify-between gap-3">
+              <!-- Sisi Kiri: Avatar & Info Member -->
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Foto Profil / Avatar Inisial Bulat -->
+                <div class="relative flex-shrink-0">
+                  <div id="memberAvatarContainer" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full ring-2 ring-amber-400/80 p-0.5 bg-slate-800 shadow-md flex items-center justify-center overflow-hidden">
+                    <div id="memberAvatarPlaceholder" class="w-full h-full rounded-full bg-gradient-to-tr from-amber-400 via-amber-300 to-emerald-600 text-slate-950 font-black text-lg sm:text-xl flex items-center justify-center tracking-tight shadow-inner">
+                      VIP
+                    </div>
+                    <img id="memberAvatarImg" src="" alt="Foto Profil" class="hidden w-full h-full object-cover rounded-full" />
+                  </div>
+                  
+                  <!-- Tombol Kamera Ganti Foto Profil -->
+                  <button 
+                    type="button" 
+                    onclick="triggerProfilePhotoUpload()" 
+                    class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center text-xs shadow-md border-2 border-slate-900 transition-all active:scale-90 cursor-pointer"
+                    title="Ganti Foto Profil"
+                  >
+                    <i class="bi bi-camera-fill text-[11px]"></i>
+                  </button>
+                  <input type="file" id="memberProfilePhotoInput" accept="image/*" onchange="handleProfilePhotoSelected(event)" class="hidden" />
+                </div>
+
+                <!-- Teks Nama & Nomor WhatsApp -->
+                <div class="min-w-0">
+                  <h4 id="memberProfileNameText" class="font-black text-sm sm:text-base text-white truncate max-w-[170px] sm:max-w-xs">Nama Member</h4>
+                  <div class="flex items-center gap-1 text-[11px] text-emerald-200 mt-0.5">
+                    <i class="bi bi-whatsapp text-emerald-400 text-xs"></i>
+                    <span id="memberProfilePhoneText" class="font-mono font-bold tracking-tight">0812xxxx</span>
+                  </div>
+                  <div class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-400/30">
+                    <i class="bi bi-award-fill text-amber-400 text-[10px]"></i>
+                    <span>👑 VIP Member Delina</span>
+                  </div>
+                </div>
               </div>
-              <div class="text-right">
-                <span id="cardMemberName" class="text-xs font-black text-amber-300 block">Nama Member</span>
-                <span id="cardMemberPhone" class="text-[10px] text-emerald-300 font-mono">0812xxxx</span>
+
+              <!-- Sisi Kanan: Aksi Barcode & Keluar Akun -->
+              <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                <button 
+                  type="button" 
+                  onclick="openMemberBarcodeModal()" 
+                  class="py-1.5 px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer"
+                  title="Tunjukkan Barcode ke Kasir Toko"
+                >
+                  <i class="bi bi-upc-scan text-xs"></i>
+                  <span class="hidden sm:inline">Barcode</span>
+                </button>
+
+                <button 
+                  type="button" 
+                  onclick="handleMemberLogout()" 
+                  class="text-[11px] text-rose-300 hover:text-rose-200 font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Keluar dari akun member"
+                >
+                  <i class="bi bi-box-arrow-right"></i>
+                  <span class="hidden sm:inline">Keluar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. KOLOM MENU UNGGAH IDENTITAS KTP & ALAMAT (OPSIONAL & ACCORDION) -->
+            <div class="mt-3.5 pt-3 border-t border-emerald-800/80">
+              <button 
+                type="button" 
+                onclick="toggleKtpVerificationSection()" 
+                class="w-full flex items-center justify-between text-left text-xs text-emerald-100 hover:text-white transition-colors cursor-pointer"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-800/90 text-amber-400 flex items-center justify-center text-xs">
+                    <i class="bi bi-shield-check"></i>
+                  </span>
+                  <div>
+                    <span class="font-extrabold text-[11px] sm:text-xs">Verifikasi KTP & Alamat Pengiriman</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-800 text-emerald-300 font-bold ml-1">Opsional</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 text-[11px] text-amber-300">
+                  <span id="ktpStatusLabelText" class="font-bold">Buka</span>
+                  <i id="ktpToggleIcon" class="bi bi-chevron-down transition-transform duration-300"></i>
+                </div>
+              </button>
+
+              <!-- Konten Form KTP & Alamat (Default Tertutup) -->
+              <div id="ktpVerificationContent" class="hidden mt-3 p-3 rounded-2xl bg-black/40 border border-emerald-800/80 space-y-3 text-xs animate-fadeIn">
+                <p class="text-[10px] text-emerald-200/90 leading-relaxed">
+                  🔒 <strong>Privasi Aman:</strong> Foto KTP hanya untuk bukti verifikasi member VIP dan alamat otomatis terisi saat pesan antar kurir.
+                </p>
+
+                <!-- Input Foto KTP -->
+                <div class="space-y-1.5">
+                  <label class="block text-[11px] font-bold text-amber-300">Foto Identitas KTP (Opsional)</label>
+                  <div class="flex items-center gap-3">
+                    <div id="ktpPreviewContainer" class="w-20 h-14 rounded-xl border border-dashed border-emerald-500/60 bg-emerald-950/60 flex items-center justify-center overflow-hidden text-center p-1">
+                      <span id="ktpPlaceholderText" class="text-[9px] text-emerald-400 font-medium">Belum ada KTP</span>
+                      <img id="ktpPreviewImg" src="" alt="KTP" class="hidden w-full h-full object-cover rounded-lg" />
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <button 
+                        type="button" 
+                        onclick="triggerKtpPhotoUpload()" 
+                        class="py-1.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-[11px] flex items-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer"
+                      >
+                        <i class="bi bi-camera"></i>
+                        <span>Upload Foto KTP</span>
+                      </button>
+                      <input type="file" id="memberKtpInput" accept="image/*" onchange="handleKtpPhotoSelected(event)" class="hidden" />
+                      <p class="text-[9px] text-slate-400">Format JPG/PNG maks 5MB</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Input Alamat Rumah / Kantor -->
+                <div class="space-y-1">
+                  <label class="block text-[11px] font-bold text-amber-300">Alamat Lengkap Pengiriman</label>
+                  <textarea 
+                    id="memberAddressInput" 
+                    rows="2" 
+                    placeholder="Contoh: Jl. Kenanga No. 12, RT 02/04, Kel. Tanjung, Patokan dekat Masjid" 
+                    class="w-full bg-slate-900 border border-emerald-800 rounded-xl p-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                  ></textarea>
+                </div>
+
+                <!-- Tombol Simpan KTP & Alamat -->
+                <button 
+                  type="button" 
+                  onclick="saveMemberKtpAndAddress()" 
+                  class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Simpan Data Verifikasi & Alamat</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+          
+          <!-- KARTU MEMBER VIP ELEGAN ISLAMI (FOKUS 30 STEMPEL BELANJA) -->
+          <div class="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-white border-2 border-amber-400/40 shadow-xl relative overflow-hidden">
+            
+            <!-- Header Kartu Stempel Belanja (Fokus Bersih & Lega) -->
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-emerald-800/80 text-xs">
+              <div class="flex items-center gap-1.5 font-black text-amber-300">
+                <i class="bi bi-gift-fill text-amber-400"></i>
+                <span class="tracking-wide uppercase text-[11px]">Kartu 30 Stempel Hadiah</span>
+              </div>
+              <span id="cardStampCounterText" class="font-black text-amber-400 text-sm font-mono">0 / 30</span>
+            </div>
+
+            <!-- Bilah Progres Visual -->
+            <div class="space-y-1.5 mb-2.5">
+              <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden border border-white/10 p-0.5">
+                <div id="stampsProgressBar" class="bg-gradient-to-r from-amber-400 to-amber-300 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
             </div>
 
             <!-- Grid 30 Stempel Belanja Visual -->
             <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-emerald-200 flex items-center gap-1.5">
-                  <i class="bi bi-check2-circle text-amber-400"></i>
-                  <span>Progress Stempel Belanja:</span>
-                </span>
-                <strong id="cardStampCounterText" class="font-black text-amber-400 text-sm">0 / 30</strong>
-              </div>
-
               <!-- 30 Slot Lingkaran Stempel (Grid 10 Kolom di Layar Lebar, 6 di HP) -->
               <div id="cardStampsGrid" class="grid grid-cols-6 sm:grid-cols-10 gap-1.5 p-3 rounded-2xl bg-black/30 border border-white/10">
                 <!-- Diisi 30 slot stempel oleh JavaScript -->
@@ -1930,6 +2084,20 @@
             </div>
           </div>
 
+          <!-- RIWAYAT TRANSAKSI BELANJA MEMBER -->
+          <div class="space-y-2 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
+                <i class="bi bi-bag-check-fill text-emerald-700"></i>
+                <span>Riwayat Transaksi Belanja Anda</span>
+              </h4>
+              <span id="memberOrderHistoryCountBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0 Belanja</span>
+            </div>
+            <div id="memberOrderHistoryContainer" class="space-y-2 max-h-56 overflow-y-auto pr-0.5">
+              <!-- Diisi dinamis oleh JavaScript -->
+            </div>
+          </div>
+
           <!-- Pengaturan Tema Tampilan Toko -->
           <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span class="text-slate-600 font-medium flex items-center gap-1.5">
@@ -1969,7 +2137,30 @@
     </div>
   </div>
 
-  <!-- ================= MODAL PROMO & KUPON DISKON (ALA ALFAGIFT BELL) ================= -->
+  <!-- ================= MODAL BARCODE / QR MEMBER DIGITAL ================= -->
+  <div id="memberBarcodeModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-5 text-center shadow-2xl border border-slate-200 animate-fadeIn space-y-3.5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <div class="flex items-center gap-1.5">
+          <i class="bi bi-upc-scan text-emerald-700 font-bold text-sm"></i>
+          <span class="font-black text-xs text-slate-900">Barcode Member Digital</span>
+        </div>
+        <button type="button" onclick="closeMemberBarcodeModal()" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
+      </div>
+      <div>
+        <h4 id="barcodeMemberNameText" class="font-black text-sm text-slate-800 truncate">Nama Member</h4>
+        <p id="barcodeMemberPhoneText" class="text-xs font-mono font-bold text-emerald-700 mt-0.5">081234567890</p>
+      </div>
+      <!-- Gambar Barcode Cepat -->
+      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+        <img id="barcodeMemberImg" src="" alt="Barcode Member" class="max-w-[220px] h-24 object-contain" />
+        <span class="text-[9px] text-slate-400 mt-1 font-mono tracking-wider">TUNJUKKAN KE KASIR SAAT TRANSAKSI</span>
+      </div>
+      <button type="button" onclick="closeMemberBarcodeModal()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs active:scale-95 transition-all cursor-pointer">
+        Tutup
+      </button>
+    </div>
+  </div>
   <div id="modalPromoInfo" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100 flex flex-col max-h-[90vh] animate-fadeIn">
       
