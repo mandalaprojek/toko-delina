@@ -3,15 +3,15 @@
  * Memenuhi syarat PWA installable browser Chromium (Chrome/Edge/Brave/Samsung Internet)
  */
 
-const CACHE_NAME = "delina-store-pwa-v1";
+const CACHE_NAME = "delina-store-pwa-v20261101-06";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
   "./css/custom.css",
-  "./js/app.js",
-  "./js/config.js",
-  "./js/printer.js",
+  "./js/app.js?v=20261101_06",
+  "./js/config.js?v=20261101_06",
+  "./js/printer.js?v=20261101_06",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -62,6 +62,31 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.hostname.includes("script.google.com") || url.hostname.includes("script.googleusercontent.com")) {
+    return;
+  }
+
+  // Gunakan Network-First untuk HTML, JS, dan CSS agar update kode selalu langsung tampil
+  const isCodeAsset =
+    req.mode === "navigate" ||
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith("/");
+
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(req)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(req, responseToCache).catch(() => {});
+            }).catch(() => {});
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(req))
+    );
     return;
   }
 

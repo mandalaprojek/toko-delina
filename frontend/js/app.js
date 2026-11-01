@@ -556,7 +556,7 @@ function renderCartDrawer() {
       return `
       <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-2">
         <div class="flex items-center gap-3">
-          <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg bg-white border flex-shrink-0" />
+          <img src="${formatImageUrl(item.image)}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg bg-white border flex-shrink-0" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300';" />
           <div class="flex-1 min-w-0">
             <h5 class="text-xs font-semibold text-gray-800 truncate">${item.name}</h5>
             <p class="text-xs text-emerald-700 font-bold mt-0.5">${formatRupiah(item.price)}</p>
@@ -1003,7 +1003,7 @@ function openProductDetailModal(productId) {
   const elQtyInput = document.getElementById("detailQtyInput");
 
   if (elCategory) elCategory.textContent = product.category || "ATK & Kantor";
-  if (elImg) elImg.src = product.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=60";
+  if (elImg) elImg.src = formatImageUrl(product.image);
   if (elBadge) elBadge.textContent = product.badge || "Kualitas Terjamin";
   if (elName) elName.textContent = product.name;
   if (elRating) elRating.textContent = (product.rating || 4.9).toFixed(1);
@@ -1495,26 +1495,51 @@ function openCheckoutModal() {
   toggleCartDrawer(false, false);
   renderCheckoutSummary();
 
-  // 1. Auto-fill Data Pemesan jika Akun Member Sedang Login (Fitur Integrasi Member VIP)
+  // 1. Auto-fill & Kunci Otomatis Data Pemesan jika Akun Member Sedang Login (Fitur Integrasi Member VIP)
   const memberBadge = document.getElementById("checkoutMemberBadgeIndicator");
   const memberBanner = document.getElementById("checkoutMemberBanner");
   const nameInput = document.getElementById("custName");
   const phoneInput = document.getElementById("custPhone");
   const addressInput = document.getElementById("custAddress");
+  const nameLockBadge = document.getElementById("custNameLockBadge");
+  const phoneLockBadge = document.getElementById("custPhoneLockBadge");
 
   if (currentMemberSession) {
-    if (nameInput && (!nameInput.value || nameInput.value === "Ahmad Fauzi")) {
+    if (nameInput) {
       nameInput.value = currentMemberSession.name || "";
+      nameInput.readOnly = true;
+      nameInput.classList.add("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      nameInput.classList.remove("bg-gray-50");
     }
-    if (phoneInput && !phoneInput.value) {
+    if (phoneInput) {
       phoneInput.value = currentMemberSession.phone || "";
+      phoneInput.readOnly = true;
+      phoneInput.classList.add("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      phoneInput.classList.remove("bg-gray-50");
     }
-    if (addressInput && !addressInput.value && currentMemberSession.address) {
-      addressInput.value = currentMemberSession.address;
+    if (addressInput) {
+      addressInput.readOnly = false;
+      if (!addressInput.value && currentMemberSession.address) {
+        addressInput.value = currentMemberSession.address;
+      }
     }
+    if (nameLockBadge) nameLockBadge.classList.remove("hidden");
+    if (phoneLockBadge) phoneLockBadge.classList.remove("hidden");
     if (memberBadge) memberBadge.classList.remove("hidden");
     if (memberBanner) memberBanner.classList.remove("hidden");
   } else {
+    if (nameInput) {
+      nameInput.readOnly = false;
+      nameInput.classList.remove("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      nameInput.classList.add("bg-gray-50");
+    }
+    if (phoneInput) {
+      phoneInput.readOnly = false;
+      phoneInput.classList.remove("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      phoneInput.classList.add("bg-gray-50");
+    }
+    if (nameLockBadge) nameLockBadge.classList.add("hidden");
+    if (phoneLockBadge) phoneLockBadge.classList.add("hidden");
     if (memberBadge) memberBadge.classList.add("hidden");
     if (memberBanner) memberBanner.classList.add("hidden");
   }
@@ -2094,12 +2119,7 @@ function submitOrderCheckout() {
   const orderId = `#DLN-2026-${randomSuffix}`;
   localStorage.setItem("delina_last_order_id", orderId);
 
-  const now = new Date();
-  const orderTime = now.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }) + ", " + now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB";
+  const orderTime = formatWaktuWIB(new Date());
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const diskonGrosir = hitungDiskonGrosirKeranjang();
@@ -2118,18 +2138,34 @@ function submitOrderCheckout() {
     orderId,
     customerName,
     customerPhone,
+    customerAddress: customerAddress || "-",
     deliveryMethod:
       selectedDeliveryMethod === "courier"
         ? `Diantar Kurir (+ ${formatRupiah(5000)}) - Alamat: ${customerAddress}`
         : "Ambil Sendiri di Toko Delina",
+    deliveryFee: deliveryFee,
+    subtotalNumeric: subtotal,
+    totalNumeric: totalAkhir,
     totalAkhir: formatRupiah(totalAkhir),
     orderTime,
+    status: "Menunggu Verifikasi Toko",
     items: [...cart],
     hasPaymentProof: !!uploadedPaymentProof,
-    paymentProofName: uploadedPaymentProof ? uploadedPaymentProof.name : "Kirim via WhatsApp",
+    paymentProofName: uploadedPaymentProof ? uploadedPaymentProof.name : "QRIS / Transfer Resmi",
     couponCode: appliedCoupon ? appliedCoupon.code : null,
-    discountAmount: totalPotongan
+    discountAmount: totalPotongan,
+    isVipMember: !!currentMemberSession
   };
+
+  // Simpan juga ke riwayat transaksi lokal pelanggan agar langsung tampil di tab Hadiah (Riwayat Transaksi Belanja Anda)
+  saveCustomerOrderToLocalHistory(latestOrderData);
+
+  // Jika member login dan mengisi alamat baru, simpan alamatnya ke profil member
+  if (currentMemberSession && customerAddress) {
+    currentMemberSession.address = customerAddress;
+    localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+    saveMemberProfileLocalMap(currentMemberSession.phone, { address: customerAddress });
+  }
 
   // Kirim data pesanan ke Google Apps Script Backend (Live Integration)
   if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
@@ -2176,6 +2212,9 @@ function submitOrderCheckout() {
     });
   }
 
+  // Bunyikan nada sukses ceria
+  playCuteSound("fanfare");
+
   // Tutup Modal Checkout tanpa memicu history.back() karena transisi maju ke sukses
   closeCheckoutModal(false);
 
@@ -2190,9 +2229,8 @@ function submitOrderCheckout() {
   renderCartDrawer();
 
   // Bersihkan form input checkout
-  if (nameInput) nameInput.value = "";
-  if (phoneInput) phoneInput.value = "";
-  if (addressInput) addressInput.value = "";
+  if (nameInput && !currentMemberSession) nameInput.value = "";
+  if (phoneInput && !currentMemberSession) phoneInput.value = "";
   clearPaymentProof();
 }
 
@@ -2203,7 +2241,7 @@ function openSuccessModal(order) {
 
   document.getElementById("successCustName").textContent = order.customerName;
   document.getElementById("successOrderId").textContent = order.orderId;
-  document.getElementById("successOrderTime").textContent = order.orderTime;
+  document.getElementById("successOrderTime").textContent = formatWaktuWIB(order.orderTime);
   document.getElementById("successDeliveryMethod").textContent =
     selectedDeliveryMethod === "courier" ? "Diantar Kurir Toko" : "Ambil di Toko";
   document.getElementById("successOrderTotal").textContent = order.totalAkhir;
@@ -2234,33 +2272,88 @@ function copyOrderId() {
   });
 }
 
-function sendConfirmationWhatsApp() {
+function sendConfirmationWhatsApp(appMode = "regular") {
   if (!latestOrderData) return;
-  const itemsText = latestOrderData.items
-    .map((item, idx) => `${idx + 1}. ${item.name} (${item.qty}x)`)
+
+  const numEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+  const itemsText = (latestOrderData.items || [])
+    .map((item, idx) => {
+      const prefix = numEmojis[idx] || `${idx + 1}.`;
+      const itemPrice = formatRupiah(item.price || 0);
+      const itemSub = formatRupiah((item.price || 0) * (item.qty || 1));
+      return `${prefix} *${item.name}*\n   └ ${item.qty} x ${itemPrice} = *${itemSub}*`;
+    })
     .join("\n");
 
-  const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh Toko Delina,\n\nSaya ingin konfirmasi pesanan dengan rincian:\n- No. Nota: *${latestOrderData.orderId}*\n- Nama: *${latestOrderData.customerName}*\n- Pengambilan: *${latestOrderData.deliveryMethod}*\n- Total: *${latestOrderData.totalAkhir}*\n\nRincian Barang:\n${itemsText}\n\nMohon diproses nggih, terima kasih.`;
-  
-  // Ambil nomor WhatsApp toko (kompatibel WhatsApp reguler & WhatsApp Business)
-  let storePhone = "";
-  if (window.currentTokoInfo && window.currentTokoInfo.wa) {
+  const vipBadgeText = (latestOrderData.isVipMember || currentMemberSession)
+    ? " (👑 _VIP Member_)"
+    : "";
+
+  const discountLine = latestOrderData.discountAmount > 0
+    ? `\n🏷️ *Total Hemat/Diskon:* -${formatRupiah(latestOrderData.discountAmount)}`
+    : "";
+
+  const wibTime = formatWaktuWIB(latestOrderData.orderTime);
+
+  const message =
+    `✨ *KONFIRMASI PESANAN BARU - DELINA.STORE* ✨\n` +
+    `Assalamu'alaikum Admin Toko Delina 🙏\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `🧾 *No. Nota:* *${latestOrderData.orderId}*\n` +
+    `🗓️ *Waktu:* ${wibTime}\n` +
+    `👤 *Pemesan:* *${latestOrderData.customerName}*${vipBadgeText}\n` +
+    `📱 *No. WA:* ${latestOrderData.customerPhone || "-"}\n` +
+    `🚚 *Metode:* ${latestOrderData.deliveryMethod}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `🛍️ *RINCIAN BARANG BELANJA:*\n` +
+    `${itemsText}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━` +
+    `${discountLine}\n` +
+    `💰 *TOTAL PEMBAYARAN:* *${latestOrderData.totalAkhir}*\n` +
+    `💳 *Metode Bayar:* QRIS / Transfer (Bukti Terlampir ✅)\n` +
+    `⭐ *Program Loyalitas:* +1 Stempel VIP Member\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `_Mohon pesanan saya segera diproses nggih. Terima kasih!_ 🙏🌿`;
+
+  // Ambil nomor WhatsApp resmi toko (pastikan bukan nomor dummy 6281234567890)
+  let storePhone = "6282185355316";
+  if (window.currentTokoInfo && window.currentTokoInfo.wa && !String(window.currentTokoInfo.wa).includes("123456789")) {
     storePhone = window.currentTokoInfo.wa;
-  } else if (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_PHONE) {
+  } else if (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_PHONE && !String(CONFIG.WHATSAPP_PHONE).includes("123456789")) {
     storePhone = CONFIG.WHATSAPP_PHONE;
-  } else {
-    storePhone = "6282185355316";
   }
 
-  let cleanWa = String(storePhone || "").replace(/\D/g, "");
+  let cleanWa = String(storePhone || "6282185355316").replace(/\D/g, "");
   if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.slice(1);
   else if (cleanWa.startsWith("8")) cleanWa = "62" + cleanWa;
 
-  const waUrl = cleanWa
-    ? `https://api.whatsapp.com/send?phone=${cleanWa}&text=${encodeURIComponent(message)}`
-    : `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+  openWhatsAppWithAppChoice(cleanWa, message, appMode);
+}
 
-  window.open(waUrl, "_blank");
+// Helper Universal Membuka WhatsApp Biasa vs WhatsApp Business (Android, iOS & Desktop)
+function openWhatsAppWithAppChoice(cleanPhone, messageText, appMode = "regular") {
+  const encodedText = encodeURIComponent(messageText || "");
+  const webFallbackUrl = cleanPhone
+    ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`
+    : `https://api.whatsapp.com/send?text=${encodedText}`;
+
+  const isAndroid = /android/i.test(navigator.userAgent || "");
+
+  if (isAndroid) {
+    if (appMode === "business") {
+      // Target langsung package resmi WhatsApp Business (com.whatsapp.w4b) dengan fallback aman
+      const intentW4b = `intent://send?phone=${cleanPhone}&text=${encodedText}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${encodeURIComponent(webFallbackUrl)};end`;
+      window.location.href = intentW4b;
+      return;
+    } else if (appMode === "regular") {
+      // Target langsung package resmi WhatsApp Biasa (com.whatsapp) dengan fallback aman
+      const intentWa = `intent://send?phone=${cleanPhone}&text=${encodedText}#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=${encodeURIComponent(webFallbackUrl)};end`;
+      window.location.href = intentWa;
+      return;
+    }
+  }
+
+  window.open(webFallbackUrl, "_blank");
 }
 
 // =========================================================================
@@ -2471,7 +2564,7 @@ function displayLacakResult(order) {
   const elQr = document.getElementById("lacakQrImg");
 
   if (elCustomer) elCustomer.textContent = order.customerName || "-";
-  if (elTime) elTime.textContent = order.orderTime || "-";
+  if (elTime) elTime.textContent = formatWaktuWIB(order.orderTime || order.timestamp || "-");
   if (elDelivery) elDelivery.textContent = order.deliveryMethod || "Ambil Sendiri di Toko";
   if (elTotal) elTotal.textContent = order.totalAkhir || "Rp 0";
   if (elNota) elNota.textContent = order.orderId;
@@ -3509,6 +3602,62 @@ let currentMemberSession = null;
 let memberAuthMode = "login";
 let memberRewardsList = [];
 
+// =========================================================================
+// HELPER STANDAR WAKTU INDONESIA BARAT (WIB - ASIA/JAKARTA)
+// =========================================================================
+function formatWaktuWIB(input) {
+  if (!input) {
+    const now = new Date();
+    return (
+      now.toLocaleDateString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }) +
+      ", " +
+      now.toLocaleTimeString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).replace(/\./g, ":") +
+      " WIB"
+    );
+  }
+
+  const str = String(input).trim();
+  // Jika sudah mengandung WIB dan bukan format ISO mentah, rapikan saja
+  if (str.includes("WIB") && !str.includes("T")) {
+    return str;
+  }
+
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) {
+    return (
+      parsed.toLocaleDateString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }) +
+      ", " +
+      parsed.toLocaleTimeString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).replace(/\./g, ":") +
+      " WIB"
+    );
+  }
+
+  return str.endsWith("WIB") ? str : `${str} WIB`;
+}
+
+// =========================================================================
+// HELPER FORMAT URL GAMBAR (TERMASUK FIX 404 UNSPLASH & GOOGLE DRIVE)
+// =========================================================================
 function formatImageUrl(url) {
   if (!url || typeof url !== "string") {
     return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
@@ -3516,6 +3665,19 @@ function formatImageUrl(url) {
   const clean = url.trim();
   if (!clean) {
     return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
+  }
+  if (clean.startsWith("data:image/")) {
+    return clean;
+  }
+  // Intercept 3 URL Unsplash lama yang 404 agar bebas error di console
+  if (clean.includes("1608248597359")) {
+    return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
+  }
+  if (clean.includes("1556228722")) {
+    return "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80";
+  }
+  if (clean.includes("1585336261026")) {
+    return "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80";
   }
   if (clean.includes("lh3.googleusercontent.com/d/")) {
     return clean;
@@ -3536,16 +3698,229 @@ function formatImageUrl(url) {
   return clean;
 }
 
+// =========================================================================
+// PENYIMPANAN LOKAL PROFIL MEMBER & RIWAYAT TRANSAKSI (SINKRON DENGAN GAS)
+// =========================================================================
+function normalizeMemberPhoneKey(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  return digits.slice(-9) || digits;
+}
+
+function getMemberProfileLocalMap(phone) {
+  try {
+    const key = normalizeMemberPhoneKey(phone);
+    if (!key) return {};
+    const raw = localStorage.getItem("delina_member_profiles_map");
+    const map = raw ? JSON.parse(raw) : {};
+    return map[key] || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveMemberProfileLocalMap(phone, dataObj) {
+  try {
+    const key = normalizeMemberPhoneKey(phone);
+    if (!key) return;
+    const raw = localStorage.getItem("delina_member_profiles_map");
+    const map = raw ? JSON.parse(raw) : {};
+    map[key] = Object.assign({}, map[key] || {}, dataObj);
+    localStorage.setItem("delina_member_profiles_map", JSON.stringify(map));
+  } catch (e) {
+    console.warn("saveMemberProfileLocalMap notice:", e);
+  }
+}
+
+function saveCustomerOrderToLocalHistory(orderObj) {
+  if (!orderObj) return;
+  try {
+    const raw = localStorage.getItem("delina_customer_orders_history");
+    const list = raw ? JSON.parse(raw) : [];
+    const filtered = list.filter(o => (o.orderId || o.nota) !== (orderObj.orderId || orderObj.nota));
+    filtered.unshift({
+      orderId: orderObj.orderId,
+      orderTime: formatWaktuWIB(orderObj.orderTime),
+      customerName: orderObj.customerName,
+      customerPhone: orderObj.customerPhone,
+      deliveryMethod: orderObj.deliveryMethod,
+      total: orderObj.totalAkhir || formatRupiah(orderObj.totalNumeric || 0),
+      totalNumeric: orderObj.totalNumeric || 0,
+      subtotalNumeric: orderObj.subtotalNumeric || 0,
+      discountAmount: orderObj.discountAmount || 0,
+      deliveryFee: orderObj.deliveryFee || 0,
+      status: orderObj.status || "Menunggu Verifikasi Toko",
+      items: orderObj.items || []
+    });
+    localStorage.setItem("delina_customer_orders_history", JSON.stringify(filtered.slice(0, 50)));
+  } catch (e) {
+    console.warn("saveCustomerOrderToLocalHistory notice:", e);
+  }
+}
+
+function getCustomerOrdersFromLocalHistory() {
+  try {
+    const raw = localStorage.getItem("delina_customer_orders_history");
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// =========================================================================
+// KOMPRESOR GAMBAR HTML5 CANVAS (AGAR CEPAT & HEMAT MEMORI / GOOGLE DRIVE)
+// =========================================================================
+function compressImageToBase64(file, maxWidth = 360, maxHeight = 360, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// =========================================================================
+// AUTO-LOGOUT IDLE TIMER 3 MENIT (180 DETIK) KHUSUS PELANGGAN LOGIN
+// =========================================================================
+const MEMBER_IDLE_LIMIT_SECONDS = 180; // 3 Menit
+let memberIdleRemainingSeconds = MEMBER_IDLE_LIMIT_SECONDS;
+let memberIdleIntervalId = null;
+let memberIdleWarningShown = false;
+
+function resetMemberIdleTimer() {
+  if (!currentMemberSession) return;
+  memberIdleRemainingSeconds = MEMBER_IDLE_LIMIT_SECONDS;
+  memberIdleWarningShown = false;
+  updateMemberIdleBadgeUI();
+}
+
+function updateMemberIdleBadgeUI() {
+  const badge = document.getElementById("memberIdleTimerBadge");
+  const textEl = document.getElementById("memberIdleCountdownText");
+  if (!badge || !textEl) return;
+
+  if (!currentMemberSession) {
+    badge.classList.add("hidden");
+    return;
+  }
+
+  badge.classList.remove("hidden");
+  const mins = String(Math.floor(memberIdleRemainingSeconds / 60)).padStart(2, "0");
+  const secs = String(memberIdleRemainingSeconds % 60).padStart(2, "0");
+  textEl.textContent = `${mins}:${secs}`;
+
+  if (memberIdleRemainingSeconds <= 30) {
+    badge.className = "px-2 py-1 rounded-xl bg-red-600 text-white border border-red-400 text-[10px] font-mono font-black flex items-center gap-1 animate-pulse";
+  } else {
+    badge.className = "px-2 py-1 rounded-xl bg-emerald-800/90 border border-emerald-600/60 text-[10px] font-mono font-bold text-amber-300 flex items-center gap-1";
+  }
+}
+
+function startMemberIdleWatchdog() {
+  if (memberIdleIntervalId) clearInterval(memberIdleIntervalId);
+  memberIdleRemainingSeconds = MEMBER_IDLE_LIMIT_SECONDS;
+  memberIdleWarningShown = false;
+  updateMemberIdleBadgeUI();
+
+  memberIdleIntervalId = setInterval(() => {
+    if (!currentMemberSession) {
+      stopMemberIdleWatchdog();
+      return;
+    }
+
+    memberIdleRemainingSeconds--;
+    updateMemberIdleBadgeUI();
+
+    if (memberIdleRemainingSeconds === 15 && !memberIdleWarningShown) {
+      memberIdleWarningShown = true;
+      playCuteSound("reminder");
+      showToast("⏱️ Akun VIP Anda akan keluar otomatis dalam 15 detik karena tidak ada aktivitas.", "warning");
+    }
+
+    if (memberIdleRemainingSeconds <= 0) {
+      executeAutoIdleLogout();
+    }
+  }, 1000);
+}
+
+function stopMemberIdleWatchdog() {
+  if (memberIdleIntervalId) {
+    clearInterval(memberIdleIntervalId);
+    memberIdleIntervalId = null;
+  }
+  const badge = document.getElementById("memberIdleTimerBadge");
+  if (badge) badge.classList.add("hidden");
+}
+
+function executeAutoIdleLogout() {
+  stopMemberIdleWatchdog();
+  if (!currentMemberSession) return;
+
+  currentMemberSession = null;
+  localStorage.removeItem("delina_member_session");
+
+  const headerText = document.getElementById("headerMemberText");
+  if (headerText) headerText.textContent = "Member / Hadiah";
+
+  const authContainer = document.getElementById("memberAuthContainer");
+  const dashContainer = document.getElementById("memberDashboardContainer");
+  if (authContainer) authContainer.classList.remove("hidden");
+  if (dashContainer) dashContainer.classList.add("hidden");
+
+  switchMemberAuthMode("login");
+  playCuteSound("cancel");
+  showToast("🔒 Sesi akun Member VIP otomatis keluar karena tidak aktif selama 3 menit.", "info");
+}
+
+// Pasang pendeteksi aktivitas pengguna untuk me-reset timer 3 menit
+if (typeof window !== "undefined") {
+  ["touchstart", "click", "keydown", "scroll", "mousemove"].forEach(evtName => {
+    window.addEventListener(evtName, () => {
+      if (currentMemberSession) {
+        resetMemberIdleTimer();
+      }
+    }, { passive: true });
+  });
+}
+
 function initMemberSessionFromStorage() {
   try {
     const saved = localStorage.getItem("delina_member_session");
     if (saved) {
       currentMemberSession = JSON.parse(saved);
+      if (currentMemberSession && currentMemberSession.phone) {
+        // Gabungkan dengan simpanan lokal profil (foto, KTP, alamat)
+        const localProf = getMemberProfileLocalMap(currentMemberSession.phone);
+        if (localProf.photoUrl && !currentMemberSession.photoUrl) currentMemberSession.photoUrl = localProf.photoUrl;
+        if (localProf.ktpUrl && !currentMemberSession.ktpUrl) currentMemberSession.ktpUrl = localProf.ktpUrl;
+        if (localProf.address && !currentMemberSession.address) currentMemberSession.address = localProf.address;
+      }
       if (currentMemberSession && currentMemberSession.name) {
         const textEl = document.getElementById("headerMemberText");
         if (textEl) {
           textEl.textContent = currentMemberSession.name.split(" ")[0];
         }
+        startMemberIdleWatchdog();
       }
     }
   } catch (e) {
@@ -3563,11 +3938,17 @@ function openMemberModal(initialTab) {
   if (typeof pushModalState === "function") pushModalState("memberModal");
 
   if (currentMemberSession) {
+    startMemberIdleWatchdog();
     // Pengguna sudah login -> Tampilkan Dashboard Member
     const authContainer = document.getElementById("memberAuthContainer");
     const dashContainer = document.getElementById("memberDashboardContainer");
     if (authContainer) authContainer.classList.add("hidden");
     if (dashContainer) dashContainer.classList.remove("hidden");
+
+    const localProf = getMemberProfileLocalMap(currentMemberSession.phone);
+    if (localProf.photoUrl) currentMemberSession.photoUrl = localProf.photoUrl;
+    if (localProf.ktpUrl) currentMemberSession.ktpUrl = localProf.ktpUrl;
+    if (localProf.address && !currentMemberSession.address) currentMemberSession.address = localProf.address;
 
     renderMemberDashboardUI(currentMemberSession);
     refreshMemberDataOnline(currentMemberSession.phone);
@@ -3576,6 +3957,7 @@ function openMemberModal(initialTab) {
       setTimeout(() => scrollToRewardsSection(), 200);
     }
   } else {
+    stopMemberIdleWatchdog();
     // Pengguna belum login -> Tampilkan Form Auth
     const authContainer = document.getElementById("memberAuthContainer");
     const dashContainer = document.getElementById("memberDashboardContainer");
@@ -3608,20 +3990,20 @@ function switchMemberAuthMode(mode) {
 
   if (mode === "login") {
     if (btnLogin) {
-      btnLogin.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all";
+      btnLogin.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all cursor-pointer";
     }
     if (btnRegister) {
-      btnRegister.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all";
+      btnRegister.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all cursor-pointer";
     }
     if (nameField) nameField.classList.add("hidden");
     if (nameInput) nameInput.required = false;
     if (submitText) submitText.textContent = "Masuk ke Akun Member";
   } else {
     if (btnRegister) {
-      btnRegister.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all";
+      btnRegister.className = "flex-1 py-2 text-xs font-black rounded-xl bg-emerald-700 text-white shadow-xs transition-all cursor-pointer";
     }
     if (btnLogin) {
-      btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all";
+      btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition-all cursor-pointer";
     }
     if (nameField) nameField.classList.remove("hidden");
     if (nameInput) nameInput.required = true;
@@ -3694,8 +4076,15 @@ async function handleMemberLogin(phone, password) {
     const json = await res.json();
     if (json.status === "success" && json.member) {
       json.member.password = password;
+      const localProf = getMemberProfileLocalMap(json.member.phone || phone);
+      if (localProf.photoUrl && !json.member.photoUrl) json.member.photoUrl = localProf.photoUrl;
+      if (localProf.ktpUrl && !json.member.ktpUrl) json.member.ktpUrl = localProf.ktpUrl;
+      if (localProf.address && !json.member.address) json.member.address = localProf.address;
+
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      startMemberIdleWatchdog();
+      playCuteSound("confirm");
       showToast(json.message || "Alhamdulillah, selamat datang kembali!", "success");
 
       const headerText = document.getElementById("headerMemberText");
@@ -3707,7 +4096,8 @@ async function handleMemberLogin(phone, password) {
       if (authContainer) authContainer.classList.add("hidden");
       if (dashContainer) dashContainer.classList.remove("hidden");
 
-      renderMemberDashboardUI(json.member, json.claims || []);
+      renderMemberDashboardUI(json.member, json.claims || [], json.orders || []);
+      refreshMemberDataOnline(json.member.phone || phone);
     } else {
       showToast(json.message || "Gagal masuk. Periksa nomor HP dan password Anda.", "error");
     }
@@ -3734,6 +4124,8 @@ async function handleMemberRegister(phone, name, password) {
       json.member.password = password;
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      startMemberIdleWatchdog();
+      playCuteSound("confirm");
       showToast(json.message || "Pendaftaran berhasil!", "success");
 
       const headerText = document.getElementById("headerMemberText");
@@ -3744,7 +4136,8 @@ async function handleMemberRegister(phone, name, password) {
       if (authContainer) authContainer.classList.add("hidden");
       if (dashContainer) dashContainer.classList.remove("hidden");
 
-      renderMemberDashboardUI(json.member, []);
+      renderMemberDashboardUI(json.member, [], []);
+      refreshMemberDataOnline(json.member.phone || phone);
     } else {
       showToast(json.message || "Gagal mendaftar.", "error");
     }
@@ -3765,6 +4158,7 @@ async function handleMemberLogout() {
     icon: "bi bi-box-arrow-right"
   });
   if (ok) {
+    stopMemberIdleWatchdog();
     currentMemberSession = null;
     localStorage.removeItem("delina_member_session");
 
@@ -3796,31 +4190,37 @@ function getMemberInitials(name) {
 }
 
 function triggerProfilePhotoUpload() {
+  playCuteSound("pop");
   const input = document.getElementById("memberProfilePhotoInput");
-  if (input) input.click();
+  if (input) {
+    input.value = "";
+    input.click();
+  }
 }
 
 async function handleProfilePhotoSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    showToast("Ukuran foto maksimal 5 MB.", "warning");
+  if (file.size > 10 * 1024 * 1024) {
+    showToast("Ukuran foto maksimal 10 MB.", "warning");
     return;
   }
 
-  showToast("Mengunggah foto profil...", "info");
+  showToast("Memproses & menyimpan foto profil...", "info");
   try {
-    const base64 = await fileToBase64(file);
+    // Kompres foto ke 320x320px JPEG agar ringan (~25 KB), tajam, tidak pernah gagal simpan di localStorage & cepat upload ke Google Drive
+    const compressedBase64 = await compressImageToBase64(file, 320, 320, 0.82);
     if (!currentMemberSession) return;
 
-    currentMemberSession.photoUrl = base64;
+    currentMemberSession.photoUrl = compressedBase64;
     localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+    saveMemberProfileLocalMap(currentMemberSession.phone, { photoUrl: compressedBase64 });
 
     const img = document.getElementById("memberAvatarImg");
     const placeholder = document.getElementById("memberAvatarPlaceholder");
     if (img) {
-      img.src = base64;
+      img.src = compressedBase64;
       img.classList.remove("hidden");
     }
     if (placeholder) placeholder.classList.add("hidden");
@@ -3832,17 +4232,19 @@ async function handleProfilePhotoSelected(event) {
         body: JSON.stringify({
           action: "uploadMemberPhoto",
           phone: currentMemberSession.phone,
-          photo: base64
+          photo: compressedBase64
         })
       }).then(r => r.json()).then(res => {
         if (res && res.status === "success" && res.photoUrl) {
           currentMemberSession.photoUrl = res.photoUrl;
           localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+          saveMemberProfileLocalMap(currentMemberSession.phone, { photoUrl: res.photoUrl });
         }
       }).catch(err => console.warn("Notice uploadMemberPhoto GAS:", err));
     }
 
-    showToast("Alhamdulillah, foto profil berhasil diperbarui!", "success");
+    playCuteSound("sparkle");
+    showToast("Alhamdulillah, foto profil berhasil diperbarui & tersimpan!", "success");
   } catch (err) {
     console.error("Gagal proses foto profil:", err);
     showToast("Gagal memproses foto profil.", "error");
@@ -3852,13 +4254,16 @@ async function handleProfilePhotoSelected(event) {
 let tempKtpBase64 = null;
 let isKtpSectionOpen = false;
 
-function toggleKtpVerificationSection() {
+function toggleKtpVerificationSection(event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  playCuteSound("pop");
+
   const content = document.getElementById("ktpVerificationContent");
   const icon = document.getElementById("ktpToggleIcon");
   const label = document.getElementById("ktpStatusLabelText");
   if (!content) return;
 
-  isKtpSectionOpen = !isKtpSectionOpen;
+  isKtpSectionOpen = content.classList.contains("hidden");
   if (isKtpSectionOpen) {
     content.classList.remove("hidden");
     if (icon) icon.classList.add("rotate-180");
@@ -3866,26 +4271,32 @@ function toggleKtpVerificationSection() {
   } else {
     content.classList.add("hidden");
     if (icon) icon.classList.remove("rotate-180");
-    if (label) label.textContent = (currentMemberSession && currentMemberSession.ktpUrl) ? "Tersimpan" : "Buka";
+    const hasVerified = currentMemberSession && (currentMemberSession.ktpUrl || currentMemberSession.address);
+    if (label) label.textContent = hasVerified ? "✅ Tersimpan" : "Buka";
   }
 }
 
 function triggerKtpPhotoUpload() {
+  playCuteSound("pop");
   const input = document.getElementById("memberKtpInput");
-  if (input) input.click();
+  if (input) {
+    input.value = "";
+    input.click();
+  }
 }
 
 async function handleKtpPhotoSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    showToast("Ukuran foto KTP maksimal 5 MB.", "warning");
+  if (file.size > 10 * 1024 * 1024) {
+    showToast("Ukuran foto KTP maksimal 10 MB.", "warning");
     return;
   }
 
   try {
-    tempKtpBase64 = await fileToBase64(file);
+    // Kompres foto KTP ke 800x600px agar tulisan jelas tetapi hemat memori (~60 KB)
+    tempKtpBase64 = await compressImageToBase64(file, 800, 600, 0.8);
     const img = document.getElementById("ktpPreviewImg");
     const placeholder = document.getElementById("ktpPlaceholderText");
     if (img) {
@@ -3893,7 +4304,8 @@ async function handleKtpPhotoSelected(event) {
       img.classList.remove("hidden");
     }
     if (placeholder) placeholder.classList.add("hidden");
-    showToast("Foto KTP siap disimpan.", "info");
+    playCuteSound("confirm");
+    showToast("Foto KTP berhasil dimuat, silakan klik Simpan.", "info");
   } catch (e) {
     showToast("Gagal memproses file KTP.", "error");
   }
@@ -3908,16 +4320,23 @@ async function saveMemberKtpAndAddress() {
   const addrInput = document.getElementById("memberAddressInput");
   const address = addrInput ? addrInput.value.trim() : "";
 
+  if (!address && !tempKtpBase64 && !currentMemberSession.ktpUrl) {
+    showToast("Silakan unggah foto KTP atau isi alamat pengiriman terlebih dahulu.", "warning");
+    return;
+  }
+
   currentMemberSession.address = address;
   if (tempKtpBase64) {
     currentMemberSession.ktpUrl = tempKtpBase64;
   }
   localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+  saveMemberProfileLocalMap(currentMemberSession.phone, {
+    address: address,
+    ktpUrl: currentMemberSession.ktpUrl || ""
+  });
 
   const ktpLabel = document.getElementById("ktpStatusLabelText");
-  if (ktpLabel) ktpLabel.textContent = "Tersimpan";
-
-  showToast("Menyimpan data identitas & alamat...", "info");
+  if (ktpLabel) ktpLabel.textContent = "✅ Tersimpan";
 
   if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
     try {
@@ -3934,11 +4353,13 @@ async function saveMemberKtpAndAddress() {
         if (res && res.status === "success" && res.ktpUrl) {
           currentMemberSession.ktpUrl = res.ktpUrl;
           localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
+          saveMemberProfileLocalMap(currentMemberSession.phone, { ktpUrl: res.ktpUrl });
         }
       }).catch(e => console.warn("Notice saveMemberKtp GAS:", e));
     } catch (e) {}
   }
 
+  playCuteSound("sparkle");
   showToast("Alhamdulillah, data verifikasi KTP & alamat berhasil disimpan!", "success");
   toggleKtpVerificationSection();
 }
@@ -3949,6 +4370,7 @@ function openMemberBarcodeModal() {
     return;
   }
 
+  playCuteSound("pop");
   const modal = document.getElementById("memberBarcodeModal");
   const nameEl = document.getElementById("barcodeMemberNameText");
   const phoneEl = document.getElementById("barcodeMemberPhoneText");
@@ -3957,7 +4379,7 @@ function openMemberBarcodeModal() {
   if (!modal) return;
 
   const phone = currentMemberSession.phone || "";
-  const cleanP = phone.replace(/\D/g, "");
+  const cleanP = phone.replace(/\D/g, "") || "082185355316";
 
   if (nameEl) nameEl.textContent = currentMemberSession.name || "Member Delina";
   if (phoneEl) phoneEl.textContent = phone;
@@ -3984,22 +4406,129 @@ function closeMemberBarcodeModal() {
   }
 }
 
+// =========================================================================
+// MODAL BARCODE VOUCHER KLAIM HADIAH MEMBER (SAAT KLAIM & AMBIL DI TOKO)
+// =========================================================================
+function openRewardClaimBarcodeModal(claimId, rewardName, claimTime, statusText) {
+  const modal = document.getElementById("rewardClaimBarcodeModal");
+  if (!modal) return;
+
+  playCuteSound("sparkle");
+  const cleanCode = String(claimId || "KLM-DELINA").trim();
+  const memberName = (currentMemberSession && currentMemberSession.name) ? currentMemberSession.name : "Member VIP Delina";
+  const memberPhone = (currentMemberSession && currentMemberSession.phone) ? currentMemberSession.phone : "-";
+  const formattedTime = formatWaktuWIB(claimTime || new Date());
+  const status = statusText || "Menunggu Diambil di Kasir";
+
+  const elReward = document.getElementById("claimBarcodeRewardName");
+  const elId = document.getElementById("claimBarcodeIdText");
+  const elName = document.getElementById("claimBarcodeMemberName");
+  const elPhone = document.getElementById("claimBarcodeMemberPhone");
+  const elTime = document.getElementById("claimBarcodeTimeWib");
+  const elStatus = document.getElementById("claimBarcodeStatusBadge");
+  const img1D = document.getElementById("claimBarcode1DImg");
+  const imgQr = document.getElementById("claimBarcodeQrImg");
+
+  if (elReward) elReward.textContent = rewardName || "Hadiah Loyalitas 30 Stempel";
+  if (elId) elId.textContent = cleanCode;
+  if (elName) elName.textContent = memberName;
+  if (elPhone) elPhone.textContent = memberPhone;
+  if (elTime) elTime.textContent = formattedTime;
+  if (elStatus) {
+    elStatus.textContent = status;
+    elStatus.className = status === "Sudah Diserahkan"
+      ? "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800"
+      : "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800";
+  }
+
+  const qrData = encodeURIComponent(`DELINA-CLAIM|${cleanCode}|${memberPhone}|${rewardName || ""}`);
+  if (img1D) {
+    img1D.src = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(cleanCode)}&scale=2&height=10&includetext`;
+  }
+  if (imgQr) {
+    imgQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (typeof pushModalState === "function") pushModalState("rewardClaimBarcodeModal");
+}
+
+function closeRewardClaimBarcodeModal() {
+  const modal = document.getElementById("rewardClaimBarcodeModal");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
+}
+
+// =========================================================================
+// RIWAYAT TRANSAKSI BELANJA MEMBER (SINKRON GOOGLE SHEETS + LOKAL)
+// =========================================================================
+let cachedMemberOrdersMap = {};
+
+function mergeMemberOrdersSources(memberPhone, memberName, gasOrdersList) {
+  const cleanP = String(memberPhone || "").replace(/\D/g, "").slice(-8);
+  const cleanName = String(memberName || "").trim().toLowerCase();
+  const mergedMap = new Map();
+
+  function addOrderIfValid(o) {
+    if (!o) return;
+    const id = String(o.orderId || o.nota || "").trim();
+    if (!id) return;
+    if (!mergedMap.has(id)) {
+      mergedMap.set(id, o);
+    }
+  }
+
+  // 1. Dari response langsung getMemberData
+  if (Array.isArray(gasOrdersList)) {
+    gasOrdersList.forEach(addOrderIfValid);
+  }
+
+  // 2. Dari posOrders global (yang ditarik via ?action=getOrders)
+  if (typeof posOrders !== "undefined" && Array.isArray(posOrders)) {
+    posOrders.forEach(o => {
+      const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
+      const oName = String(o.customerName || "").trim().toLowerCase();
+      const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
+      const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
+      if (phoneMatch || nameMatch) {
+        addOrderIfValid(o);
+      }
+    });
+  }
+
+  // 3. Dari riwayat checkout lokal di perangkat ini
+  const localHistory = getCustomerOrdersFromLocalHistory();
+  localHistory.forEach(o => {
+    const oPhone = String(o.customerPhone || "").replace(/\D/g, "");
+    const oName = String(o.customerName || "").trim().toLowerCase();
+    const phoneMatch = cleanP && oPhone && oPhone.endsWith(cleanP);
+    const nameMatch = cleanName && cleanName.length >= 3 && oName === cleanName;
+    if (phoneMatch || nameMatch) {
+      addOrderIfValid(o);
+    }
+  });
+
+  const finalOrders = Array.from(mergedMap.values());
+  finalOrders.forEach(o => {
+    const id = String(o.orderId || o.nota || "").trim();
+    if (id) cachedMemberOrdersMap[id] = o;
+  });
+  return finalOrders;
+}
+
 function renderMemberOrderHistory(ordersList) {
   const container = document.getElementById("memberOrderHistoryContainer");
   const countBadge = document.getElementById("memberOrderHistoryCountBadge");
   if (!container) return;
 
-  let orders = Array.isArray(ordersList) ? [...ordersList] : [];
-
-  if (orders.length === 0 && currentMemberSession && currentMemberSession.phone) {
-    const cleanP = String(currentMemberSession.phone).replace(/\D/g, "").slice(-8);
-    if (typeof posOrders !== "undefined" && Array.isArray(posOrders)) {
-      orders = posOrders.filter(o => {
-        const oPhone = String(o.customerPhone || o.memberPhone || o.phone || "").replace(/\D/g, "");
-        return oPhone && oPhone.endsWith(cleanP);
-      });
-    }
-  }
+  const memberPhone = currentMemberSession ? currentMemberSession.phone : "";
+  const memberName = currentMemberSession ? currentMemberSession.name : "";
+  const orders = mergeMemberOrdersSources(memberPhone, memberName, ordersList);
 
   if (countBadge) countBadge.textContent = `${orders.length} Belanja`;
 
@@ -4008,55 +4537,62 @@ function renderMemberOrderHistory(ordersList) {
       <div class="py-6 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
         <i class="bi bi-bag-heart text-2xl text-slate-300 dark:text-slate-600 mb-1 block"></i>
         <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Belum ada riwayat transaksi belanja</p>
-        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Sebutkan nomor WhatsApp Anda saat belanja untuk kumpulkan stempel</p>
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Belanja online atau sebutkan nomor WhatsApp Anda di kasir untuk kumpulkan stempel</p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = orders.map(o => {
-    const isCompleted = (o.status || o.orderStatus || "").toLowerCase().includes("selesai");
-    const isWaiting = (o.status || o.orderStatus || "").toLowerCase().includes("menunggu");
+    const statusStr = String(o.status || o.orderStatus || "Diproses");
+    const isCompleted = statusStr.toLowerCase().includes("selesai") || statusStr.toLowerCase().includes("lunas") || statusStr.toLowerCase().includes("siap");
+    const isWaiting = statusStr.toLowerCase().includes("menunggu");
 
     let statusBadgeClass = "bg-blue-100 text-blue-800";
     if (isCompleted) statusBadgeClass = "bg-emerald-100 text-emerald-800";
     else if (isWaiting) statusBadgeClass = "bg-amber-100 text-amber-800";
 
-    const formattedTotal = typeof o.total === "number" ? formatRupiah(o.total) : (o.total || "Rp 0");
+    const rawTotal = o.total !== undefined ? o.total : (o.totalAkhir !== undefined ? o.totalAkhir : (o.totalNumeric || 0));
+    const formattedTotal = typeof rawTotal === "number" ? formatRupiah(rawTotal) : (String(rawTotal).startsWith("Rp") ? rawTotal : formatRupiah(Number(String(rawTotal).replace(/\D/g, "")) || 0));
 
     let itemsText = o.itemsText || "";
     if (Array.isArray(o.items) && o.items.length > 0) {
       itemsText = o.items.map(i => `${i.qty || 1}x ${i.name}`).join(", ");
     } else if (itemsText) {
-      itemsText = itemsText.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(l => l && !l.startsWith("[🎁")).join(", ");
+      itemsText = String(itemsText).split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(l => l && !l.startsWith("[🎁")).join(", ");
     } else {
-      itemsText = "Belanjaan Toko Delina";
+      itemsText = "Belanjaan Produk Toko Delina";
     }
+
+    const orderIdStr = String(o.orderId || o.nota || "#DLN-2026");
+    const timeWib = formatWaktuWIB(o.orderTime || o.timestamp || "");
 
     return `
       <div class="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-2xs space-y-1.5 transition-all">
-        <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center justify-between text-xs gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
-            <span class="font-mono font-black text-slate-900 dark:text-white truncate">${escapeHtml(o.orderId || o.nota || "#DLN-2026")}</span>
-            <span class="text-[10px] text-slate-400 dark:text-slate-500">• ${escapeHtml(o.orderTime || o.timestamp || "-")}</span>
+            <span class="font-mono font-black text-emerald-800 dark:text-emerald-400 truncate">${escapeHtml(orderIdStr)}</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate">• ${escapeHtml(timeWib)}</span>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadgeClass}">
-            ${escapeHtml(o.status || o.orderStatus || "Diproses")}
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${statusBadgeClass}">
+            ${escapeHtml(statusStr)}
           </span>
         </div>
-        <div class="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-xl border border-slate-100 dark:border-slate-800">
-          <span class="font-semibold text-slate-500">Barang:</span> ${escapeHtml(itemsText)}
+        <div class="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+          <span class="font-bold text-slate-500">🛍️ Barang:</span> ${escapeHtml(itemsText)}
         </div>
         <div class="flex items-center justify-between pt-1 text-xs">
-          <span class="font-black text-emerald-700 dark:text-emerald-400 font-mono">${formattedTotal}</span>
-          <button 
-            type="button" 
-            onclick="viewMemberOrderReceipt('${escapeHtml(o.orderId || o.nota || "")}')" 
-            class="py-1 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
-          >
-            <i class="bi bi-receipt"></i>
-            <span>Lihat Nota</span>
-          </button>
+          <span class="font-black text-emerald-700 dark:text-emerald-400 font-mono text-sm">${escapeHtml(formattedTotal)}</span>
+          <div class="flex items-center gap-1.5">
+            <button 
+              type="button" 
+              onclick="viewMemberOrderReceipt('${escapeHtml(orderIdStr)}')" 
+              class="py-1.5 px-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer shadow-2xs"
+            >
+              <i class="bi bi-receipt-cutoff"></i>
+              <span>Lihat & Cetak Struk</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -4065,30 +4601,60 @@ function renderMemberOrderHistory(ordersList) {
 
 function viewMemberOrderReceipt(orderId) {
   if (!orderId) return;
-  openLacakPesananModal(orderId);
+  playCuteSound("pop");
+  const foundOrder = cachedMemberOrdersMap[orderId];
+  if (foundOrder) {
+    openModernDigitalReceiptModal(foundOrder);
+  } else {
+    openLacakPesananModal(orderId);
+  }
 }
 
 async function refreshMemberDataOnline(phone) {
   if (!phone || typeof CONFIG === "undefined" || !CONFIG.GAS_API_URL) return;
   try {
-    const res = await fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}`);
-    const json = await res.json();
-    if (json.status === "success" && json.member) {
+    // Tarik data member dan daftar pesanan secara paralel agar Riwayat Transaksi Belanja langsung terhubung 100%
+    const [memberRes, ordersRes] = await Promise.allSettled([
+      fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(phone)}`).then(r => r.json()),
+      fetch(`${CONFIG.GAS_API_URL}?action=getOrders`).then(r => r.json())
+    ]);
+
+    if (ordersRes.status === "fulfilled" && ordersRes.value) {
+      const oData = ordersRes.value;
+      const allOrders = Array.isArray(oData) ? oData : (Array.isArray(oData.orders) ? oData.orders : (Array.isArray(oData.data) ? oData.data : []));
+      if (allOrders.length > 0) {
+        posOrders = allOrders;
+      }
+    }
+
+    if (memberRes.status === "fulfilled" && memberRes.value && memberRes.value.status === "success" && memberRes.value.member) {
+      const json = memberRes.value;
+      const localProf = getMemberProfileLocalMap(phone);
+
       if (currentMemberSession && currentMemberSession.password) {
         json.member.password = currentMemberSession.password;
       }
-      if (!json.member.photoUrl && currentMemberSession && currentMemberSession.photoUrl) {
-        json.member.photoUrl = currentMemberSession.photoUrl;
+      if (!json.member.photoUrl) {
+        json.member.photoUrl = (currentMemberSession && currentMemberSession.photoUrl) || localProf.photoUrl || "";
       }
-      if (!json.member.address && currentMemberSession && currentMemberSession.address) {
-        json.member.address = currentMemberSession.address;
+      if (!json.member.address) {
+        json.member.address = (currentMemberSession && currentMemberSession.address) || localProf.address || "";
       }
-      if (!json.member.ktpUrl && currentMemberSession && currentMemberSession.ktpUrl) {
-        json.member.ktpUrl = currentMemberSession.ktpUrl;
+      if (!json.member.ktpUrl) {
+        json.member.ktpUrl = (currentMemberSession && currentMemberSession.ktpUrl) || localProf.ktpUrl || "";
       }
+
+      saveMemberProfileLocalMap(phone, {
+        photoUrl: json.member.photoUrl,
+        ktpUrl: json.member.ktpUrl,
+        address: json.member.address
+      });
+
       currentMemberSession = json.member;
       localStorage.setItem("delina_member_session", JSON.stringify(json.member));
       renderMemberDashboardUI(json.member, json.claims || [], json.orders || []);
+    } else if (currentMemberSession) {
+      renderMemberDashboardUI(currentMemberSession, [], []);
     }
   } catch (e) {
     console.warn("Online member refresh notice:", e);
@@ -4098,6 +4664,11 @@ async function refreshMemberDataOnline(phone) {
 function renderMemberDashboardUI(member, claims, orders) {
   if (!member) return;
 
+  const localProf = getMemberProfileLocalMap(member.phone);
+  const effectivePhoto = member.photoUrl || localProf.photoUrl || "";
+  const effectiveKtp = member.ktpUrl || localProf.ktpUrl || "";
+  const effectiveAddress = member.address || localProf.address || "";
+
   const profNameEl = document.getElementById("memberProfileNameText");
   const profPhoneEl = document.getElementById("memberProfilePhoneText");
   const avatarImg = document.getElementById("memberAvatarImg");
@@ -4106,10 +4677,17 @@ function renderMemberDashboardUI(member, claims, orders) {
   if (profNameEl) profNameEl.textContent = member.name;
   if (profPhoneEl) profPhoneEl.textContent = member.phone;
 
-  if (member.photoUrl) {
+  if (effectivePhoto) {
     if (avatarImg) {
-      avatarImg.src = member.photoUrl;
+      avatarImg.src = formatImageUrl(effectivePhoto);
       avatarImg.classList.remove("hidden");
+      avatarImg.onerror = function() {
+        avatarImg.classList.add("hidden");
+        if (avatarPlaceholder) {
+          avatarPlaceholder.textContent = getMemberInitials(member.name);
+          avatarPlaceholder.classList.remove("hidden");
+        }
+      };
     }
     if (avatarPlaceholder) avatarPlaceholder.classList.add("hidden");
   } else {
@@ -4126,26 +4704,27 @@ function renderMemberDashboardUI(member, claims, orders) {
   const addrInput = document.getElementById("memberAddressInput");
   const ktpLabel = document.getElementById("ktpStatusLabelText");
 
-  if (member.address && addrInput && !addrInput.value) {
-    addrInput.value = member.address;
+  if (effectiveAddress && addrInput && !addrInput.value) {
+    addrInput.value = effectiveAddress;
   }
-  if (member.ktpUrl) {
+  if (effectiveKtp) {
     if (ktpImg) {
-      ktpImg.src = member.ktpUrl;
+      ktpImg.src = formatImageUrl(effectiveKtp);
       ktpImg.classList.remove("hidden");
     }
     if (ktpPlaceholder) ktpPlaceholder.classList.add("hidden");
-    if (ktpLabel) ktpLabel.textContent = "Tersimpan";
+    if (ktpLabel && !isKtpSectionOpen) ktpLabel.textContent = "✅ Tersimpan";
   } else {
     if (ktpImg) ktpImg.classList.add("hidden");
     if (ktpPlaceholder) ktpPlaceholder.classList.remove("hidden");
+    if (ktpLabel && !isKtpSectionOpen) ktpLabel.textContent = effectiveAddress ? "✅ Tersimpan" : "Buka";
   }
 
   const dateEl = document.getElementById("memberRegisteredDateText");
   const progressBar = document.getElementById("stampsProgressBar");
   const unlockBtn = document.getElementById("btnClaimRewardUnlock");
 
-  if (dateEl) dateEl.textContent = member.registeredAt || "-";
+  if (dateEl) dateEl.textContent = member.registeredAt ? formatWaktuWIB(member.registeredAt) : "-";
 
   const count = Number(member.belanjaCount) || 0;
   const stampText = document.getElementById("cardStampCounterText") || document.getElementById("stampCountText");
@@ -4173,7 +4752,7 @@ function renderMemberDashboardUI(member, claims, orders) {
   // Render Katalog 10 Hadiah
   renderMemberRewardsCatalog(memberRewardsList, count);
 
-  // Render Riwayat Klaim
+  // Render Riwayat Klaim (Waktu WIB + Tombol Barcode Klaim)
   renderMemberClaimsHistory(claims || []);
 
   // Render Riwayat Transaksi Belanja
@@ -4238,7 +4817,7 @@ function renderMemberRewardsCatalog(rewards, belanjaCount) {
   list.forEach(r => {
     const isOut = Number(r.stock) <= 0;
     html += `
-      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex gap-3 items-center">
+      <div class="bg-white sm:bg-slate-50 rounded-2xl p-3 border border-slate-200 flex gap-3 items-center shadow-2xs">
         <img src="${formatImageUrl(r.imageUrl)}" alt="${r.name}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500'" />
         <div class="flex-1 min-w-0">
           <h4 class="font-extrabold text-xs text-slate-900 truncate">${r.name}</h4>
@@ -4274,21 +4853,40 @@ function renderMemberClaimsHistory(claims) {
   if (!container) return;
 
   if (!claims || claims.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">Belum ada riwayat penukaran hadiah.</p>`;
+    container.innerHTML = `<p class="text-xs text-slate-400 italic py-3 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">Belum ada riwayat penukaran hadiah.</p>`;
     return;
   }
 
   let html = "";
   claims.forEach(c => {
+    const wibTime = formatWaktuWIB(c.time);
+    const safeId = escapeHtml(c.claimId || "KLM-000");
+    const safeName = escapeHtml(c.rewardName || "Hadiah Member");
+    const safeTime = escapeHtml(wibTime);
+    const safeStatus = escapeHtml(c.status || "Menunggu Diambil");
+
     html += `
-      <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
-        <div>
-          <strong class="text-slate-800 block">${c.rewardName}</strong>
-          <span class="text-[10px] text-slate-500 font-mono">Kode: ${c.claimId} • ${c.time}</span>
+      <div class="p-3 rounded-2xl bg-white sm:bg-slate-50 border border-slate-200 text-xs space-y-2 shadow-2xs">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <strong class="text-slate-900 font-extrabold block truncate">🎁 ${safeName}</strong>
+            <span class="text-[10px] text-slate-500 font-mono block mt-0.5">Kode: <strong class="text-emerald-800">${safeId}</strong> • ${safeTime}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${c.status === 'Sudah Diserahkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+            ${safeStatus}
+          </span>
         </div>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.status === 'Sudah Diserahkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-          ${c.status}
-        </span>
+        <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-[10px] text-slate-400">Tunjukkan barcode ke kasir saat ambil hadiah</span>
+          <button 
+            type="button" 
+            onclick="openRewardClaimBarcodeModal('${safeId}', '${safeName}', '${safeTime}', '${safeStatus}')" 
+            class="py-1 px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] flex items-center gap-1 shadow-2xs active:scale-95 transition-all cursor-pointer"
+          >
+            <i class="bi bi-upc-scan"></i>
+            <span>Tunjuk Barcode</span>
+          </button>
+        </div>
       </div>
     `;
   });
@@ -4312,6 +4910,7 @@ async function claimSelectedReward(rewardId) {
     return;
   }
 
+  playCuteSound("reminder");
   const ok = await showDelinaConfirm({
     title: "Tukarkan 30 Stempel?",
     subtitle: "Program Hadiah Royalty Delina",
@@ -4337,21 +4936,20 @@ async function claimSelectedReward(rewardId) {
     });
     const json = await res.json();
     if (json.status === "success") {
-      await showDelinaAlert({
-        title: "🎉 ALHAMDULILLAH KLAIM BERHASIL!",
-        subtitle: "Program Hadiah Royalty Toko Delina",
-        message: "Klaim hadiah Anda berhasil diproses di sistem!",
-        details: `🎁 Hadiah: ${json.rewardName}\n🏷️ Kode Klaim: ${json.claimId}\n⭐ Sisa Stempel: ${json.newBelanjaCount}/30\n\n📌 Silakan tunjukkan Kode Klaim ini ke kasir Toko Delina saat mengambil hadiah fisik Anda.`,
-        buttonText: "Alhamdulillah, Siap!",
-        type: "success",
-        icon: "bi bi-trophy-fill"
-      });
-      
+      playCuteSound("fanfare");
       currentMemberSession.belanjaCount = json.newBelanjaCount;
       currentMemberSession.totalClaimed = json.totalClaimed;
       localStorage.setItem("delina_member_session", JSON.stringify(currentMemberSession));
 
       refreshMemberDataOnline(currentMemberSession.phone);
+
+      // Langsung tampilkan Voucher Barcode Klaim Hadiah agar bisa di-scan kasir toko!
+      openRewardClaimBarcodeModal(
+        json.claimId || "KLM-VIP",
+        json.rewardName || "Hadiah 30 Stempel",
+        formatWaktuWIB(new Date()),
+        "Siap Diambil di Kasir"
+      );
     } else {
       await showDelinaAlert({
         title: "Klaim Belum Berhasil",
@@ -4366,6 +4964,428 @@ async function claimSelectedReward(rewardId) {
     console.error("Claim error:", err);
     showToast("Gagal memproses klaim ke server.", "error");
   }
+}
+
+// =========================================================================
+// EFEK SUARA ANIMASI LUCU & INTERAKTIF (WEB AUDIO SYNTHESIZER RINGAN)
+// =========================================================================
+let isCheckoutSoundEnabled = true;
+let sharedAudioCtx = null;
+
+function getSharedAudioContext() {
+  if (!sharedAudioCtx && typeof window !== "undefined") {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      sharedAudioCtx = new AudioCtx();
+    }
+  }
+  if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
+    sharedAudioCtx.resume().catch(() => {});
+  }
+  return sharedAudioCtx;
+}
+
+function toggleCheckoutSoundEffect() {
+  isCheckoutSoundEnabled = !isCheckoutSoundEnabled;
+  const icon = document.getElementById("checkoutSoundIcon");
+  const label = document.getElementById("checkoutSoundLabel");
+  if (icon) {
+    icon.className = isCheckoutSoundEnabled
+      ? "bi bi-volume-up-fill text-xs text-amber-600"
+      : "bi bi-volume-mute-fill text-xs text-slate-400";
+  }
+  if (label) {
+    label.textContent = isCheckoutSoundEnabled ? "Suara ON" : "Suara OFF";
+  }
+  if (isCheckoutSoundEnabled) {
+    playCuteSound("sparkle");
+    showToast("🔊 Efek suara interaktif diaktifkan!");
+  } else {
+    showToast("🔇 Efek suara dimatikan.");
+  }
+}
+
+function playCuteSound(type = "pop") {
+  if (!isCheckoutSoundEnabled) return;
+  try {
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    function playTone(freq, endFreq, startTime, duration, wave = "sine", gainVal = 0.14) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, startTime);
+      if (endFreq && endFreq !== freq) {
+        osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+      }
+      gain.gain.setValueAtTime(gainVal, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    if (type === "pop") {
+      // Bunyi "Pop / Blip" lucu saat tombol diklik
+      playTone(520, 880, now, 0.08, "sine", 0.12);
+    } else if (type === "reminder") {
+      // Nada sapaan lucu "Ting-Tuing-Ting!" saat pop-up cek barang muncul
+      playTone(587.33, 587.33, now, 0.11, "triangle", 0.15);        // D5
+      playTone(783.99, 783.99, now + 0.1, 0.11, "triangle", 0.15);  // G5
+      playTone(1046.5, 1174.66, now + 0.2, 0.22, "sine", 0.16);     // C6 -> D6
+    } else if (type === "sparkle") {
+      // Nada arpeggio ceria saat pilih bukti bayar / buka struk
+      playTone(523.25, 523.25, now, 0.08, "sine", 0.12);            // C5
+      playTone(659.25, 659.25, now + 0.07, 0.08, "sine", 0.12);     // E5
+      playTone(783.99, 783.99, now + 0.14, 0.08, "sine", 0.12);     // G5
+      playTone(1046.5, 1046.5, now + 0.21, 0.22, "triangle", 0.15); // C6
+    } else if (type === "boing") {
+      // Bunyi pegas lucu "Boing!" saat pilih Ubah Barang Dulu
+      playTone(320, 680, now, 0.18, "sine", 0.15);
+      playTone(680, 420, now + 0.16, 0.15, "sine", 0.12);
+    } else if (type === "confirm") {
+      // Bunyi dua nada sukses
+      playTone(659.25, 659.25, now, 0.09, "triangle", 0.13);
+      playTone(880, 880, now + 0.09, 0.18, "triangle", 0.15);
+    } else if (type === "cancel") {
+      // Bunyi lembut turun saat batal/tutup
+      playTone(480, 290, now, 0.12, "sine", 0.1);
+    } else if (type === "fanfare") {
+      // Melodi kemenangan ceria saat pesanan terbit
+      playTone(523.25, 523.25, now, 0.1, "triangle", 0.14);
+      playTone(659.25, 659.25, now + 0.1, 0.1, "triangle", 0.14);
+      playTone(783.99, 783.99, now + 0.2, 0.1, "triangle", 0.14);
+      playTone(1046.5, 1046.5, now + 0.3, 0.3, "triangle", 0.18);
+    }
+  } catch (e) {}
+}
+
+// =========================================================================
+// PERINGATAN CEK BARANG & TOTAL BAYAR SEBELUM UNGGAH BUKTI BAYAR (POIN 8)
+// =========================================================================
+let pendingUploadMode = "file"; // 'file' atau 'simulated'
+
+function populateAndOpenVerifyCartModal(mode = "file") {
+  pendingUploadMode = mode;
+  playCuteSound("reminder");
+
+  const modal = document.getElementById("modalVerifyCartBeforeUpload");
+  const listEl = document.getElementById("verifyUploadItemsList");
+  const countEl = document.getElementById("verifyUploadItemCount");
+  const subEl = document.getElementById("verifyUploadSubtotalText");
+  const discRow = document.getElementById("verifyUploadDiscountRow");
+  const discEl = document.getElementById("verifyUploadDiscountText");
+  const grandEl = document.getElementById("verifyUploadGrandTotalText");
+  const btnProceed = document.getElementById("btnConfirmProceedUpload");
+
+  if (!modal) {
+    if (mode === "simulated") useSimulatedReceipt();
+    else {
+      const inp = document.getElementById("paymentProofInput");
+      if (inp) inp.click();
+    }
+    return;
+  }
+
+  const totalItems = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  const subtotal = cart.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
+  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  let diskonKupon = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "fixed" || appliedCoupon.type === "NOMINAL") {
+      diskonKupon = appliedCoupon.discount || appliedCoupon.value || 0;
+    } else if (appliedCoupon.type === "percent" || appliedCoupon.type === "PERSEN") {
+      const rate = appliedCoupon.rate || ((appliedCoupon.discount || appliedCoupon.value || 0) / 100);
+      diskonKupon = Math.min(appliedCoupon.maxDiscount || 999999, Math.round(subtotal * rate));
+    }
+  }
+  const totalDisc = diskonGrosir + diskonKupon;
+  const grandTotal = Math.max(0, subtotal - totalDisc + deliveryFee);
+
+  if (countEl) countEl.textContent = `${totalItems} Barang`;
+  if (subEl) subEl.textContent = formatRupiah(subtotal + deliveryFee);
+  if (discRow && discEl) {
+    if (totalDisc > 0) {
+      discRow.classList.remove("hidden");
+      discEl.textContent = `-${formatRupiah(totalDisc)}`;
+    } else {
+      discRow.classList.add("hidden");
+    }
+  }
+  if (grandEl) {
+    grandEl.textContent = formatRupiah(grandTotal);
+    grandEl.dataset.nominal = String(grandTotal);
+  }
+
+  if (btnProceed) {
+    btnProceed.innerHTML = mode === "simulated"
+      ? `<i class="bi bi-magic text-amber-300"></i><span>Sudah Yakin, Pakai Simulasi</span>`
+      : `<i class="bi bi-camera-fill text-amber-300"></i><span>Sudah Yakin, Pilih Bukti</span>`;
+  }
+
+  if (listEl) {
+    listEl.innerHTML = cart.map((item, idx) => `
+      <div class="flex items-center justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700 last:border-none text-xs">
+        <div class="min-w-0 pr-2">
+          <div class="font-extrabold text-slate-800 dark:text-slate-100 truncate">${idx + 1}. ${escapeHtml(item.name)}</div>
+          <div class="text-[10px] text-slate-500 font-semibold">${item.qty} x ${formatRupiah(item.price)}</div>
+        </div>
+        <span class="font-mono font-black text-emerald-700 dark:text-emerald-400 flex-shrink-0">${formatRupiah(item.price * item.qty)}</span>
+      </div>
+    `).join("");
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function onClickUploadPaymentProofTrigger(event) {
+  if (event && event.preventDefault) event.preventDefault();
+  populateAndOpenVerifyCartModal("file");
+}
+
+function onClickSimulatedReceiptWithReminder() {
+  populateAndOpenVerifyCartModal("simulated");
+}
+
+function closeVerifyCartBeforeUploadModal(goToEditCart = false) {
+  const modal = document.getElementById("modalVerifyCartBeforeUpload");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+  if (goToEditCart) {
+    closeCheckoutModal();
+    toggleCartDrawer(true);
+    showToast("Silakan sesuaikan kembali barang belanjaan Anda.", "info");
+  }
+}
+
+function proceedToSelectPaymentProofFile() {
+  closeVerifyCartBeforeUploadModal(false);
+  if (pendingUploadMode === "simulated") {
+    useSimulatedReceipt();
+  } else {
+    const input = document.getElementById("paymentProofInput");
+    if (input) {
+      input.value = "";
+      input.click();
+    }
+  }
+}
+
+function copyVerifyUploadNominal() {
+  const grandEl = document.getElementById("verifyUploadGrandTotalText");
+  const nominal = (grandEl && grandEl.dataset.nominal) ? grandEl.dataset.nominal : "0";
+  navigator.clipboard.writeText(nominal).then(() => {
+    showToast(`Nominal Rp ${Number(nominal).toLocaleString("id-ID")} berhasil disalin!`);
+  });
+}
+
+// =========================================================================
+// HALAMAN / MODAL STRUK DIGITAL BARU (MODERN, ELEGAN & KEKINIAN)
+// =========================================================================
+let activeModernReceiptOrder = null;
+
+function openModernDigitalReceiptModal(customOrder) {
+  const order = customOrder || latestOrderData;
+  if (!order) {
+    showToast("Data nota belum tersedia.", "warning");
+    return;
+  }
+  activeModernReceiptOrder = order;
+
+  const modal = document.getElementById("modernDigitalReceiptModal");
+  if (!modal) return;
+
+  const orderId = order.orderId || order.nota || "#DLN-2026-0000";
+  const timeWib = formatWaktuWIB(order.orderTime || order.timestamp || new Date());
+  const custName = order.customerName || (currentMemberSession ? currentMemberSession.name : "Pelanggan Delina");
+  const custPhone = order.customerPhone || order.phone || (currentMemberSession ? currentMemberSession.phone : "-");
+  const delivery = order.deliveryMethod || "Ambil Sendiri di Toko Delina";
+  const statusStr = order.status || order.orderStatus || "E-RECEIPT RESMI TERBIT";
+
+  const elId = document.getElementById("modernReceiptOrderId");
+  const elTime = document.getElementById("modernReceiptTimeWib");
+  const elName = document.getElementById("modernReceiptCustName");
+  const elPhone = document.getElementById("modernReceiptCustPhone");
+  const elDeliv = document.getElementById("modernReceiptDelivery");
+  const elStatus = document.getElementById("modernReceiptStatusBadge");
+  const elItems = document.getElementById("modernReceiptItemsContainer");
+  const elSub = document.getElementById("modernReceiptSubtotal");
+  const elDiscRow = document.getElementById("modernReceiptDiscountRow");
+  const elDisc = document.getElementById("modernReceiptDiscount");
+  const elFee = document.getElementById("modernReceiptDeliveryFee");
+  const elGrand = document.getElementById("modernReceiptGrandTotal");
+  const elQr = document.getElementById("modernReceiptQrImg");
+  const elCap = document.getElementById("modernReceiptBarcodeCaption");
+
+  if (elId) elId.textContent = orderId;
+  if (elTime) elTime.textContent = timeWib;
+  if (elName) elName.textContent = custName;
+  if (elPhone) elPhone.textContent = custPhone;
+  if (elDeliv) elDeliv.textContent = delivery;
+  if (elStatus) elStatus.textContent = String(statusStr).toUpperCase();
+
+  let itemsHtml = "";
+  let calculatedSub = 0;
+
+  if (Array.isArray(order.items) && order.items.length > 0) {
+    itemsHtml = order.items.map(item => {
+      const qty = Number(item.qty) || 1;
+      const price = Number(item.price) || 0;
+      const lineSub = qty * price;
+      calculatedSub += lineSub;
+      return `
+        <div class="py-1.5 flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="font-bold text-slate-900 leading-snug">${escapeHtml(item.name)}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${qty} x ${formatRupiah(price)}</div>
+          </div>
+          <span class="font-mono font-bold text-slate-800 flex-shrink-0">${formatRupiah(lineSub)}</span>
+        </div>
+      `;
+    }).join("");
+  } else if (order.itemsText) {
+    const lines = String(order.itemsText).split("\n").filter(Boolean);
+    itemsHtml = lines.map(l => `
+      <div class="py-1 text-slate-800 font-medium">${escapeHtml(l)}</div>
+    `).join("");
+  } else {
+    itemsHtml = `<div class="py-1 text-slate-600">Transaksi Belanja Toko Delina</div>`;
+  }
+
+  if (elItems) elItems.innerHTML = itemsHtml;
+
+  const rawTotal = order.totalAkhir || order.total || calculatedSub;
+  const formattedTotal = typeof rawTotal === "number" ? formatRupiah(rawTotal) : (String(rawTotal).startsWith("Rp") ? rawTotal : formatRupiah(Number(String(rawTotal).replace(/\D/g, "")) || calculatedSub));
+
+  if (elSub) elSub.textContent = calculatedSub > 0 ? formatRupiah(calculatedSub) : formattedTotal;
+  if (elDiscRow && elDisc) {
+    const disc = Number(order.discountAmount) || 0;
+    if (disc > 0) {
+      elDiscRow.classList.remove("hidden");
+      elDisc.textContent = `-${formatRupiah(disc)}`;
+    } else {
+      elDiscRow.classList.add("hidden");
+    }
+  }
+  if (elFee) {
+    const fee = Number(order.deliveryFee) || (String(delivery).toLowerCase().includes("kurir") ? 5000 : 0);
+    elFee.textContent = fee > 0 ? formatRupiah(fee) : "Rp 0 (Gratis)";
+  }
+  if (elGrand) elGrand.textContent = formattedTotal;
+
+  if (elQr) {
+    elQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(orderId)}`;
+  }
+  if (elCap) elCap.textContent = orderId;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (typeof pushModalState === "function") pushModalState("modernDigitalReceiptModal");
+}
+
+function closeModernDigitalReceiptModal() {
+  const modal = document.getElementById("modernDigitalReceiptModal");
+  if (modal) {
+    const wasOpen = !modal.classList.contains("hidden");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+  }
+}
+
+function executePrintModernDigitalReceipt() {
+  const order = activeModernReceiptOrder || latestOrderData;
+  if (!order) return;
+
+  const orderId = order.orderId || order.nota || "#DLN-2026";
+  const timeWib = formatWaktuWIB(order.orderTime || order.timestamp || new Date());
+  const custName = order.customerName || "Pelanggan Delina";
+  const custPhone = order.customerPhone || order.phone || "-";
+  const delivery = order.deliveryMethod || "Ambil di Toko";
+  const rawTotal = order.totalAkhir || order.total || 0;
+  const formattedTotal = typeof rawTotal === "number" ? formatRupiah(rawTotal) : rawTotal;
+
+  let itemsRowsHtml = "";
+  if (Array.isArray(order.items) && order.items.length > 0) {
+    itemsRowsHtml = order.items.map(i => `
+      <tr>
+        <td style="padding:6px 0; border-bottom:1px dashed #e2e8f0;">
+          <strong>${escapeHtml(i.name)}</strong><br/>
+          <small style="color:#64748b;">${i.qty} x ${formatRupiah(i.price || 0)}</small>
+        </td>
+        <td style="padding:6px 0; border-bottom:1px dashed #e2e8f0; text-align:right; font-weight:bold; font-family:monospace;">
+          ${formatRupiah((i.qty || 1) * (i.price || 0))}
+        </td>
+      </tr>
+    `).join("");
+  } else {
+    itemsRowsHtml = `<tr><td colspan="2" style="padding:8px 0;">${escapeHtml(order.itemsText || "Belanjaan Produk Delina.store")}</td></tr>`;
+  }
+
+  const printWin = window.open("", "_blank", "width=420,height=720");
+  if (!printWin) {
+    window.print();
+    return;
+  }
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Struk Digital ${escapeHtml(orderId)} - Delina.store</title>
+      <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; margin: 0; padding: 16px; color: #0f172a; }
+        .receipt-card { max-width: 360px; margin: 0 auto; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #cbd5e1; }
+        .brand-logo { width: 44px; height: 44px; border-radius: 12px; background: #064e3b; color: #fbbf24; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; margin: 0 auto 8px; }
+        .text-center { text-align: center; }
+        .badge { display: inline-block; background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 99px; margin-top: 6px; }
+        .meta { font-size: 12px; margin: 14px 0; padding: 10px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
+        .meta-row { display: flex; justify-content: space-between; margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .total-box { margin-top: 12px; padding: 12px; background: #ecfdf5; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; color: #065f46; }
+        @media print { body { background: #fff; padding: 0; } .receipt-card { box-shadow: none; border: none; max-width: 100%; } }
+      </style>
+    </head>
+    <body>
+      <div class="receipt-card">
+        <div class="text-center">
+          <div class="brand-logo">D</div>
+          <h2 style="margin:0; font-size:18px;">DELINA.store</h2>
+          <div style="font-size:11px; color:#64748b;">ATK, Fotokopi, Kosmetik & Kelontongan</div>
+          <div style="font-size:10px; color:#94a3b8;">WA Resmi: 0821-8535-5316</div>
+          <div class="badge">✓ E-RECEIPT RESMI TERVERIFIKASI</div>
+        </div>
+        <div class="meta">
+          <div class="meta-row"><span>No. Nota:</span><strong>${escapeHtml(orderId)}</strong></div>
+          <div class="meta-row"><span>Waktu (WIB):</span><span>${escapeHtml(timeWib)}</span></div>
+          <div class="meta-row"><span>Pelanggan:</span><strong>${escapeHtml(custName)}</strong></div>
+          <div class="meta-row"><span>No. WhatsApp:</span><span>${escapeHtml(custPhone)}</span></div>
+          <div class="meta-row"><span>Pengiriman:</span><span>${escapeHtml(delivery)}</span></div>
+        </div>
+        <table>${itemsRowsHtml}</table>
+        <div class="total-box">
+          <span>TOTAL BAYAR</span>
+          <span style="font-size:16px; font-family:monospace;">${escapeHtml(String(formattedTotal))}</span>
+        </div>
+        <div class="text-center" style="margin-top:16px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(orderId)}" style="width:110px;height:110px;" />
+          <div style="font-size:10px; color:#64748b; margin-top:6px;">Terima kasih telah berbelanja di Toko Delina!</div>
+        </div>
+      </div>
+      <script>
+        window.onload = function() { setTimeout(function() { window.print(); }, 350); };
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
 }
 
 // Inisialisasi sesi member saat awal load halaman
@@ -4451,7 +5471,7 @@ if (typeof window !== "undefined") {
   window.claimSelectedReward = claimSelectedReward;
   window.formatImageUrl = formatImageUrl;
 
-  // New Profile, KTP & Member VIP Handlers
+  // New Profile, KTP, Barcode Klaim, Sound & Modern Receipt Handlers
   window.triggerProfilePhotoUpload = triggerProfilePhotoUpload;
   window.handleProfilePhotoSelected = handleProfilePhotoSelected;
   window.toggleKtpVerificationSection = toggleKtpVerificationSection;
@@ -4460,7 +5480,21 @@ if (typeof window !== "undefined") {
   window.saveMemberKtpAndAddress = saveMemberKtpAndAddress;
   window.openMemberBarcodeModal = openMemberBarcodeModal;
   window.closeMemberBarcodeModal = closeMemberBarcodeModal;
+  window.openRewardClaimBarcodeModal = openRewardClaimBarcodeModal;
+  window.closeRewardClaimBarcodeModal = closeRewardClaimBarcodeModal;
   window.viewMemberOrderReceipt = viewMemberOrderReceipt;
+  window.formatWaktuWIB = formatWaktuWIB;
+  window.playCuteSound = playCuteSound;
+  window.toggleCheckoutSoundEffect = toggleCheckoutSoundEffect;
+  window.onClickUploadPaymentProofTrigger = onClickUploadPaymentProofTrigger;
+  window.onClickSimulatedReceiptWithReminder = onClickSimulatedReceiptWithReminder;
+  window.closeVerifyCartBeforeUploadModal = closeVerifyCartBeforeUploadModal;
+  window.proceedToSelectPaymentProofFile = proceedToSelectPaymentProofFile;
+  window.copyVerifyUploadNominal = copyVerifyUploadNominal;
+  window.openModernDigitalReceiptModal = openModernDigitalReceiptModal;
+  window.closeModernDigitalReceiptModal = closeModernDigitalReceiptModal;
+  window.executePrintModernDigitalReceipt = executePrintModernDigitalReceipt;
+  window.openWhatsAppWithAppChoice = openWhatsAppWithAppChoice;
 
   // Hero Carousel Handlers
   window.initHeroCarousel = initHeroCarousel;
@@ -4611,6 +5645,9 @@ function isAnyModalOpen() {
   if (drawer && !drawer.classList.contains("translate-x-full")) return true;
 
   const modalIds = [
+    "modalVerifyCartBeforeUpload",
+    "modernDigitalReceiptModal",
+    "rewardClaimBarcodeModal",
     "productDetailModal",
     "memberModal",
     "memberBarcodeModal",
@@ -4631,6 +5668,31 @@ function isAnyModalOpen() {
 
 function closeAllModals(isFromPopState = false) {
   let closedAny = false;
+
+  // Tutup modal lapis atas (sub-modal) terlebih dahulu jika terbuka
+  const verifyCart = document.getElementById("modalVerifyCartBeforeUpload");
+  if (verifyCart && !verifyCart.classList.contains("hidden")) {
+    closeVerifyCartBeforeUploadModal(false);
+    return true;
+  }
+
+  const modernReceipt = document.getElementById("modernDigitalReceiptModal");
+  if (modernReceipt && !modernReceipt.classList.contains("hidden")) {
+    closeModernDigitalReceiptModal();
+    return true;
+  }
+
+  const claimBarcode = document.getElementById("rewardClaimBarcodeModal");
+  if (claimBarcode && !claimBarcode.classList.contains("hidden")) {
+    closeRewardClaimBarcodeModal();
+    return true;
+  }
+
+  const barcode = document.getElementById("memberBarcodeModal");
+  if (barcode && !barcode.classList.contains("hidden")) {
+    closeMemberBarcodeModal();
+    return true;
+  }
 
   // 1. Cart Drawer
   const drawer = document.getElementById("cartDrawer");
@@ -4664,13 +5726,6 @@ function closeAllModals(isFromPopState = false) {
   const member = document.getElementById("memberModal");
   if (member && !member.classList.contains("hidden")) {
     closeMemberModal();
-    closedAny = true;
-  }
-
-  // 5b. Member Barcode Modal
-  const barcode = document.getElementById("memberBarcodeModal");
-  if (barcode && !barcode.classList.contains("hidden")) {
-    closeMemberBarcodeModal();
     closedAny = true;
   }
 

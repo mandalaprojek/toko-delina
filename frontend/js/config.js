@@ -9,7 +9,7 @@ const CONFIG = {
   // Informasi Toko
   STORE_NAME: "Delina.store",
   STORE_TAGLINE: "ATK, Kosmetik dan Kelontongan",
-  WHATSAPP_PHONE: "6281234567890", // Ganti dengan nomor WhatsApp pemilik toko
+  WHATSAPP_PHONE: "6282185355316", // Nomor WhatsApp resmi Toko Delina (kompatibel WA Biasa & WA Business)
   
   // Fitur
   ENABLE_LIVE_BACKEND: true

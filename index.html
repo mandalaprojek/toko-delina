@@ -829,12 +829,22 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label class="block text-[11px] font-semibold text-gray-600 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-              <input type="text" id="custName" placeholder="Contoh: Ahmad Fauzi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white" required />
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[11px] font-semibold text-gray-600">Nama Lengkap <span class="text-red-500">*</span></label>
+                <span id="custNameLockBadge" class="hidden text-[9px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                  <i class="bi bi-lock-fill"></i> Terkunci VIP
+                </span>
+              </div>
+              <input type="text" id="custName" placeholder="Contoh: Ahmad Fauzi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all" required />
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-gray-600 mb-1">Nomor WhatsApp Aktif <span class="text-red-500">*</span></label>
-              <input type="tel" id="custPhone" placeholder="Contoh: 081234567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white" required />
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[11px] font-semibold text-gray-600">Nomor WhatsApp Aktif <span class="text-red-500">*</span></label>
+                <span id="custPhoneLockBadge" class="hidden text-[9px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                  <i class="bi bi-lock-fill"></i> Terkunci VIP
+                </span>
+              </div>
+              <input type="tel" id="custPhone" placeholder="Contoh: 081234567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all" required />
             </div>
           </div>
 
@@ -861,7 +871,12 @@
 
           <!-- Kolom Alamat Pengiriman (Muncul jika pilih kurir) -->
           <div id="addressFieldContainer" class="hidden">
-            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Alamat Lengkap Pengiriman <span class="text-red-500">*</span></label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[11px] font-semibold text-gray-600">Alamat Lengkap Pengiriman <span class="text-red-500">*</span></label>
+              <span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-blue-200">
+                <i class="bi bi-pencil-square"></i> Bebas Diubah
+              </span>
+            </div>
             <textarea id="custAddress" rows="2" placeholder="Nama Jalan, No. Rumah, RT/RW, Patokan atau Kantor/Sekolah" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white"></textarea>
           </div>
         </div>
@@ -957,25 +972,40 @@
           <!-- 4. Unggah Bukti Bayar (Wajib) -->
           <div class="space-y-1.5">
             <div class="flex items-center justify-between flex-wrap gap-1">
-              <label class="block text-[11px] font-bold text-gray-700">
+              <label class="block text-[11px] font-bold text-gray-700 cursor-pointer" onclick="onClickUploadPaymentProofTrigger(event)">
                 Unggah Bukti Bayar (Struk / QRIS) <span class="text-red-500 font-extrabold">* Wajib</span>
               </label>
-              <button 
-                type="button" 
-                onclick="useSimulatedReceipt()" 
-                class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition-all cursor-pointer active:scale-95 shadow-xs"
-                title="Gunakan struk otomatis untuk uji coba checkout cepat"
-              >
-                <i class="bi bi-magic text-xs"></i>
-                <span>🧪 Gunakan Struk Simulasi / Uji Coba</span>
-              </button>
+              <div class="flex items-center gap-1.5">
+                <button 
+                  type="button" 
+                  id="btnToggleCheckoutSound"
+                  onclick="toggleCheckoutSoundEffect()" 
+                  class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg border border-amber-200 transition-all cursor-pointer active:scale-95"
+                  title="Aktifkan/Matikan Efek Suara Lucu"
+                >
+                  <i id="checkoutSoundIcon" class="bi bi-volume-up-fill text-xs text-amber-600"></i>
+                  <span id="checkoutSoundLabel">Suara ON</span>
+                </button>
+                <button 
+                  type="button" 
+                  onclick="onClickSimulatedReceiptWithReminder()" 
+                  class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition-all cursor-pointer active:scale-95 shadow-xs"
+                  title="Gunakan struk otomatis untuk uji coba checkout cepat"
+                >
+                  <i class="bi bi-magic text-xs"></i>
+                  <span>🧪 Struk Simulasi</span>
+                </button>
+              </div>
             </div>
-            <label for="paymentProofInput" class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-emerald-50/40 transition-all">
-              <i class="bi bi-image text-2xl text-gray-400"></i>
-              <span id="paymentProofNameText" class="text-xs font-bold text-gray-700 mt-1">Pilih Foto Bukti Transfer</span>
-              <span id="paymentProofSizeText" class="text-[10px] text-gray-400">JPG, JPEG, PNG (Maks 5 MB)</span>
-              <input type="file" id="paymentProofInput" accept="image/*" class="hidden" onchange="handlePaymentProofSelect(event)" />
-            </label>
+            <div 
+              onclick="onClickUploadPaymentProofTrigger(event)" 
+              class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-emerald-50/40 transition-all active:scale-98"
+            >
+              <i class="bi bi-image text-2xl text-emerald-600"></i>
+              <span id="paymentProofNameText" class="text-xs font-bold text-gray-700 mt-1">Pilih Foto Bukti Transfer / QRIS</span>
+              <span id="paymentProofSizeText" class="text-[10px] text-gray-400">Ketuk untuk cek ulang rincian barang & pilih foto (Maks 5 MB)</span>
+            </div>
+            <input type="file" id="paymentProofInput" accept="image/*" class="hidden" onchange="handlePaymentProofSelect(event)" />
 
             <!-- Pratinjau Gambar Bukti Bayar -->
             <div id="paymentProofPreviewContainer" class="hidden mt-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
@@ -986,7 +1016,7 @@
                   <span id="paymentProofPreviewSize" class="text-gray-400 text-[10px]">1.2 MB</span>
                 </div>
               </div>
-              <button type="button" onclick="clearPaymentProof()" class="text-red-600 hover:text-red-800 font-bold text-xs px-2 py-1 flex-shrink-0">
+              <button type="button" onclick="playCuteSound('pop'); clearPaymentProof()" class="text-red-600 hover:text-red-800 font-bold text-xs px-2 py-1 flex-shrink-0 cursor-pointer">
                 Ganti
               </button>
             </div>
@@ -999,15 +1029,15 @@
       <div class="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3 flex-shrink-0">
         <button 
           type="button" 
-          onclick="closeCheckoutModal()" 
-          class="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-100"
+          onclick="playCuteSound('cancel'); closeCheckoutModal()" 
+          class="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-100 cursor-pointer"
         >
           Batal
         </button>
         <button 
           type="button" 
-          onclick="submitOrderCheckout()" 
-          class="flex-1 py-3 px-4 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
+          onclick="playCuteSound('confirm'); submitOrderCheckout()" 
+          class="flex-1 py-3 px-4 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <i class="bi bi-shield-check text-base"></i>
           <span>Konfirmasi & Terbitkan Nota</span>
@@ -1018,39 +1048,39 @@
   </div>
 
   <!-- ================= MODAL SUKSES / NOTA PESANAN (FASE 2) ================= -->
-  <div id="orderSuccessModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col text-center p-5 sm:p-6 space-y-4 animate-fadeIn">
+  <div id="orderSuccessModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col text-center p-5 sm:p-6 space-y-3.5 animate-fadeIn my-auto max-h-[94vh] overflow-y-auto">
       
       <!-- Icon Sukses Animasi -->
-      <div class="w-16 h-16 rounded-full bg-emerald-100 text-delina-emerald mx-auto flex items-center justify-center text-3xl shadow-inner">
+      <div class="w-14 h-14 rounded-full bg-emerald-100 text-delina-emerald mx-auto flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
         <i class="bi bi-check-circle-fill text-tokopedia-green"></i>
       </div>
 
       <div>
-        <span class="text-[11px] font-bold text-delina-emerald bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">
-          Pesanan Berhasil Diterbitkan
+        <span class="text-[10px] font-extrabold text-delina-emerald bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-200">
+          ✨ Pesanan Berhasil Diterbitkan ✨
         </span>
         <h3 class="text-lg font-extrabold text-gray-800 mt-2">
           Alhamdulillah wa Syukrulillah!
         </h3>
-        <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
           Terima kasih kak <span id="successCustName" class="font-bold text-gray-700"></span> telah berbelanja di Toko Delina. Pesanan Anda segera kami proses dengan amanah.
         </p>
       </div>
 
       <!-- Rincian Kotak Nota -->
-      <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200 text-left text-xs space-y-2">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+      <div class="bg-gray-50 rounded-2xl p-3.5 border border-gray-200 text-left text-xs space-y-1.5">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-1.5">
           <span class="text-gray-500 font-medium">Nomor Nota:</span>
           <div class="flex items-center gap-1.5 font-black text-delina-emerald text-sm">
             <span id="successOrderId">#DLN-2026-0000</span>
-            <button onclick="copyOrderId()" title="Salin No Nota" class="text-gray-400 hover:text-emerald-700 text-xs">
+            <button onclick="playCuteSound('pop'); copyOrderId()" title="Salin No Nota" class="text-gray-400 hover:text-emerald-700 text-xs cursor-pointer">
               <i class="bi bi-copy"></i>
             </button>
           </div>
         </div>
         <div class="flex justify-between text-gray-600">
-          <span>Waktu Pemesanan:</span>
+          <span>Waktu Pemesanan (WIB):</span>
           <span id="successOrderTime" class="font-semibold text-gray-800"></span>
         </div>
         <div class="flex justify-between text-gray-600">
@@ -1069,27 +1099,58 @@
         </div>
       </div>
 
-      <!-- Tombol Aksi -->
+      <!-- Tombol Aksi Lengkap: Lihat/Cetak Struk Baru, Bluetooth & WhatsApp (Biasa & Business) -->
       <div class="space-y-2 pt-1">
-        <!-- Tombol Cetak Struk Bluetooth ESC/POS -->
+        <!-- 1. Tombol Utama: Lihat & Cetak Struk Digital Modern (Baru & Kekinian) -->
         <button 
-          onclick="printCurrentOrderBluetooth()" 
-          class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all border border-slate-800 cursor-pointer"
+          type="button"
+          onclick="playCuteSound('sparkle'); openModernDigitalReceiptModal()" 
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-amber-400 active:scale-95 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all border border-amber-300 cursor-pointer"
         >
-          <i class="bi bi-bluetooth text-blue-400 text-sm"></i>
-          <span>🖨️ Cetak Struk Thermal Bluetooth (58mm/80mm)</span>
+          <i class="bi bi-receipt-cutoff text-base"></i>
+          <span>🧾 Lihat & Cetak Struk Digital Modern</span>
         </button>
 
+        <!-- 2. Tombol Cetak Struk Bluetooth ESC/POS -->
         <button 
-          onclick="sendConfirmationWhatsApp()" 
-          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+          type="button"
+          onclick="playCuteSound('pop'); printCurrentOrderBluetooth()" 
+          class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all border border-slate-800 cursor-pointer"
         >
-          <i class="bi bi-whatsapp text-sm"></i>
-          <span>Kirim Rincian ke WhatsApp Toko Delina</span>
+          <i class="bi bi-bluetooth text-blue-400 text-sm"></i>
+          <span>🖨️ Cetak Thermal Bluetooth (58mm/80mm)</span>
         </button>
+
+        <!-- 3. Pilihan Kirim ke WhatsApp Toko Delina (Mendukung WA Biasa & WA Business) -->
+        <div class="p-2.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 space-y-2">
+          <div class="text-[10px] font-extrabold text-emerald-900 uppercase tracking-wider flex items-center justify-center gap-1">
+            <i class="bi bi-whatsapp text-emerald-600"></i>
+            <span>Kirim Rincian Pesanan ke WhatsApp Toko Delina:</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              type="button"
+              onclick="playCuteSound('confirm'); sendConfirmationWhatsApp('regular')" 
+              class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            >
+              <i class="bi bi-whatsapp text-sm"></i>
+              <span>WA Biasa</span>
+            </button>
+            <button 
+              type="button"
+              onclick="playCuteSound('confirm'); sendConfirmationWhatsApp('business')" 
+              class="py-2.5 px-3 rounded-xl bg-teal-800 hover:bg-teal-900 active:scale-95 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer border border-teal-600"
+            >
+              <i class="bi bi-building-check text-amber-300 text-sm"></i>
+              <span>WA Business</span>
+            </button>
+          </div>
+        </div>
+
         <button 
-          onclick="closeSuccessModal()" 
-          class="w-full py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
+          type="button"
+          onclick="playCuteSound('cancel'); closeSuccessModal()" 
+          class="w-full py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all cursor-pointer"
         >
           Tutup & Belanja Lagi
         </button>
@@ -1640,35 +1701,47 @@
     </div>
   </nav>
 
-  <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama -->
-  <script src="./js/config.js?v=20261030_02"></script>
-  <script src="./js/printer.js?v=20261030_02"></script>
-  <script src="./js/app.js?v=20261030_02"></script>
-
   <!-- =========================================================
-       MODAL MEMBER & ROYALTY DELINA.STORE (30x BELANJA = 1 HADIAH)
+       HALAMAN / MODAL MEMBER & ROYALTY DELINA.STORE (FULLSCREEN NATIVE DI MOBILE)
        ========================================================= -->
-  <div id="memberModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[92vh] animate-fadeIn">
+  <div id="memberModal" class="fixed inset-0 bg-white sm:bg-black/60 sm:backdrop-blur-xs z-50 hidden items-stretch sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-50 sm:bg-white w-full h-full sm:h-auto sm:max-w-xl rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden border-0 sm:border sm:border-emerald-100 flex flex-col sm:max-h-[92vh] animate-fadeIn">
       
-      <!-- Header Modal Member -->
-      <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white flex items-center justify-between flex-shrink-0 border-b border-emerald-700/50">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-md">
+      <!-- Sticky Native App Bar Header (Ramping & Penuh di Layar HP) -->
+      <div class="px-3.5 py-3 sm:p-5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white flex items-center justify-between flex-shrink-0 border-b border-emerald-700/50 shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Tombol Kembali Native di Mobile -->
+          <button 
+            type="button" 
+            onclick="closeMemberModal()" 
+            class="sm:hidden w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-95 cursor-pointer flex-shrink-0"
+            title="Kembali ke Beranda"
+          >
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center font-black text-lg sm:text-xl shadow-md flex-shrink-0">
             🎁
           </div>
-          <div>
-            <h3 class="font-black text-base sm:text-lg tracking-tight">DELINA<span class="text-amber-400">.store</span> VIP Club</h3>
-            <p class="text-[11px] text-emerald-200">Program Loyalitas 30x Belanja = 1 Hadiah Gratis</p>
+          <div class="min-w-0">
+            <h3 class="font-black text-sm sm:text-lg tracking-tight truncate">DELINA<span class="text-amber-400">.store</span> VIP Club</h3>
+            <p class="text-[10px] sm:text-[11px] text-emerald-200 truncate">30x Belanja = 1 Hadiah Gratis • Waktu WIB</p>
           </div>
         </div>
-        <button type="button" onclick="closeMemberModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-all cursor-pointer">
-          ✕
-        </button>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <!-- Indikator Auto-Logout 3 Menit (Aktif Saat Login) -->
+          <div id="memberIdleTimerBadge" class="hidden px-2 py-1 rounded-xl bg-emerald-800/90 border border-emerald-600/60 text-[10px] font-mono font-bold text-amber-300 flex items-center gap-1" title="Otomatis keluar jika 3 menit tanpa aktivitas">
+            <i class="bi bi-shield-lock-fill text-amber-400"></i>
+            <span id="memberIdleCountdownText">03:00</span>
+          </div>
+          <button type="button" onclick="closeMemberModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-all cursor-pointer" title="Tutup">
+            ✕
+          </button>
+        </div>
       </div>
 
-      <!-- Konten Modal Member (Scrollable) -->
-      <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1" id="memberModalContent">
+      <!-- Konten Halaman Member (Scrollable Penuh Layar HP) -->
+      <div class="p-3.5 sm:p-6 pb-24 sm:pb-6 overflow-y-auto space-y-4 flex-1" id="memberModalContent">
         
         <!-- ================= VIEW 1: AUTH MEMBER (JIKA BELUM LOGIN) ================= -->
         <div id="memberAuthContainer" class="space-y-4">
@@ -1890,20 +1963,21 @@
             <div class="mt-3.5 pt-3 border-t border-emerald-800/80">
               <button 
                 type="button" 
-                onclick="toggleKtpVerificationSection()" 
-                class="w-full flex items-center justify-between text-left text-xs text-emerald-100 hover:text-white transition-colors cursor-pointer"
+                id="btnToggleKtpSection"
+                onclick="toggleKtpVerificationSection(event)" 
+                class="w-full flex items-center justify-between text-left text-xs text-emerald-100 hover:text-white transition-all py-1.5 px-2 rounded-xl hover:bg-white/5 active:scale-99 cursor-pointer"
               >
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-emerald-800/90 text-amber-400 flex items-center justify-center text-xs">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-7 h-7 rounded-xl bg-emerald-800/90 text-amber-400 flex items-center justify-center text-xs flex-shrink-0 border border-emerald-700">
                     <i class="bi bi-shield-check"></i>
                   </span>
-                  <div>
-                    <span class="font-extrabold text-[11px] sm:text-xs">Verifikasi KTP & Alamat Pengiriman</span>
-                    <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-800 text-emerald-300 font-bold ml-1">Opsional</span>
+                  <div class="min-w-0">
+                    <span class="font-extrabold text-[11px] sm:text-xs block truncate">Verifikasi Identitas KTP & Alamat Pengantaran</span>
+                    <span class="text-[9px] text-emerald-300/90 font-semibold">Opsional • Memudahkan Kurir Mengantar Pesanan</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 text-[11px] text-amber-300">
-                  <span id="ktpStatusLabelText" class="font-bold">Buka</span>
+                <div class="flex items-center gap-1 text-[11px] bg-amber-400/20 border border-amber-400/40 text-amber-300 px-2.5 py-1 rounded-xl flex-shrink-0 ml-2">
+                  <span id="ktpStatusLabelText" class="font-black">Buka</span>
                   <i id="ktpToggleIcon" class="bi bi-chevron-down transition-transform duration-300"></i>
                 </div>
               </button>
@@ -2364,6 +2438,309 @@
 
     </div>
   </div>
+
+  <!-- =========================================================================
+       MODAL PERINGATAN CEK ULANG BARANG & TOTAL BAYAR SEBELUM UNGGAH BUKTI BAYAR
+       ========================================================================= -->
+  <div id="modalVerifyCartBeforeUpload" class="fixed inset-0 z-[75] bg-slate-950/75 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-300 dark:border-amber-500/50 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Header Peringatan Ceria & Elegan -->
+      <div class="p-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-slate-950 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-white/90 text-amber-600 flex items-center justify-center text-xl shadow-sm animate-bounce">
+            🛍️
+          </div>
+          <div>
+            <h3 class="font-black text-sm sm:text-base leading-tight">Cek Ulang Pesanan Anda Yuk!</h3>
+            <p class="text-[11px] font-bold text-slate-800/90">Pastikan barang & nominal transfer tidak keliru</p>
+          </div>
+        </div>
+        <button type="button" onclick="playCuteSound('cancel'); closeVerifyCartBeforeUploadModal()" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-slate-950 flex items-center justify-center font-bold text-xs cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Isi Rincian Barang & Total Tagihan -->
+      <div class="p-4 overflow-y-auto space-y-3.5 text-xs flex-1">
+        <div class="p-3 rounded-2xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-amber-950 dark:text-amber-200 flex items-start gap-2">
+          <i class="bi bi-bell-fill text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
+          <p class="text-[11px] leading-relaxed font-medium">
+            Sebelum mengunggah bukti pembayaran, mohon periksa kembali <strong>daftar barang</strong> dan <strong>total tagihan</strong> di bawah ini apakah sudah yakin sesuai:
+          </p>
+        </div>
+
+        <!-- Daftar Riwayat Barang yang Akan Dibeli -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 dark:text-slate-300">
+            <span>📦 Daftar Barang yang Akan Dibeli:</span>
+            <span id="verifyUploadItemCount" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">0 Item</span>
+          </div>
+          <div id="verifyUploadItemsList" class="max-h-44 overflow-y-auto space-y-1.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+            <!-- Diisi otomatis dari keranjang oleh app.js -->
+          </div>
+        </div>
+
+        <!-- Kotak Nominal Transfer -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950 to-emerald-900 text-white border border-emerald-700 space-y-1.5 shadow-md">
+          <div class="flex items-center justify-between text-[11px] text-emerald-200">
+            <span>Subtotal & Ongkir:</span>
+            <span id="verifyUploadSubtotalText" class="font-mono font-bold">Rp 0</span>
+          </div>
+          <div id="verifyUploadDiscountRow" class="hidden flex items-center justify-between text-[11px] text-amber-300">
+            <span>Total Hemat / Diskon:</span>
+            <span id="verifyUploadDiscountText" class="font-mono font-bold">-Rp 0</span>
+          </div>
+          <div class="pt-1.5 border-t border-emerald-700/80 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-emerald-300 uppercase font-bold block">Total yang Harus Ditransfer:</span>
+              <strong id="verifyUploadGrandTotalText" class="text-lg sm:text-xl font-black text-amber-400 font-mono">Rp 0</strong>
+            </div>
+            <button 
+              type="button" 
+              onclick="playCuteSound('pop'); copyVerifyUploadNominal()" 
+              class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-[11px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer border border-white/20"
+            >
+              <i class="bi bi-copy"></i>
+              <span>Salin Nominal</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Tombol Interaktif Bersuara Lucu -->
+      <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-t border-slate-200 dark:border-slate-700 grid grid-cols-2 gap-2.5">
+        <button 
+          type="button" 
+          onclick="playCuteSound('boing'); closeVerifyCartBeforeUploadModal(true)" 
+          class="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+        >
+          <i class="bi bi-pencil-square text-amber-600"></i>
+          <span>Ubah Barang Dulu</span>
+        </button>
+        <button 
+          type="button" 
+          id="btnConfirmProceedUpload"
+          onclick="playCuteSound('sparkle'); proceedToSelectPaymentProofFile()" 
+          class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+        >
+          <i class="bi bi-camera-fill text-amber-300"></i>
+          <span>Sudah Yakin, Pilih Bukti</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       HALAMAN / MODAL CETAK STRUK DIGITAL BARU (MODERN, ELEGAN & KEKINIAN)
+       ========================================================================= -->
+  <div id="modernDigitalReceiptModal" class="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto animate-fadeIn">
+    <div class="w-full max-w-md my-auto flex flex-col max-h-[95vh]">
+      
+      <!-- Kertas Struk Modern Fintech (Bagian yang Dapat Dicetak) -->
+      <div id="printableModernReceiptArea" class="bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-emerald-200 flex flex-col overflow-y-auto relative">
+        
+        <!-- Pita Dekorasi Atas -->
+        <div class="h-2.5 bg-gradient-to-r from-emerald-700 via-amber-400 to-teal-800"></div>
+
+        <!-- Header Resmi Struk Digital Delina.store -->
+        <div class="p-5 pb-4 text-center border-b border-dashed border-slate-300 bg-gradient-to-b from-emerald-50/70 to-white relative">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-900 to-emerald-700 text-amber-400 font-black text-xl shadow-md mb-2 border-2 border-amber-300">
+            D
+          </div>
+          <h3 class="font-black text-base sm:text-lg tracking-tight text-slate-900">DELINA<span class="text-emerald-700">.store</span></h3>
+          <p class="text-[11px] font-bold text-slate-500">Pusat ATK, Fotokopi, Kosmetik & Kelontongan</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">WhatsApp Resmi: 0821-8535-5316 • Layanan Amanah & Berkah</p>
+
+          <!-- Badge Status E-Receipt -->
+          <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black uppercase tracking-wider">
+            <i class="bi bi-patch-check-fill text-emerald-600"></i>
+            <span id="modernReceiptStatusBadge">E-RECEIPT RESMI TERBIT</span>
+          </div>
+        </div>
+
+        <!-- Informasi Meta Nota & Pelanggan -->
+        <div class="px-5 py-3.5 bg-slate-50/70 border-b border-dashed border-slate-300 text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Nomor Nota:</span>
+            <strong id="modernReceiptOrderId" class="font-mono font-black text-emerald-800 text-sm">#DLN-2026-0000</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Waktu Transaksi:</span>
+            <span id="modernReceiptTimeWib" class="font-bold text-slate-800">- WIB</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Nama Pelanggan:</span>
+            <strong id="modernReceiptCustName" class="font-bold text-slate-900">-</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">No. WhatsApp:</span>
+            <span id="modernReceiptCustPhone" class="font-mono font-semibold text-slate-700">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Metode Pengiriman:</span>
+            <span id="modernReceiptDelivery" class="font-semibold text-slate-800 text-right max-w-[190px] truncate">-</span>
+          </div>
+        </div>
+
+        <!-- Daftar Rincian Barang Belanja -->
+        <div class="px-5 py-3.5 space-y-2">
+          <div class="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-1">
+            <span>Deskripsi Barang</span>
+            <span>Subtotal</span>
+          </div>
+          <div id="modernReceiptItemsContainer" class="space-y-2 text-xs divide-y divide-slate-100">
+            <!-- Diisi otomatis oleh JavaScript -->
+          </div>
+        </div>
+
+        <!-- Kalkulasi Total & Pembayaran -->
+        <div class="px-5 py-3.5 bg-emerald-50/50 border-t border-b border-dashed border-slate-300 space-y-1.5 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Subtotal Barang:</span>
+            <span id="modernReceiptSubtotal" class="font-mono font-semibold">Rp 0</span>
+          </div>
+          <div id="modernReceiptDiscountRow" class="hidden flex justify-between text-emerald-700 font-semibold">
+            <span>Potongan Diskon / Kupon:</span>
+            <span id="modernReceiptDiscount" class="font-mono">-Rp 0</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Biaya Pengantaran:</span>
+            <span id="modernReceiptDeliveryFee" class="font-mono font-semibold">Rp 0</span>
+          </div>
+          <div class="pt-2 border-t border-emerald-200 flex items-center justify-between">
+            <span class="font-black text-slate-900 text-sm">TOTAL PEMBAYARAN</span>
+            <strong id="modernReceiptGrandTotal" class="font-mono font-black text-lg text-emerald-800">Rp 0</strong>
+          </div>
+          <div class="flex items-center justify-between text-[11px] pt-1 text-slate-500">
+            <span>Metode Pembayaran:</span>
+            <strong id="modernReceiptPaymentMethod" class="text-slate-800">QRIS / Transfer Resmi</strong>
+          </div>
+        </div>
+
+        <!-- Barcode / QR Pengambilan Cepat & Watermark -->
+        <div class="p-4 text-center space-y-2 bg-white">
+          <div class="inline-block p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
+            <img id="modernReceiptQrImg" src="" alt="QR Nota" class="w-28 h-28 object-contain mx-auto" />
+            <span id="modernReceiptBarcodeCaption" class="block font-mono font-black text-[10px] text-slate-700 mt-1">#DLN-2026-0000</span>
+          </div>
+          <p class="text-[10px] text-slate-500 leading-relaxed max-w-xs mx-auto">
+            Tunjukkan struk digital ini ke Kasir Toko Delina untuk pengambilan pesanan cepat (Express Pick-up).
+          </p>
+          <div class="pt-1 text-[10px] font-extrabold text-emerald-800">
+            🌿 Terima Kasih Atas Kepercayaan Anda Berbelanja di Delina.store 🌿
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bilah Tombol Aksi Struk Modern -->
+      <div class="mt-2.5 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button 
+            type="button" 
+            onclick="playCuteSound('confirm'); executePrintModernDigitalReceipt()" 
+            class="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+          >
+            <i class="bi bi-printer-fill"></i>
+            <span>Cetak / Simpan PDF</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="playCuteSound('pop'); printCurrentOrderBluetooth()" 
+            class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+          >
+            <i class="bi bi-bluetooth text-blue-400"></i>
+            <span>Printer Bluetooth</span>
+          </button>
+        </div>
+        <button 
+          type="button" 
+          onclick="playCuteSound('cancel'); closeModernDigitalReceiptModal()" 
+          class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-all cursor-pointer"
+        >
+          Tutup Struk Digital
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL VOUCHER & BARCODE KLAIM HADIAH MEMBER (TUNJUKKAN DI KASIR TOKO)
+       ========================================================================= -->
+  <div id="rewardClaimBarcodeModal" class="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border-2 border-amber-400 text-center flex flex-col">
+      
+      <!-- Header Emas Eksklusif -->
+      <div class="p-4 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white relative">
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+          🎁 Voucher Klaim Hadiah VIP
+        </span>
+        <h3 id="claimBarcodeRewardName" class="font-black text-sm sm:text-base text-amber-300 mt-1.5 leading-snug px-2">
+          Hadiah Spesial 30 Stempel
+        </h3>
+        <button type="button" onclick="closeRewardClaimBarcodeModal()" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs font-bold cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Area Barcode & QR Code Klaim -->
+      <div class="p-5 space-y-3.5 text-xs">
+        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5 flex flex-col items-center">
+          <!-- 1D Barcode -->
+          <img id="claimBarcode1DImg" src="" alt="Barcode Klaim" class="max-w-[230px] h-16 object-contain bg-white p-1.5 rounded-lg border border-slate-200" />
+          <!-- QR Code -->
+          <img id="claimBarcodeQrImg" src="" alt="QR Klaim" class="w-28 h-28 object-contain bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xs" />
+          <div class="pt-1">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Kode Klaim Resmi:</span>
+            <strong id="claimBarcodeIdText" class="font-mono font-black text-base text-emerald-800 tracking-wider">KLM-0000</strong>
+          </div>
+        </div>
+
+        <!-- Detail Member & Waktu WIB -->
+        <div class="bg-emerald-50/70 rounded-2xl p-3 border border-emerald-200 text-left space-y-1 text-[11px]">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Member VIP:</span>
+            <strong id="claimBarcodeMemberName" class="text-slate-900">-</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">No. WhatsApp:</span>
+            <span id="claimBarcodeMemberPhone" class="font-mono font-bold text-emerald-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Waktu Klaim (WIB):</span>
+            <span id="claimBarcodeTimeWib" class="font-semibold text-slate-700">-</span>
+          </div>
+          <div class="flex justify-between items-center pt-1 border-t border-emerald-200/70">
+            <span class="text-slate-500">Status Hadiah:</span>
+            <span id="claimBarcodeStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800">
+              Siap Diambil di Kasir
+            </span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          📌 Tunjukkan Barcode / Kode Klaim ini kepada Kasir <strong>Toko Delina</strong> saat mengambil hadiah fisik Anda di toko.
+        </p>
+
+        <button 
+          type="button" 
+          onclick="closeRewardClaimBarcodeModal()" 
+          class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-xs active:scale-95 transition-all cursor-pointer"
+        >
+          Selesai & Tutup
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
+  <script src="./js/config.js?v=20261101_06"></script>
+  <script src="./js/printer.js?v=20261101_06"></script>
+  <script src="./js/app.js?v=20261101_06"></script>
 
 </body>
 </html>
