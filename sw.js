@@ -3,7 +3,7 @@
  * Memenuhi syarat PWA installable browser Chromium (Chrome/Edge/Brave/Samsung Internet)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261102-01";
+const CACHE_NAME = "delina-store-pwa-v20261102-02";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -80,8 +80,8 @@ self.addEventListener("fetch", (event) => {
           if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(req, responseToCache).catch(() => {});
-            }).catch(() => {});
+              cache.put(req, responseToCache).catch(() => { });
+            }).catch(() => { });
           }
           return networkResponse;
         })
@@ -96,8 +96,8 @@ self.addEventListener("fetch", (event) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(req, responseToCache).catch(() => {});
-          }).catch(() => {});
+            cache.put(req, responseToCache).catch(() => { });
+          }).catch(() => { });
         }
         return networkResponse;
       }).catch(() => {

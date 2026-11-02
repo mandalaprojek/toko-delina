@@ -1257,33 +1257,97 @@
           </div>
         </div>
 
-        <!-- Filter Kategori & Filter Status Stok Produk -->
-        <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs space-y-2.5 md:space-y-3">
-          <!-- Baris 1: Filter Kategori Horizontal -->
-          <div class="flex items-center gap-2 overflow-hidden">
-            <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5 flex-shrink-0">
-              <i class="bi bi-funnel-fill text-emerald-600"></i> Kategori:
-            </span>
-            <div id="productCategoryFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 flex-1 no-scrollbar">
+        <!-- Filter Kategori (Visual Gambar Grid Kecil & Pilihan List) + Filter Status Stok Produk -->
+        <div class="bg-white dark:bg-slate-900 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+          <!-- Baris 1: Header Kategori & Saklar Mode Kategori (Grid Gambar Kecil vs List) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                <i class="bi bi-grid-1x2-fill text-emerald-600"></i>
+                <span>Pilih Kategori Produk:</span>
+              </span>
+              <!-- Pilihan Tampilan Kategori: Grid Gambar Kecil vs List -->
+              <div class="inline-flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/70 dark:border-slate-700">
+                <button
+                  type="button"
+                  id="btnCatSelectorModeGrid"
+                  onclick="setCategorySelectorMode('grid')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-700 text-white shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
+                  title="Tampilkan kategori dalam bentuk gambar Grid Kecil"
+                >
+                  <i class="bi bi-grid-fill text-[10px]"></i>
+                  <span>Grid Gambar</span>
+                </button>
+                <button
+                  type="button"
+                  id="btnCatSelectorModeList"
+                  onclick="setCategorySelectorMode('list')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-1 transition-all cursor-pointer"
+                  title="Tampilkan kategori dalam bentuk daftar List"
+                >
+                  <i class="bi bi-list-ul text-xs"></i>
+                  <span>List Kategori</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Wadah Kategori Dinamis (Grid Gambar Kecil atau List) -->
+            <div id="productCategoryFilterPills" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
               <!-- Diisi dinamis oleh renderProductCategoryFilterPills() -->
             </div>
           </div>
 
-          <!-- Baris 2: Filter Status Ketersediaan Stok -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
+          <!-- Baris 2: Filter Status Ketersediaan Stok & Pilihan Tampilan Katalog (Grid / List / Deret) -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 border-t border-slate-100 dark:border-slate-800 pt-2.5 text-xs">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="font-extrabold text-slate-600 mr-1 flex items-center gap-1">
+              <span class="font-extrabold text-slate-600 dark:text-slate-300 mr-1 flex items-center gap-1">
                 <i class="bi bi-box-seam text-slate-400"></i> Status:
               </span>
-              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-                <button type="button" onclick="setProductStockFilter('all')" data-stock-filter="all" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs cursor-pointer">Semua Stok</button>
-                <button type="button" onclick="setProductStockFilter('low')" data-stock-filter="low" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">⚠️ Kritis (&le; 3)</button>
-                <button type="button" onclick="setProductStockFilter('out')" data-stock-filter="out" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">❌ Habis (0)</button>
-                <button type="button" onclick="setProductStockFilter('safe')" data-stock-filter="safe" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">✅ Aman (&gt; 3)</button>
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto max-w-full no-scrollbar">
+                <button type="button" onclick="setProductStockFilter('all')" data-stock-filter="all" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-300 shadow-xs cursor-pointer whitespace-nowrap">Semua Stok</button>
+                <button type="button" onclick="setProductStockFilter('low')" data-stock-filter="low" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 cursor-pointer whitespace-nowrap">⚠️ Kritis (&le; 3)</button>
+                <button type="button" onclick="setProductStockFilter('out')" data-stock-filter="out" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 cursor-pointer whitespace-nowrap">❌ Habis (0)</button>
+                <button type="button" onclick="setProductStockFilter('safe')" data-stock-filter="safe" class="prod-stock-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 cursor-pointer whitespace-nowrap">✅ Aman (&gt; 3)</button>
               </div>
             </div>
-            <div id="productFilterCountSummary" class="text-[11px] text-slate-500 font-bold">
-              Menampilkan 0 produk
+
+            <!-- Saklar Mode Tampilan Produk (Grid / List / Deret) + Ringkasan Jumlah -->
+            <div class="flex items-center justify-between md:justify-end gap-2.5">
+              <div id="productFilterCountSummary" class="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                Menampilkan 0 produk
+              </div>
+              <div class="inline-flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700">
+                <button
+                  type="button"
+                  id="btnCatalogViewGrid"
+                  onclick="setCatalogDisplayViewMode('grid')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1 transition-all cursor-pointer"
+                  title="Tampilan Grid Kartu Produk"
+                >
+                  <i class="bi bi-grid-3x3-gap-fill"></i>
+                  <span>Grid</span>
+                </button>
+                <button
+                  type="button"
+                  id="btnCatalogViewList"
+                  onclick="setCatalogDisplayViewMode('list')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1 transition-all cursor-pointer"
+                  title="Tampilan Daftar List Kompak"
+                >
+                  <i class="bi bi-list-task"></i>
+                  <span>List</span>
+                </button>
+                <button
+                  type="button"
+                  id="btnCatalogViewRails"
+                  onclick="setCatalogDisplayViewMode('rails')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-700 text-white shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
+                  title="Tampilan Deret Per Kategori"
+                >
+                  <i class="bi bi-collection-fill"></i>
+                  <span>Deret</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1295,7 +1359,7 @@
           <div id="productsCategoryRailsBanner" class="hidden p-3 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
             <span id="productsCategoryRailsBannerText" class="font-bold text-slate-700 dark:text-slate-300">Menampilkan Filter</span>
             <button type="button" onclick="resetProductsFilterAndShowRails()" class="text-xs text-emerald-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1">
-              <span>← Tampilkan Semua Deret Kategori</span>
+              <span>← Reset Filter & Tampilkan Semua</span>
             </button>
           </div>
 
@@ -1304,12 +1368,17 @@
             <!-- Diisi dinamis oleh renderProductsCategoryRails() -->
           </div>
 
-          <!-- Tampilan Mobile Native Retail: Flat List Bersih dengan Garis Pembatas Tipis (Saat Filter Aktif) -->
+          <!-- Container Tampilan Grid Kartu Produk (2 Kolom Mobile, 4 Kolom Desktop) -->
+          <div id="productsCatalogGridView" class="hidden p-3 md:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <!-- Diisi dinamis oleh renderProductsTable() -->
+          </div>
+
+          <!-- Tampilan Mobile Native Retail: Flat List Bersih dengan Garis Pembatas Tipis (Saat Mode List / Filter Aktif) -->
           <div id="productsMobileFlatList" class="hidden divide-y divide-slate-150 dark:divide-slate-800 bg-white dark:bg-slate-900">
             <!-- Diisi otomatis oleh renderProductsTable() -->
           </div>
 
-          <!-- Tampilan Desktop: Tabel Lengkap (Saat Filter Aktif) -->
+          <!-- Tampilan Desktop: Tabel Lengkap (Saat Mode List / Filter Aktif) -->
           <div id="productsDesktopTableWrapper" class="hidden overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">
@@ -1942,14 +2011,67 @@
         </button>
       </div>
 
-      <form id="formProduct" onsubmit="handleSaveProduct(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs">
+      <form id="formProduct" onsubmit="handleSaveProduct(event)" class="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+        <!-- ASISTEN PINTAR AI & INTERNET AUTO-FILL (KETIK / SUARA NAMA BARANG SEPERTI DOVE, NIVEA, ATK, DLL) -->
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/70 to-amber-50/50 border border-emerald-200/90 space-y-2 shadow-2xs">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-emerald-900 flex items-center gap-1.5 text-[11px] sm:text-xs">
+              <i class="bi bi-magic text-amber-500"></i>
+              <span>Isi Otomatis via AI & Internet (Tanpa Ketik Manual)</span>
+            </span>
+            <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-700 text-white">Vision + Web AI</span>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                id="prodModalSmartAiQueryInput"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();runSmartProductAutoFillFromModal();}"
+                placeholder="Ketik/sebut merek: Deodorant Dove, Nivea Roll On, Buku SiDu..."
+                class="w-full bg-white border border-emerald-300 rounded-xl pl-3 pr-8 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600"
+              />
+              <button
+                type="button"
+                onclick="startVoiceRecognitionForProduct('prodModalSmartAiQueryInput', true)"
+                class="absolute right-2 top-1.5 w-6 h-6 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 flex items-center justify-center cursor-pointer"
+                title="Ucapkan nama barang dengan suara"
+              >
+                <i class="bi bi-mic-fill text-xs"></i>
+              </button>
+            </div>
+            <button
+              type="button"
+              id="btnProdModalSmartAutoFill"
+              onclick="runSmartProductAutoFillFromModal()"
+              class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] flex items-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer flex-shrink-0"
+            >
+              <i class="bi bi-stars text-amber-300"></i>
+              <span>Auto-Isi</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500 leading-tight">
+            ✨ Ketik singkat nama/barcode barang (contoh: <strong>"Deodorant Dove Biru"</strong> atau <strong>"Nivea Extra Brightening"</strong>), sistem otomatis mengisi Nama Resmi, Kategori, Satuan, Estimasi Harga, Foto & Deskripsi!
+          </p>
+        </div>
+
         <!-- KOLOM ID / KODE BARCODE PRODUK (BISA DIEDIT SAAT BARU, TERKUNCI SAAT EDIT) -->
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block font-bold text-slate-700">Kode Barcode / ID Produk (SKU)</label>
-            <span id="prodEditIdBadge" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              ✏️ Bisa Diedit
-            </span>
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                onclick="lookupCurrentBarcodeInModal()"
+                class="text-[10px] font-extrabold text-white bg-slate-800 hover:bg-black px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Cari data barang berdasarkan angka barcode di kolom ini"
+              >
+                <i class="bi bi-search text-amber-400"></i>
+                <span>Cari Barcode di Web</span>
+              </button>
+              <span id="prodEditIdBadge" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                ✏️ Bisa Diedit
+              </span>
+            </div>
           </div>
           <input 
             type="text" 
@@ -1964,27 +2086,61 @@
         
         <div>
           <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
-          <input type="text" id="prodEditName" oninput="handleProductNameInput()" placeholder="Contoh: Kertas HVS / Sunscreen / Beras" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
+          <input type="text" id="prodEditName" oninput="handleProductNameInput()" placeholder="Contoh: Dove Deodorant Roll On 40ml / Kertas HVS" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block font-bold text-slate-700">Kategori</label>
+        <!-- PEMILIH KATEGORI VISUAL (GRID GAMBAR KECIL & TAMPILAN LIST) -->
+        <div class="space-y-2 bg-slate-50/90 p-3 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-700 flex items-center gap-1">
+              <i class="bi bi-grid-fill text-emerald-600"></i>
+              <span>Pilih Kategori Barang:</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <div class="inline-flex bg-slate-200/80 p-0.5 rounded-lg">
+                <button
+                  type="button"
+                  id="btnModalCatViewGrid"
+                  onclick="setModalCategoryPickerMode('grid')"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-700 text-white cursor-pointer"
+                >
+                  ⊞ Grid Gambar
+                </button>
+                <button
+                  type="button"
+                  id="btnModalCatViewList"
+                  onclick="setModalCategoryPickerMode('list')"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                >
+                  ☰ List
+                </button>
+              </div>
               <button type="button" onclick="openManageCategoriesModal()" class="text-[10px] text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-0.5 cursor-pointer">
                 <i class="bi bi-gear-fill"></i> + Kelola
               </button>
             </div>
-            <select id="prodEditCategory" onchange="autoGenerateProductDescription()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs">
-              <option value="ATK & Perlengkapan Kantor">ATK & Perlengkapan Kantor</option>
-              <option value="Kosmetik & Perawatan Diri">Kosmetik & Perawatan Diri</option>
-              <option value="Sembako & Kelontongan">Sembako & Kelontongan</option>
-              <option value="Makanan & Minuman">Makanan & Minuman</option>
-            </select>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Jumlah Stok</label>
-            <input type="number" id="prodEditStock" oninput="autoGenerateProductDescription()" placeholder="50" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
+
+          <!-- Grid Gambar Kecil / List Kategori Interaktif di Dalam Modal -->
+          <div id="prodModalCategoryVisualContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- Diisi otomatis oleh renderModalVisualCategoryPicker() -->
+          </div>
+
+          <!-- Select Sinkron (Tampil Kompak & Tetap Sinkron dengan Form) -->
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label class="block font-bold text-slate-600 mb-1 text-[11px]">Kategori Terpilih</label>
+              <select id="prodEditCategory" onchange="onProdEditCategorySelectChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs">
+                <option value="ATK & Perlengkapan Kantor">ATK & Perlengkapan Kantor</option>
+                <option value="Kosmetik & Perawatan Diri">Kosmetik & Perawatan Diri</option>
+                <option value="Sembako & Kelontongan">Sembako & Kelontongan</option>
+                <option value="Makanan & Minuman">Makanan & Minuman</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1 text-[11px]">Jumlah Stok</label>
+              <input type="number" id="prodEditStock" oninput="autoGenerateProductDescription()" placeholder="50" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600 text-xs sm:text-sm" required />
+            </div>
           </div>
         </div>
 
@@ -2311,75 +2467,158 @@
   <div id="label-print-sheet" class="hidden"></div>
 
   <!-- =========================================================================
-       6. MODAL SCANNER BARCODE BARANG (UNTUK TAB KATALOG & STOK)
+       6. MODAL SCANNER BARCODE BARANG PINTAR (VISION AI + INTERNET SEARCH + MACRO ZOOM)
        ========================================================================= -->
-  <div id="productBarcodeScannerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-slate-900 text-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-500/50 flex flex-col animate-fadeIn">
-      <div class="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">
+  <div id="productBarcodeScannerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs hidden flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 text-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-500/50 flex flex-col max-h-[94vh] animate-fadeIn my-auto">
+      <!-- Header Scanner -->
+      <div class="p-3.5 sm:p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
-            <i class="bi bi-camera"></i>
+            <i class="bi bi-upc-scan"></i>
           </div>
           <div>
-            <h3 class="font-extrabold text-sm text-emerald-400">Scan Barcode Barang</h3>
-            <p class="text-[11px] text-slate-400">Arahkan kamera ke barcode kemasan ATK</p>
+            <h3 class="font-extrabold text-sm text-emerald-400 flex items-center gap-1.5">
+              <span>Scan Barcode & Vision AI</span>
+              <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">PRO</span>
+            </h3>
+            <p class="text-[10px] text-slate-400">Otomatis cari di Internet, OpenBeauty/Food & Google Vision</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <!-- Tombol Aktifkan Flash (Torch) & Autofocus Cepat -->
+        <div class="flex items-center gap-1.5">
+          <!-- Tombol Aktifkan Flash (Torch) -->
           <button 
             type="button" 
             id="btnProductTorch"
             onclick="toggleProductTorch()" 
-            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
-            title="Nyalakan lampu flash kamera agar cepat fokus di tempat minim cahaya"
+            class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
+            title="Nyalakan lampu flash kamera"
           >
             <i id="productTorchIcon" class="bi bi-lightning-charge"></i>
-            <span id="productTorchText">Nyalakan Flash</span>
+            <span id="productTorchText">Flash</span>
           </button>
-          <button onclick="closeProductBarcodeScannerModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
-            <i class="bi bi-x-lg"></i>
+          <button onclick="closeProductBarcodeScannerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer">
+            <i class="bi bi-x-lg text-xs"></i>
           </button>
         </div>
       </div>
 
-      <div class="p-4 space-y-3 text-center">
-        <div id="product-qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center"></div>
-        
-        <!-- OPSI FOTO BARCODE / KEMASAN BARANG (AI GEMINI VISION MULTIMODAL) -->
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <label class="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all text-center">
+      <!-- Body Scrollable -->
+      <div class="p-3.5 sm:p-4 space-y-3 overflow-y-auto flex-1 text-center">
+        <!-- Area Kamera + Pembidik Laser + Kontrol Zoom Makro -->
+        <div class="relative w-full max-w-sm mx-auto">
+          <div id="product-qr-reader" class="w-full overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center shadow-inner"></div>
+          <!-- Garis Laser Pembidik Merah/Hijau -->
+          <div class="pointer-events-none absolute inset-x-6 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_8px_#ef4444] animate-pulse"></div>
+
+          <!-- Bar Zoom Makro (1x / 1.5x / 2x / 3x) untuk Botol Melengkung Dove/Nivea/ATK Kecil -->
+          <div class="mt-2 flex items-center justify-between bg-slate-950/90 px-2.5 py-1.5 rounded-xl border border-slate-800 text-[11px]">
+            <span class="text-slate-400 font-bold flex items-center gap-1">
+              <i class="bi bi-zoom-in text-emerald-400"></i>
+              <span>Zoom Makro:</span>
+            </span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="setProductScannerZoom(1)" data-zoom-btn="1" class="scanner-zoom-btn px-2 py-0.5 rounded-lg bg-emerald-600 text-white font-black cursor-pointer">1x</button>
+              <button type="button" onclick="setProductScannerZoom(1.5)" data-zoom-btn="1.5" class="scanner-zoom-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer">1.5x</button>
+              <button type="button" onclick="setProductScannerZoom(2)" data-zoom-btn="2" class="scanner-zoom-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer">2x</button>
+              <button type="button" onclick="setProductScannerZoom(3)" data-zoom-btn="3" class="scanner-zoom-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer">3x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOMBOL UTAMA: JEPRET DEPAN KEMASAN LANGSUNG DARI KAMERA LIVE (TANPA BARCODE) -->
+        <button
+          type="button"
+          onclick="captureLiveFrameAndAnalyzeVision()"
+          class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
+        >
+          <i class="bi bi-stars text-sm"></i>
+          <span>✨ Jepret Depan Kemasan (Baca Merek via Vision AI)</span>
+        </button>
+
+        <!-- OPSI FOTO BARCODE / KEMASAN BARANG HD & GALERI -->
+        <div class="grid grid-cols-2 gap-2">
+          <label class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all text-center">
             <i class="bi bi-camera-fill text-amber-300"></i>
-            <span>📸 Foto Kemasan</span>
+            <span>📸 Kamera HD</span>
             <input type="file" id="barcodeCameraCaptureInput" accept="image/*" capture="environment" onchange="handleBarcodeImageScan(this)" class="hidden" />
           </label>
           
-          <label class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all text-center">
+          <label class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all text-center">
             <i class="bi bi-image text-amber-400"></i>
-            <span>📁 Unggah Foto</span>
+            <span>📁 Unggah Galeri</span>
             <input type="file" id="barcodeGalleryUploadInput" accept="image/*" onchange="handleBarcodeImageScan(this)" class="hidden" />
           </label>
         </div>
 
-        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-left text-xs space-y-1">
+        <!-- ALTERNATIF PINTAR: KETIK / SUARA CEPAT BARANG ATAU KODE BARCODE -->
+        <div class="bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700 text-left space-y-1.5">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-              <i class="bi bi-lightning-charge-fill text-amber-400"></i>
-              <span>Vision AI & Auto-Focus Aktif</span>
-            </div>
-            <span class="text-[10px] text-slate-400">Gemini Vision AI</span>
+            <span class="text-[11px] font-extrabold text-amber-300 flex items-center gap-1">
+              <i class="bi bi-magic"></i>
+              <span>Alternatif Cepat: Ketik / Suara Merek atau Barcode</span>
+            </span>
           </div>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • Arahkan kamera atau jepret tombol <strong>📸 Foto Kemasan</strong> agar Gemini Vision AI membaca angka barcode, nama merek, dan kategori produk otomatis!<br>
-            • Jika barcode <strong>belum ada</strong>: Langsung membuka form Tambah Produk lengkap dengan foto kemasan HD.<br>
-            • Jika barcode <strong>sudah ada</strong>: Langsung membuka pop-up cepat "Tambah Stok Masuk (+N)".
-          </p>
+          <div class="flex gap-1.5">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                id="scannerSmartQueryInput"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();runSmartProductAutoFillFromScanner();}"
+                placeholder="Contoh: Deodorant Dove / Nivea / 8999999..."
+                class="w-full bg-slate-900 border border-slate-600 rounded-xl pl-2.5 pr-8 py-2 text-xs font-bold text-white placeholder-slate-400 focus:outline-none focus:border-emerald-400"
+              />
+              <button
+                type="button"
+                onclick="startVoiceRecognitionForProduct('scannerSmartQueryInput', false)"
+                class="absolute right-1.5 top-1.5 w-6 h-6 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 flex items-center justify-center cursor-pointer"
+                title="Ucapkan nama barang dengan suara"
+              >
+                <i class="bi bi-mic-fill text-xs"></i>
+              </button>
+            </div>
+            <button
+              type="button"
+              onclick="runSmartProductAutoFillFromScanner()"
+              class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-1 cursor-pointer active:scale-95 transition-all flex-shrink-0"
+            >
+              <i class="bi bi-search"></i>
+              <span>Cari & Isi</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SAKLAR MODE SCAN BERUNTUN (BATCH INPUT BARANG BARU) -->
+        <div class="bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-700/80 flex items-center justify-between text-left text-xs">
+          <div>
+            <div class="font-extrabold text-emerald-300 flex items-center gap-1">
+              <i class="bi bi-lightning-charge-fill text-amber-400"></i>
+              <span>Mode Scan Beruntun (Kulakan Banyak)</span>
+            </div>
+            <p class="text-[10px] text-slate-400">Otomatis buka kamera lagi setelah simpan barang baru</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggleBatchScanMode" onchange="setBatchScanProductMode(this.checked)" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+          </label>
+        </div>
+
+        <!-- RIWAYAT 5 BARCODE TERAKHIR DI-SCAN -->
+        <div id="recentScannedBarcodesWrapper" class="hidden bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-left space-y-1.5">
+          <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+            <span><i class="bi bi-clock-history text-emerald-400"></i> Riwayat Scan Terakhir (Klik untuk Buka):</span>
+            <button type="button" onclick="clearRecentScannedBarcodes()" class="text-rose-400 hover:underline cursor-pointer">Bersihkan</button>
+          </div>
+          <div id="recentScannedBarcodesContainer" class="flex flex-wrap gap-1.5"></div>
         </div>
       </div>
 
-      <div class="p-3 bg-slate-950 border-t border-slate-800 flex justify-end">
-        <button type="button" onclick="closeProductBarcodeScannerModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer">
-          Batal & Tutup Kamera
+      <div class="p-3 bg-slate-950 border-t border-slate-800 flex justify-between items-center flex-shrink-0">
+        <span class="text-[10px] text-slate-400 flex items-center gap-1">
+          <i class="bi bi-globe2 text-emerald-400"></i> OpenBeauty • OpenFood • Google Vision
+        </span>
+        <button type="button" onclick="closeProductBarcodeScannerModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer">
+          Tutup Kamera
         </button>
       </div>
     </div>
@@ -4408,46 +4647,101 @@ ${escapeHtml(order.itemsText || "-")}
       container.innerHTML = html;
     }
 
+    let categorySelectorMode = "grid"; // 'grid' (Gambar Grid Kecil) | 'list' (Tampilan List)
+    let catalogDisplayViewMode = "rails"; // 'rails' | 'grid' | 'list'
+    let modalCategoryPickerMode = "grid"; // 'grid' | 'list'
+
+    function getCategoryVisualMeta(catName, allProducts) {
+      const lower = String(catName || "").toLowerCase();
+      let defaultImg = "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300&auto=format&fit=crop&q=80";
+      let icon = "bi-tag-fill";
+      let accent = "from-teal-600/80 to-slate-900/90";
+      let shortDesc = "Koleksi produk pilihan";
+
+      if (lower === "semua" || lower === "all") {
+        defaultImg = "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=300&auto=format&fit=crop&q=80";
+        icon = "bi-grid-fill";
+        accent = "from-emerald-700/85 to-slate-900/90";
+        shortDesc = "Seluruh etalase toko";
+      } else if (lower.includes("atk") || lower.includes("kantor") || lower.includes("tulis")) {
+        defaultImg = "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=300&auto=format&fit=crop&q=80";
+        icon = "bi-pencil-ruler";
+        accent = "from-blue-700/85 to-slate-900/90";
+        shortDesc = "Buku, pulpen, HVS & kantor";
+      } else if (lower.includes("kosmetik") || lower.includes("cantik") || lower.includes("perawatan") || lower.includes("skincare")) {
+        defaultImg = "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80";
+        icon = "bi-stars";
+        accent = "from-rose-600/85 to-slate-900/90";
+        shortDesc = "Deodorant, skincare & sabun";
+      } else if (lower.includes("sembako") || lower.includes("kelontong") || lower.includes("dapur")) {
+        defaultImg = "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&auto=format&fit=crop&q=80";
+        icon = "bi-basket2-fill";
+        accent = "from-amber-600/85 to-slate-900/90";
+        shortDesc = "Beras, minyak, gula & dapur";
+      } else if (lower.includes("makan") || lower.includes("minum") || lower.includes("snack") || lower.includes("segar")) {
+        defaultImg = "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300&auto=format&fit=crop&q=80";
+        icon = "bi-cup-hot-fill";
+        accent = "from-emerald-600/85 to-slate-900/90";
+        shortDesc = "Minuman segar, kopi & snack";
+      }
+
+      // Gunakan gambar produk asli pertama di kategori tersebut jika tersedia dan valid
+      if (lower !== "semua" && lower !== "all" && Array.isArray(allProducts)) {
+        const sampleProd = allProducts.find(p => p && p.image && isProductInCategory(p, catName) && !String(p.image).includes("photo-1586075010923"));
+        if (sampleProd && sampleProd.image) {
+          defaultImg = formatImageUrl(sampleProd.image);
+        }
+      }
+
+      return { image: defaultImg, icon, accent, shortDesc };
+    }
+
+    function setCategorySelectorMode(mode) {
+      categorySelectorMode = mode === "list" ? "list" : "grid";
+      const btnGrid = document.getElementById("btnCatSelectorModeGrid");
+      const btnList = document.getElementById("btnCatSelectorModeList");
+      if (btnGrid && btnList) {
+        if (categorySelectorMode === "grid") {
+          btnGrid.className = "px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-700 text-white shadow-2xs flex items-center gap-1 transition-all cursor-pointer";
+          btnList.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-1 transition-all cursor-pointer";
+        } else {
+          btnList.className = "px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-700 text-white shadow-2xs flex items-center gap-1 transition-all cursor-pointer";
+          btnGrid.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-1 transition-all cursor-pointer";
+        }
+      }
+      renderProductCategoryFilterPills();
+    }
+
+    function setCatalogDisplayViewMode(mode) {
+      catalogDisplayViewMode = ["grid", "list", "rails"].includes(mode) ? mode : "grid";
+      updateCatalogViewModeButtonsUI();
+      renderProductsTable();
+    }
+
+    function updateCatalogViewModeButtonsUI() {
+      const btnGrid = document.getElementById("btnCatalogViewGrid");
+      const btnList = document.getElementById("btnCatalogViewList");
+      const btnRails = document.getElementById("btnCatalogViewRails");
+      const activeCls = "px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-700 text-white shadow-2xs flex items-center gap-1 transition-all cursor-pointer";
+      const inactiveCls = "px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-1 transition-all cursor-pointer";
+
+      if (btnGrid) btnGrid.className = catalogDisplayViewMode === "grid" ? activeCls : inactiveCls;
+      if (btnList) btnList.className = catalogDisplayViewMode === "list" ? activeCls : inactiveCls;
+      if (btnRails) btnRails.className = catalogDisplayViewMode === "rails" ? activeCls : inactiveCls;
+    }
+
     function renderProductsTable() {
       const tbody = document.getElementById("productsTableBody");
       const flatList = document.getElementById("productsMobileFlatList");
       const desktopWrapper = document.getElementById("productsDesktopTableWrapper");
+      const gridContainer = document.getElementById("productsCatalogGridView");
       const railsContainer = document.getElementById("productsCategoryRailsContainer");
       const railsBanner = document.getElementById("productsCategoryRailsBanner");
       const bannerText = document.getElementById("productsCategoryRailsBannerText");
       if (!tbody) return;
 
-      // Render tombol-tombol filter kategori produk
+      // Render kartu gambar kategori / list kategori
       renderProductCategoryFilterPills();
-
-      const isDefaultView = (activeProductCategoryFilter === "all" && !productSearchQuery && activeProductStockFilter === "all");
-
-      if (isDefaultView && railsContainer) {
-        railsContainer.classList.remove("hidden");
-        if (railsBanner) railsBanner.classList.add("hidden");
-        if (flatList) flatList.classList.add("hidden");
-        if (desktopWrapper) desktopWrapper.classList.add("hidden");
-        renderProductsCategoryRails();
-        return;
-      }
-
-      // Mode Filter Aktif: Tampilkan Banner & Tabel / Flat List
-      if (railsContainer) railsContainer.classList.add("hidden");
-      if (railsBanner) {
-        railsBanner.classList.remove("hidden");
-        if (bannerText) {
-          let label = [];
-          if (activeProductCategoryFilter !== "all") label.push(`Kategori: ${activeProductCategoryFilter}`);
-          if (activeProductStockFilter !== "all") {
-            const stockMap = { low: "Stok Kritis (≤ 3)", out: "Stok Habis (0)", safe: "Stok Aman (> 3)" };
-            label.push(`Status: ${stockMap[activeProductStockFilter] || activeProductStockFilter}`);
-          }
-          if (productSearchQuery) label.push(`Cari: "${productSearchQuery}"`);
-          bannerText.innerText = `Menampilkan Filter [ ${label.join(" | ")} ]`;
-        }
-      }
-      if (flatList) flatList.classList.remove("hidden");
-      if (desktopWrapper) desktopWrapper.classList.remove("hidden");
 
       let products = (adminData.products || []).filter(p => p && typeof p === "object");
 
@@ -4481,6 +4775,111 @@ ${escapeHtml(order.itemsText || "-")}
         countEl.innerText = `Menampilkan ${products.length} dari ${(adminData.products || []).length} produk`;
       }
 
+      const isFilterActive = (activeProductCategoryFilter !== "all" || Boolean(productSearchQuery) || activeProductStockFilter !== "all");
+      const effectiveViewMode = (catalogDisplayViewMode === "rails" && isFilterActive) ? "grid" : catalogDisplayViewMode;
+      updateCatalogViewModeButtonsUI();
+
+      if (isFilterActive && railsBanner) {
+        railsBanner.classList.remove("hidden");
+        if (bannerText) {
+          let label = [];
+          if (activeProductCategoryFilter !== "all") label.push(`Kategori: ${activeProductCategoryFilter}`);
+          if (activeProductStockFilter !== "all") {
+            const stockMap = { low: "Stok Kritis (≤ 3)", out: "Stok Habis (0)", safe: "Stok Aman (> 3)" };
+            label.push(`Status: ${stockMap[activeProductStockFilter] || activeProductStockFilter}`);
+          }
+          if (productSearchQuery) label.push(`Cari: "${productSearchQuery}"`);
+          bannerText.innerText = `Filter Aktif: ${label.join(" • ")}`;
+        }
+      } else if (railsBanner) {
+        railsBanner.classList.add("hidden");
+      }
+
+      // MODE 1: DERET KATEGORI (RAILS)
+      if (effectiveViewMode === "rails" && railsContainer) {
+        railsContainer.classList.remove("hidden");
+        if (gridContainer) gridContainer.classList.add("hidden");
+        if (flatList) flatList.classList.add("hidden");
+        if (desktopWrapper) desktopWrapper.classList.add("hidden");
+        renderProductsCategoryRails();
+        return;
+      }
+
+      if (railsContainer) railsContainer.classList.add("hidden");
+
+      const isAdmin = userRole === "admin";
+
+      // MODE 2: TAMPILAN GRID KARTU GAMBAR (2 KOLOM MOBILE, 4 KOLOM DESKTOP)
+      if (effectiveViewMode === "grid" && gridContainer) {
+        gridContainer.classList.remove("hidden");
+        if (flatList) flatList.classList.add("hidden");
+        if (desktopWrapper) desktopWrapper.classList.add("hidden");
+
+        if (products.length === 0) {
+          gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 font-medium text-xs">Tidak ada produk yang sesuai dengan filter atau pencarian.</div>`;
+          return;
+        }
+
+        gridContainer.innerHTML = products.map(p => {
+          const prodName = p.name || "Produk";
+          const prodId = p.id || "-";
+          const prodCat = p.category || "Umum";
+          const isLow = Number(p.stock || 0) <= 3 && Number(p.stock || 0) > 0;
+          const isOut = Number(p.stock || 0) <= 0;
+          let stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shadow-2xs">Stok: ${p.stock || 0}</span>`;
+          if (isOut) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 shadow-2xs">Habis</span>`;
+          else if (isLow) stockBadge = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 shadow-2xs">Sisa: ${p.stock || 0}</span>`;
+
+          return `
+            <div class="p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-xs flex flex-col justify-between text-left hover:border-emerald-500/50 transition-all">
+              <div class="space-y-1.5">
+                <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                  <img 
+                    src="${formatImageUrl(p.image)}" 
+                    alt="${escapeHtml(prodName)}" 
+                    class="w-full h-full object-cover"
+                    onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-1.5 right-1.5">
+                    ${stockBadge}
+                  </div>
+                </div>
+                <span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 truncate max-w-full">${escapeHtml(prodCat)}</span>
+                <div class="font-extrabold text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${escapeHtml(prodName)}">
+                  ${escapeHtml(prodName)}
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono truncate">${prodId}</div>
+                <div class="font-black text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">${formatRupiah(p.price || 0)}</div>
+              </div>
+
+              <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1.5">
+                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-700/70 rounded-xl p-1">
+                  <button onclick="quickUpdateStock('${prodId}', -1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black hover:bg-rose-50 hover:text-rose-600 active:scale-90 cursor-pointer shadow-xs">-</button>
+                  <div class="text-center font-black text-xs text-slate-900 dark:text-white px-1">
+                    <span>${p.stock || 0}</span>
+                    <span class="text-[9px] font-normal text-slate-400 block leading-tight">${p.unit || 'pcs'}</span>
+                  </div>
+                  <button onclick="quickUpdateStock('${prodId}', 1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black hover:bg-emerald-50 hover:text-emerald-600 active:scale-90 cursor-pointer shadow-xs">+</button>
+                </div>
+                ${isAdmin ? `
+                  <button onclick="openEditProductModal('${prodId}')" class="w-full py-1.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-600 text-[11px] font-bold transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Edit Barang</span>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join("");
+        return;
+      }
+
+      // MODE 3: TAMPILAN LIST (FLAT LIST MOBILE + TABEL DESKTOP)
+      if (gridContainer) gridContainer.classList.add("hidden");
+      if (flatList) flatList.classList.remove("hidden");
+      if (desktopWrapper) desktopWrapper.classList.remove("hidden");
+
       if (products.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Tidak ada produk yang sesuai dengan filter atau kata kunci pencarian.</td></tr>`;
         if (flatList) {
@@ -4488,8 +4887,6 @@ ${escapeHtml(order.itemsText || "-")}
         }
         return;
       }
-
-      const isAdmin = userRole === "admin";
 
       // Render Tampilan Desktop (Tabel)
       tbody.innerHTML = products.map(p => {
@@ -4592,28 +4989,98 @@ ${escapeHtml(order.itemsText || "-")}
       ];
       (adminData.categories || []).forEach(c => {
         const cName = c.nama || c;
-        if (cName && !defaultCats.includes(cName)) defaultCats.push(cName);
+        if (cName && !defaultCats.some(dc => isProductInCategory({ category: cName, name: cName }, dc) && dc !== "Semua")) {
+          if (!defaultCats.includes(cName)) defaultCats.push(cName);
+        }
       });
 
-      container.innerHTML = defaultCats.map(cat => {
-        const isAll = cat === "Semua";
-        const count = isAll ? allProducts.length : allProducts.filter(p => isProductInCategory(p, cat)).length;
-        const isActive = isAll ? (activeProductCategoryFilter === "all") : (activeProductCategoryFilter.toLowerCase() === cat.toLowerCase());
+      if (categorySelectorMode === "list") {
+        container.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5";
+        container.innerHTML = defaultCats.map(cat => {
+          const isAll = cat === "Semua";
+          const count = isAll ? allProducts.length : allProducts.filter(p => isProductInCategory(p, cat)).length;
+          const isActive = isAll ? (activeProductCategoryFilter === "all") : (activeProductCategoryFilter.toLowerCase() === cat.toLowerCase());
+          const meta = getCategoryVisualMeta(cat, allProducts);
 
-        return `
-          <button 
-            type="button" 
-            onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')" 
-            class="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}"
-          >
-            ${escapeHtml(cat)} <span class="text-[10px] opacity-80">(${count})</span>
-          </button>
-        `;
-      }).join("");
+          return `
+            <button
+              type="button"
+              onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')"
+              class="p-2 rounded-xl border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer active:scale-98 ${
+                isActive
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-500/30"
+                  : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-700"
+              }"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <img
+                  src="${escapeHtml(meta.image)}"
+                  alt="${escapeHtml(cat)}"
+                  class="w-9 h-9 rounded-lg object-cover border border-white/40 flex-shrink-0"
+                  onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                />
+                <div class="min-w-0">
+                  <div class="font-extrabold text-xs truncate">${escapeHtml(cat)}</div>
+                  <div class="text-[10px] ${isActive ? 'text-emerald-100' : 'text-slate-400'} truncate">${escapeHtml(meta.shortDesc)}</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black flex-shrink-0 ${
+                isActive ? "bg-amber-400 text-slate-950" : "bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 border border-slate-200 dark:border-slate-600"
+              }">
+                ${count} Produk
+              </span>
+            </button>
+          `;
+        }).join("");
+      } else {
+        // MODE DEFAULT: GAMBAR KATEGORI GRID KECIL (VISUAL MINI CARDS)
+        container.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2";
+        container.innerHTML = defaultCats.map(cat => {
+          const isAll = cat === "Semua";
+          const count = isAll ? allProducts.length : allProducts.filter(p => isProductInCategory(p, cat)).length;
+          const isActive = isAll ? (activeProductCategoryFilter === "all") : (activeProductCategoryFilter.toLowerCase() === cat.toLowerCase());
+          const meta = getCategoryVisualMeta(cat, allProducts);
+
+          return `
+            <button
+              type="button"
+              onclick="setProductCategoryFilter('${isAll ? "all" : escapeHtml(cat)}')"
+              class="group relative overflow-hidden rounded-2xl border p-2 text-left flex items-center gap-2.5 transition-all cursor-pointer active:scale-95 ${
+                isActive
+                  ? "bg-emerald-800 text-white border-emerald-600 shadow-md ring-2 ring-amber-400"
+                  : "bg-slate-50 hover:bg-white dark:bg-slate-800/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200/90 dark:border-slate-700 shadow-2xs"
+              }"
+            >
+              <div class="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 border ${isActive ? 'border-amber-300' : 'border-slate-200 dark:border-slate-700'}">
+                <img
+                  src="${escapeHtml(meta.image)}"
+                  alt="${escapeHtml(cat)}"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'"
+                />
+                <span class="absolute bottom-0 right-0 w-4 h-4 rounded-tl-md bg-slate-900/80 text-amber-300 flex items-center justify-center text-[9px]">
+                  <i class="bi ${meta.icon}"></i>
+                </span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="font-extrabold text-[11px] sm:text-xs leading-tight line-clamp-2">${escapeHtml(cat)}</div>
+                <span class="inline-block mt-1 text-[9px] font-black px-1.5 py-0.2 rounded-full ${
+                  isActive ? "bg-amber-400 text-slate-950" : "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
+                }">
+                  ${count} Barang
+                </span>
+              </div>
+            </button>
+          `;
+        }).join("");
+      }
     }
 
     function setProductCategoryFilter(cat) {
       activeProductCategoryFilter = cat;
+      if (cat !== "all" && catalogDisplayViewMode === "rails") {
+        catalogDisplayViewMode = "grid";
+      }
       renderProductsTable();
     }
 
@@ -4678,6 +5145,114 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
+    function setModalCategoryPickerMode(mode) {
+      modalCategoryPickerMode = mode === "list" ? "list" : "grid";
+      const btnGrid = document.getElementById("btnModalCatViewGrid");
+      const btnList = document.getElementById("btnModalCatViewList");
+      if (btnGrid && btnList) {
+        if (modalCategoryPickerMode === "grid") {
+          btnGrid.className = "px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-700 text-white cursor-pointer";
+          btnList.className = "px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer";
+        } else {
+          btnList.className = "px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-700 text-white cursor-pointer";
+          btnGrid.className = "px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer";
+        }
+      }
+      const select = document.getElementById("prodEditCategory");
+      renderModalVisualCategoryPicker(select ? select.value : "");
+    }
+
+    function selectModalCategoryVisual(catName) {
+      const select = document.getElementById("prodEditCategory");
+      if (select) {
+        let matched = false;
+        for (let opt of select.options) {
+          if (opt.value.toLowerCase() === String(catName || "").toLowerCase() || isProductInCategory({ category: opt.value, name: opt.value }, catName)) {
+            select.value = opt.value;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched && catName) {
+          select.add(new Option(catName, catName, true, true));
+        }
+      }
+      renderModalVisualCategoryPicker(select ? select.value : catName);
+      autoGenerateProductDescription();
+    }
+
+    function onProdEditCategorySelectChange(val) {
+      renderModalVisualCategoryPicker(val);
+      autoGenerateProductDescription();
+    }
+
+    function renderModalVisualCategoryPicker(selectedVal = "") {
+      const container = document.getElementById("prodModalCategoryVisualContainer");
+      const select = document.getElementById("prodEditCategory");
+      if (!container) return;
+
+      const cats = select && select.options.length > 0
+        ? Array.from(select.options).map(o => o.value)
+        : [
+            "ATK & Perlengkapan Kantor",
+            "Kosmetik & Perawatan Diri",
+            "Sembako & Kelontongan",
+            "Makanan & Minuman"
+          ];
+      const currentVal = selectedVal || (select ? select.value : cats[0]);
+      const allProducts = adminData.products || [];
+
+      if (modalCategoryPickerMode === "list") {
+        container.className = "grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-36 overflow-y-auto";
+        container.innerHTML = cats.map(c => {
+          const isSelected = String(c).toLowerCase() === String(currentVal).toLowerCase();
+          const meta = getCategoryVisualMeta(c, allProducts);
+          return `
+            <button
+              type="button"
+              onclick="selectModalCategoryVisual('${escapeHtml(c).replace(/'/g, "\\'")}')"
+              class="p-1.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer ${
+                isSelected
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-xs ring-2 ring-amber-400"
+                  : "bg-white hover:bg-slate-100 text-slate-800 border-slate-200"
+              }"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <img src="${escapeHtml(meta.image)}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+                <span class="font-extrabold text-[11px] truncate">${escapeHtml(c)}</span>
+              </div>
+              <i class="bi ${isSelected ? 'bi-check-circle-fill text-amber-300' : 'bi-circle text-slate-300'} text-xs flex-shrink-0"></i>
+            </button>
+          `;
+        }).join("");
+      } else {
+        container.className = "grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-40 overflow-y-auto";
+        container.innerHTML = cats.map(c => {
+          const isSelected = String(c).toLowerCase() === String(currentVal).toLowerCase();
+          const meta = getCategoryVisualMeta(c, allProducts);
+          return `
+            <button
+              type="button"
+              onclick="selectModalCategoryVisual('${escapeHtml(c).replace(/'/g, "\\'")}')"
+              class="relative overflow-hidden rounded-xl border p-1.5 text-center flex flex-col items-center gap-1 transition-all cursor-pointer active:scale-95 ${
+                isSelected
+                  ? "bg-emerald-800 text-white border-emerald-600 shadow-sm ring-2 ring-amber-400"
+                  : "bg-white hover:bg-slate-50 text-slate-800 border-slate-200"
+              }"
+            >
+              <div class="relative w-full h-12 rounded-lg overflow-hidden bg-slate-100">
+                <img src="${escapeHtml(meta.image)}" alt="${escapeHtml(c)}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+                <span class="absolute top-1 right-1 w-4 h-4 rounded-full ${isSelected ? 'bg-amber-400 text-slate-950' : 'bg-slate-900/70 text-white'} flex items-center justify-center text-[9px]">
+                  <i class="bi ${isSelected ? 'bi-check-lg' : meta.icon}"></i>
+                </span>
+              </div>
+              <span class="font-extrabold text-[10px] leading-tight line-clamp-2">${escapeHtml(c)}</span>
+            </button>
+          `;
+        }).join("");
+      }
+    }
+
     function populateProductCategoryDropdown(selectedVal = "") {
       const select = document.getElementById("prodEditCategory");
       if (!select) return;
@@ -4696,23 +5271,27 @@ ${escapeHtml(order.itemsText || "-")}
         const opt = document.createElement("option");
         opt.value = c;
         opt.textContent = c;
-        if (c.toLowerCase() === (selectedVal || "").toLowerCase()) {
+        if (c.toLowerCase() === (selectedVal || "").toLowerCase() || (selectedVal && isProductInCategory({ category: c, name: c }, selectedVal))) {
           opt.selected = true;
         }
         select.appendChild(opt);
       });
 
-      if (selectedVal && !cats.some(c => c.toLowerCase() === selectedVal.toLowerCase())) {
+      if (selectedVal && !Array.from(select.options).some(o => o.selected)) {
         const customOpt = document.createElement("option");
         customOpt.value = selectedVal;
         customOpt.textContent = selectedVal;
         customOpt.selected = true;
         select.appendChild(customOpt);
       }
+
+      renderModalVisualCategoryPicker(select.value);
     }
 
     function openAddProductModal() {
       populateProductCategoryDropdown("ATK & Perlengkapan Kantor");
+      const smartInput = document.getElementById("prodModalSmartAiQueryInput");
+      if (smartInput) smartInput.value = "";
       
       const idInput = document.getElementById("prodEditId");
       const idBadge = document.getElementById("prodEditIdBadge");
@@ -4733,7 +5312,7 @@ ${escapeHtml(order.itemsText || "-")}
       document.getElementById("prodEditName").value = "";
       if (document.getElementById("prodEditCostPrice")) document.getElementById("prodEditCostPrice").value = "";
       document.getElementById("prodEditPrice").value = "";
-      document.getElementById("prodEditStock").value = "";
+      document.getElementById("prodEditStock").value = "25";
       document.getElementById("prodEditUnit").value = "Pcs";
       
       const descEl = document.getElementById("prodEditDesc");
@@ -4760,6 +5339,8 @@ ${escapeHtml(order.itemsText || "-")}
       if (!p) return;
 
       populateProductCategoryDropdown(p.category);
+      const smartInput = document.getElementById("prodModalSmartAiQueryInput");
+      if (smartInput) smartInput.value = "";
 
       const idInput = document.getElementById("prodEditId");
       const idBadge = document.getElementById("prodEditIdBadge");
@@ -4779,6 +5360,7 @@ ${escapeHtml(order.itemsText || "-")}
 
       document.getElementById("prodEditName").value = p.name;
       document.getElementById("prodEditCategory").value = p.category;
+      renderModalVisualCategoryPicker(p.category);
       if (document.getElementById("prodEditCostPrice")) {
         document.getElementById("prodEditCostPrice").value = (p.costPrice !== undefined && p.costPrice !== null && p.costPrice !== "") 
           ? p.costPrice 
@@ -5148,6 +5730,14 @@ ${escapeHtml(order.itemsText || "-")}
 
           // Sinkronisasi data background
           fetchDashboardData(true);
+
+          // Jika Mode Scan Beruntun (Batch Input) aktif, otomatis buka kembali kamera scanner untuk barang berikutnya!
+          if (typeof isBatchScanProductMode !== "undefined" && isBatchScanProductMode) {
+            setTimeout(() => {
+              showToastAdmin("⚡ Mode Scan Beruntun: Siap scan barang berikutnya!");
+              openProductBarcodeScannerModal();
+            }, 450);
+          }
         } else {
           showToastAdmin("Gagal: " + (json.message || "Gagal menyimpan produk."));
         }
@@ -5814,11 +6404,161 @@ ${escapeHtml(order.itemsText || "-")}
       }
     }
 
+    let isBatchScanProductMode = false;
+    let currentScannerZoomLevel = 1;
+    let recentScannedBarcodes = [];
+    try {
+      const savedRecent = localStorage.getItem("delina_recent_scanned_barcodes");
+      if (savedRecent) recentScannedBarcodes = JSON.parse(savedRecent) || [];
+    } catch (e) {}
+
+    function setBatchScanProductMode(enabled) {
+      isBatchScanProductMode = Boolean(enabled);
+      const chk = document.getElementById("toggleBatchScanMode");
+      if (chk) chk.checked = isBatchScanProductMode;
+      showToastAdmin(isBatchScanProductMode
+        ? "⚡ Mode Scan Beruntun Aktif: Kamera otomatis terbuka kembali setelah simpan barang!"
+        : "Mode Scan Beruntun dinonaktifkan.");
+    }
+
+    function addRecentScannedBarcode(code, name) {
+      if (!code) return;
+      const cleanCode = String(code).trim();
+      recentScannedBarcodes = recentScannedBarcodes.filter(item => item.code !== cleanCode);
+      recentScannedBarcodes.unshift({
+        code: cleanCode,
+        name: String(name || cleanCode).trim(),
+        time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+      });
+      if (recentScannedBarcodes.length > 5) recentScannedBarcodes = recentScannedBarcodes.slice(0, 5);
+      try {
+        localStorage.setItem("delina_recent_scanned_barcodes", JSON.stringify(recentScannedBarcodes));
+      } catch (e) {}
+      renderRecentScannedBarcodes();
+    }
+
+    function clearRecentScannedBarcodes() {
+      recentScannedBarcodes = [];
+      try {
+        localStorage.removeItem("delina_recent_scanned_barcodes");
+      } catch (e) {}
+      renderRecentScannedBarcodes();
+    }
+
+    function renderRecentScannedBarcodes() {
+      const wrapper = document.getElementById("recentScannedBarcodesWrapper");
+      const container = document.getElementById("recentScannedBarcodesContainer");
+      if (!wrapper || !container) return;
+      if (!recentScannedBarcodes || recentScannedBarcodes.length === 0) {
+        wrapper.classList.add("hidden");
+        container.innerHTML = "";
+        return;
+      }
+      wrapper.classList.remove("hidden");
+      container.innerHTML = recentScannedBarcodes.map(item => `
+        <button
+          type="button"
+          onclick="handleProductBarcodeDetected('${escapeHtml(item.code).replace(/'/g, "\\'")}')"
+          class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-emerald-800/80 border border-slate-700 hover:border-emerald-500 text-[10px] text-slate-200 flex items-center gap-1.5 cursor-pointer transition-all"
+          title="Klik untuk memproses ulang barcode ${escapeHtml(item.code)}"
+        >
+          <i class="bi bi-upc text-amber-400"></i>
+          <span class="font-mono font-bold text-emerald-300">${escapeHtml(item.code)}</span>
+          <span class="truncate max-w-[110px] text-slate-300">${escapeHtml(item.name)}</span>
+        </button>
+      `).join("");
+    }
+
+    async function setProductScannerZoom(zoomVal) {
+      currentScannerZoomLevel = Number(zoomVal) || 1;
+      document.querySelectorAll(".scanner-zoom-btn").forEach(btn => {
+        if (Number(btn.getAttribute("data-zoom-btn")) === currentScannerZoomLevel) {
+          btn.className = "scanner-zoom-btn px-2 py-0.5 rounded-lg bg-emerald-600 text-white font-black cursor-pointer";
+        } else {
+          btn.className = "scanner-zoom-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer";
+        }
+      });
+
+      const videoEl = document.querySelector("#product-qr-reader video");
+      if (!videoEl) return;
+
+      // 1. Coba hardware optical/digital zoom pada kamera HP jika didukung
+      let appliedHardwareZoom = false;
+      try {
+        const track = videoEl.srcObject && videoEl.srcObject.getVideoTracks()[0];
+        if (track && track.getCapabilities) {
+          const caps = track.getCapabilities();
+          if (caps && caps.zoom) {
+            const targetZoom = Math.min(caps.zoom.max || 3, Math.max(caps.zoom.min || 1, currentScannerZoomLevel));
+            await track.applyConstraints({ advanced: [{ zoom: targetZoom }] });
+            appliedHardwareZoom = true;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fallback CSS scale transform jika hardware zoom tidak didukung browser
+      if (!appliedHardwareZoom) {
+        videoEl.style.transition = "transform 0.2s ease";
+        videoEl.style.transform = currentScannerZoomLevel > 1 ? `scale(${currentScannerZoomLevel})` : "scale(1)";
+      } else {
+        videoEl.style.transform = "scale(1)";
+      }
+      showToastAdmin(`🔍 Zoom Kamera: ${currentScannerZoomLevel}x (Fokus Barcode Kecil/Melengkung)`);
+    }
+
+    function captureLiveScannerVideoFrame() {
+      try {
+        const videoEl = document.querySelector("#product-qr-reader video");
+        if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth) return null;
+        const maxDim = 960;
+        let w = videoEl.videoWidth;
+        let h = videoEl.videoHeight;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoEl, 0, 0, w, h);
+        return canvas.toDataURL("image/jpeg", 0.82);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function captureLiveFrameAndAnalyzeVision() {
+      const liveFrameBase64 = captureLiveScannerVideoFrame();
+      if (!liveFrameBase64) {
+        // Jika video belum siap, buka input kamera langsung
+        const camInput = document.getElementById("barcodeCameraCaptureInput");
+        if (camInput) camInput.click();
+        return;
+      }
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate([70, 40, 70]); } catch (e) {}
+      }
+      beepSuccess();
+      closeProductBarcodeScannerModal();
+      await processPackagingImageBase64WithVision(liveFrameBase64, "");
+    }
+
     function openProductBarcodeScannerModal() {
       const modal = document.getElementById("productBarcodeScannerModal");
       if (!modal) return;
       modal.classList.remove("hidden");
       if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("productBarcodeScannerModal");
+
+      renderRecentScannedBarcodes();
+      const qInput = document.getElementById("scannerSmartQueryInput");
+      if (qInput) qInput.value = "";
 
       if (typeof Html5Qrcode === "undefined") {
         showToastAdmin("Pustaka pemindai barcode belum siap. Mohon periksa koneksi internet.", "warning");
@@ -5890,8 +6630,8 @@ ${escapeHtml(order.itemsText || "-")}
       const btn = document.getElementById("btnProductTorch");
       const icon = document.getElementById("productTorchIcon");
       const text = document.getElementById("productTorchText");
-      if (btn) btn.className = "px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95";
-      if (text) text.innerText = "Nyalakan Flash";
+      if (btn) btn.className = "px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95";
+      if (text) text.innerText = "Flash";
       if (icon) icon.className = "bi bi-lightning-charge";
 
       if (productBarcodeScanner && isProductScannerRunning) {
@@ -5941,134 +6681,438 @@ ${escapeHtml(order.itemsText || "-")}
       }, 300);
     }
 
+    // =========================================================================
+    // MESIN PINTAR IDENTIFIKASI PRODUK (OPENBEAUTYFACTS + OPENFOODFACTS + KATALOG RITEL INDONESIA)
+    // =========================================================================
+    const SMART_RETAIL_CATALOG_DB = [
+      { keywords: ["dove", "deodorant", "roll on", "ultimate repair", "original", "powder soft", "go fresh", "cucumber"], barcodePrefixes: ["8999999", "4800888", "8851932"], name: "Dove Deodorant Roll On Nourishing Secrets / Original 40ml", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 17500, price: 22500, image: "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80", desc: "Deodorant Roll On Dove 40ml dengan 1/4 moisturizing cream untuk kulit ketiak halus, cerah, dan bebas bau badan hingga 48 jam." },
+      { keywords: ["nivea", "deodorant", "extra brightening", "brightening", "pearl beauty", "black white", "cool kick", "hijab", "men"], barcodePrefixes: ["4005808", "4005900", "8850029", "8999777"], name: "Nivea Deodorant Roll On Extra Brightening / Cool Kick 50ml", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 16500, price: 21500, image: "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80", desc: "Nivea Deodorant Roll On 50ml diperkaya Vitamin C & ekstrak mutiara untuk mencerahkan dan menjaga kesegaran sepanjang hari." },
+      { keywords: ["rexona", "deodorant", "roll on", "motion sense", "shower clean", "ice cool", "free spirit", "glowing"], barcodePrefixes: ["89999995"], name: "Rexona Deodorant Roll On MotionSense 45ml", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 15000, price: 19500, image: "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80", desc: "Rexona Roll On 45ml dengan teknologi MotionSense yang memberikan perlindungan kesegaran ekstra saat beraktivitas." },
+      { keywords: ["posh", "deodorant", "roll on", "body spray", "parfum"], barcodePrefixes: ["89988662"], name: "Posh Deodorant Roll On / Body Spray", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 11500, price: 15000, image: "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80", desc: "Posh Deodorant wangi tahan lama anti bakteri penyebab bau badan." },
+      { keywords: ["wardah", "sunscreen", "uv shield", "lightening", "acnederm", "micellar", "facial wash", "lip cream"], barcodePrefixes: ["8998899"], name: "Wardah Lightening / UV Shield Skincare Series", category: "Kosmetik & Perawatan Diri", unit: "Pcs", costPrice: 28000, price: 36000, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Produk perawatan wajah halal Wardah berkualitas tinggi dengan kandungan niacinamide pencerah kulit." },
+      { keywords: ["garnier", "micellar", "bright complete", "sakura", "men", "acno fight", "serum"], barcodePrefixes: ["8997010", "8992304"], name: "Garnier Bright Complete / Micellar Cleansing Water", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 25000, price: 32000, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Perawatan wajah Garnier dengan Vitamin C untuk kulit bersih cerah bebas kusam." },
+      { keywords: ["kahf", "face wash", "parfum", "deodorant", "sunscreen"], barcodePrefixes: ["8997032"], name: "Kahf Skin Care / Face Wash Pria 100ml", category: "Kosmetik & Perawatan Diri", unit: "Tube", costPrice: 31000, price: 39500, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Perawatan kulit pria Kahf halal dengan ekstrak alami HydroBalance." },
+      { keywords: ["emina", "bright stuff", "sun battle", "lip tint", "face wash"], barcodePrefixes: ["8997032"], name: "Emina Bright Stuff Moisturizing / Face Wash", category: "Kosmetik & Perawatan Diri", unit: "Pcs", costPrice: 17000, price: 22500, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Rangkaian perawatan kulit remaja Emina Bright Stuff yang lembut dan mencerahkan." },
+      { keywords: ["vaseline", "lotion", "healthy bright", "gluta hya", "repairing jelly"], barcodePrefixes: ["8999999"], name: "Vaseline Healthy Bright Hand & Body Lotion 200ml", category: "Kosmetik & Perawatan Diri", unit: "Btl", costPrice: 23000, price: 29500, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Body Lotion Vaseline melembapkan dan mencerahkan kulit secara menyeluruh." },
+      { keywords: ["sidu", "sinar dunia", "buku tulis", "38", "58"], barcodePrefixes: ["8992388"], name: "Buku Tulis Sinar Dunia (SiDu) 38 / 58 Lembar", category: "ATK & Perlengkapan Kantor", unit: "Pcs", costPrice: 3200, price: 4500, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80", desc: "Buku tulis Sinar Dunia kertas putih tebal berkualitas untuk sekolah dan kantor." },
+      { keywords: ["paperone", "hvs", "kertas", "a4", "f4"], barcodePrefixes: ["8992759"], name: "Kertas HVS PaperOne A4 75gsm (1 Rim)", category: "ATK & Perlengkapan Kantor", unit: "Rim", costPrice: 44000, price: 55000, image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=80", desc: "Kertas HVS PaperOne A4 putih bersih anti macet di mesin fotokopi & printer." },
+      { keywords: ["joyko", "pulpen", "gel", "pensil", "penghapus", "stapler", "gunting", "lakban"], barcodePrefixes: ["8997009"], name: "Pulpen Gel / Alat Tulis Kantor Joyko Original", category: "ATK & Perlengkapan Kantor", unit: "Pcs", costPrice: 2200, price: 3500, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=80", desc: "Perlengkapan alat tulis kantor Joyko tinta lancar dan awet." },
+      { keywords: ["snowman", "spidol", "boardmarker", "permanent", "marker"], barcodePrefixes: ["8991389"], name: "Spidol Snowman White Board / Permanent Marker", category: "ATK & Perlengkapan Kantor", unit: "Pcs", costPrice: 6800, price: 9500, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=80", desc: "Spidol Snowman tinta pekat berkualitas tinggi untuk papan tulis dan kantor." },
+      { keywords: ["indomie", "mie goreng", "soto", "ayam bawang"], barcodePrefixes: ["089686", "8998866"], name: "Indomie Mi Goreng Spesial 85g", category: "Makanan & Minuman", unit: "Bks", costPrice: 2800, price: 3500, image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80", desc: "Mi instan favorit keluarga lengkap dengan bumbu lezat." },
+      { keywords: ["bimoli", "sunco", "tropical", "minyak goreng"], barcodePrefixes: ["8992770", "8992772"], name: "Minyak Goreng Bimoli / SunCo Pouch 1 Liter", category: "Sembako & Kelontongan", unit: "Pouch", costPrice: 17500, price: 20500, image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&auto=format&fit=crop&q=80", desc: "Minyak goreng kelapa sawit jernih berkualitas tinggi untuk kebutuhan dapur." }
+    ];
+
+    function inferCategoryAndPhotoFromText(textStr) {
+      const lower = String(textStr || "").toLowerCase();
+      if (lower.includes("dove") || lower.includes("nivea") || lower.includes("rexona") || lower.includes("posh") || lower.includes("deodorant") || lower.includes("roll on") || lower.includes("wardah") || lower.includes("garnier") || lower.includes("emina") || lower.includes("kahf") || lower.includes("ponds") || lower.includes("vaseline") || lower.includes("citra") || lower.includes("lifebuoy") || lower.includes("biore") || lower.includes("sunsilk") || lower.includes("pantene") || lower.includes("clear") || lower.includes("pepsodent") || lower.includes("ciptadent") || lower.includes("sabun") || lower.includes("shampo") || lower.includes("serum") || lower.includes("sunscreen") || lower.includes("lotion") || lower.includes("parfum") || lower.includes("lip") || lower.includes("facial") || lower.includes("skincare") || lower.includes("kosmetik")) {
+        return {
+          kategori: "Kosmetik & Perawatan Diri",
+          satuan: (lower.includes("roll") || lower.includes("ml") || lower.includes("spray") || lower.includes("lotion")) ? "Btl" : "Pcs",
+          fotoUrl: "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80",
+          estimasiHarga: 20000
+        };
+      }
+      if (lower.includes("minyak") || lower.includes("beras") || lower.includes("gula") || lower.includes("tepung") || lower.includes("telur") || lower.includes("garam") || lower.includes("kecap") || lower.includes("saus") || lower.includes("rinso") || lower.includes("soklin") || lower.includes("sunlight") || lower.includes("mama lemon") || lower.includes("deterjen") || lower.includes("tisu") || lower.includes("tissue") || lower.includes("sembako")) {
+        return {
+          kategori: "Sembako & Kelontongan",
+          satuan: lower.includes("liter") ? "Pouch" : (lower.includes("kg") ? "Kg" : "Pcs"),
+          fotoUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80",
+          estimasiHarga: 18000
+        };
+      }
+      if (lower.includes("indomie") || lower.includes("sedaap") || lower.includes("mie") || lower.includes("kopi") || lower.includes("teh") || lower.includes("susu") || lower.includes("aqua") || lower.includes("le minerale") || lower.includes("pocari") || lower.includes("floridina") || lower.includes("pucuk") || lower.includes("biskuit") || lower.includes("wafer") || lower.includes("cokelat") || lower.includes("chitato") || lower.includes("taro") || lower.includes("nabati") || lower.includes("roma") || lower.includes("snack") || lower.includes("minuman")) {
+        return {
+          kategori: "Makanan & Minuman",
+          satuan: (lower.includes("botol") || lower.includes("ml")) ? "Btl" : "Pcs",
+          fotoUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80",
+          estimasiHarga: 5000
+        };
+      }
+      return {
+        kategori: "ATK & Perlengkapan Kantor",
+        satuan: lower.includes("rim") ? "Rim" : "Pcs",
+        fotoUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=80",
+        estimasiHarga: 10000
+      };
+    }
+
+    async function lookupBarcodeClientSide(barcodeOrQuery) {
+      const q = String(barcodeOrQuery || "").trim();
+      if (!q) return null;
+      const isNumericBarcode = /^\d{6,14}$/.test(q);
+
+      // 1. Jika berupa Barcode Angka: Cek paralel ke OpenBeautyFacts, OpenFoodFacts, dan OpenProductsFacts langsung dari Browser!
+      if (isNumericBarcode) {
+        const variants = [q];
+        if (q.length === 12) variants.push("0" + q);
+        if (q.length === 13 && q.startsWith("0")) variants.push(q.substring(1));
+
+        const hosts = [
+          "https://world.openbeautyfacts.org",
+          "https://world.openfoodfacts.org",
+          "https://world.openproductsfacts.org"
+        ];
+
+        const requests = [];
+        hosts.forEach(host => {
+          variants.forEach(v => {
+            requests.push(
+              fetch(`${host}/api/v2/product/${encodeURIComponent(v)}.json`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          });
+        });
+
+        const results = await Promise.allSettled(requests);
+        for (const res of results) {
+          if (res.status === "fulfilled" && res.value && res.value.status === 1 && res.value.product) {
+            const p = res.value.product;
+            const brand = (p.brands || "").split(",")[0].trim();
+            const prodName = p.product_name_id || p.product_name || p.product_name_en || p.generic_name_id || p.generic_name || "";
+            const qtyStr = p.quantity ? ` ${p.quantity}` : "";
+            let fullTitle = prodName;
+            if (brand && !prodName.toLowerCase().includes(brand.toLowerCase())) {
+              fullTitle = `${brand} ${prodName}`;
+            }
+            if (qtyStr && !fullTitle.toLowerCase().includes(qtyStr.trim().toLowerCase())) {
+              fullTitle = `${fullTitle}${qtyStr}`;
+            }
+            if (fullTitle && fullTitle.trim().length > 2) {
+              const inferred = inferCategoryAndPhotoFromText(fullTitle + " " + (p.categories || ""));
+              const imgUrl = p.image_url || p.image_front_url || p.image_front_small_url || inferred.fotoUrl;
+              return {
+                status: "success",
+                source: "OpenBeauty/Food Database",
+                barcode: q,
+                nama: fullTitle.trim(),
+                kategori: inferred.kategori,
+                satuan: inferred.satuan,
+                estimasiHarga: inferred.estimasiHarga,
+                fotoUrl: imgUrl,
+                deskripsi: `Ready Stok ${fullTitle.trim()} | Kategori: ${inferred.kategori} — Dijamin Ori & Berkualitas di Delina.store`
+              };
+            }
+          }
+        }
+
+        // Cek apakah cocok dengan prefix pabrikan di SMART_RETAIL_CATALOG_DB (contoh: 4005808 / 4005900 = Nivea, 8850029 = Nivea, 4800888 / 8851932 = Dove)
+        const prefixMatch = SMART_RETAIL_CATALOG_DB.find(item =>
+          item.barcodePrefixes && item.barcodePrefixes.some(pref => q.startsWith(pref))
+        );
+        if (prefixMatch && !q.startsWith("8999999")) {
+          return {
+            status: "success",
+            source: "GS1 Global Brand Registry",
+            barcode: q,
+            nama: `${prefixMatch.name}`,
+            kategori: prefixMatch.category,
+            satuan: prefixMatch.unit,
+            costPrice: prefixMatch.costPrice,
+            estimasiHarga: prefixMatch.price,
+            fotoUrl: prefixMatch.image,
+            deskripsi: prefixMatch.desc
+          };
+        }
+      } else {
+        // 2. Jika berupa Kata Kunci Teks (contoh: "deodorant dove", "nivea roll on", dll.)
+        const lowerQ = q.toLowerCase();
+        // Cek di OpenBeautyFacts & OpenFoodFacts search API terlebih dahulu
+        try {
+          const searchUrls = [
+            `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=3`,
+            `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=3`
+          ];
+          const sRes = await Promise.allSettled(searchUrls.map(u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null)));
+          for (const sr of sRes) {
+            if (sr.status === "fulfilled" && sr.value && Array.isArray(sr.value.products) && sr.value.products.length > 0) {
+              const p = sr.value.products[0];
+              const brand = (p.brands || "").split(",")[0].trim();
+              const prodName = p.product_name_id || p.product_name || p.product_name_en || "";
+              let fullTitle = prodName;
+              if (brand && !prodName.toLowerCase().includes(brand.toLowerCase())) {
+                fullTitle = `${brand} ${prodName}`;
+              }
+              if (fullTitle && fullTitle.trim().length > 2) {
+                const inferred = inferCategoryAndPhotoFromText(fullTitle + " " + q);
+                return {
+                  status: "success",
+                  source: "Internet Product Search",
+                  barcode: p.code || "",
+                  nama: fullTitle.trim(),
+                  kategori: inferred.kategori,
+                  satuan: inferred.satuan,
+                  estimasiHarga: inferred.estimasiHarga,
+                  fotoUrl: p.image_url || p.image_front_url || inferred.fotoUrl,
+                  deskripsi: `Ready Stok ${fullTitle.trim()} | Kategori: ${inferred.kategori} — Dijamin Ori & Berkualitas di Delina.store`
+                };
+              }
+            }
+          }
+        } catch (e) {}
+
+        // Cek di SMART_RETAIL_CATALOG_DB
+        let bestEntry = null;
+        let bestScore = 0;
+        SMART_RETAIL_CATALOG_DB.forEach(entry => {
+          let score = 0;
+          entry.keywords.forEach(kw => {
+            if (lowerQ.includes(kw)) score += 2;
+          });
+          if (score > bestScore) {
+            bestScore = score;
+            bestEntry = entry;
+          }
+        });
+
+        const formattedInputTitle = q.replace(/\b\w/g, c => c.toUpperCase());
+        if (bestEntry && bestScore >= 2) {
+          const customName = q.trim().split(/\s+/).length >= 3 ? formattedInputTitle : bestEntry.name;
+          return {
+            status: "success",
+            source: "Smart AI Retail Catalog",
+            barcode: "",
+            nama: customName,
+            kategori: bestEntry.category,
+            satuan: bestEntry.unit,
+            costPrice: bestEntry.costPrice,
+            estimasiHarga: bestEntry.price,
+            fotoUrl: bestEntry.image,
+            deskripsi: `Ready Stok ${customName} | Kategori: ${bestEntry.category} — ${bestEntry.desc}`
+          };
+        }
+
+        const inferred = inferCategoryAndPhotoFromText(q);
+        return {
+          status: "success",
+          source: "Smart AI Auto-Fill",
+          barcode: "",
+          nama: formattedInputTitle,
+          kategori: inferred.kategori,
+          satuan: inferred.satuan,
+          costPrice: Math.round(inferred.estimasiHarga * 0.8),
+          estimasiHarga: inferred.estimasiHarga,
+          fotoUrl: inferred.fotoUrl,
+          deskripsi: `Ready Stok ${formattedInputTitle} | Kategori: ${inferred.kategori} — Dijamin Ori & Berkualitas di Delina.store`
+        };
+      }
+
+      return null;
+    }
+
+    function applyLookupResultToProductForm(barcode, lookupResult, fallbackSnapshotBase64 = null) {
+      const idInput = document.getElementById("prodEditId");
+      const nameInput = document.getElementById("prodEditName");
+      const categoryInput = document.getElementById("prodEditCategory");
+      const unitInput = document.getElementById("prodEditUnit");
+      const costInput = document.getElementById("prodEditCostPrice");
+      const priceInput = document.getElementById("prodEditPrice");
+      const stockInput = document.getElementById("prodEditStock");
+      const imageUrlInput = document.getElementById("prodImageUrl");
+      const imagePreview = document.getElementById("prodImagePreview");
+      const descInput = document.getElementById("prodEditDesc");
+
+      const finalBarcode = (lookupResult && lookupResult.barcode) || barcode || (idInput ? idInput.value : "");
+      if (idInput && finalBarcode) idInput.value = finalBarcode;
+      if (stockInput && !stockInput.value) stockInput.value = "25";
+
+      if (lookupResult && lookupResult.nama) {
+        if (nameInput) nameInput.value = lookupResult.nama;
+        addRecentScannedBarcode(finalBarcode || "AI-SCAN", lookupResult.nama);
+
+        if (categoryInput && lookupResult.kategori) {
+          populateProductCategoryDropdown(lookupResult.kategori);
+          selectModalCategoryVisual(lookupResult.kategori);
+        }
+
+        if (unitInput && lookupResult.satuan) {
+          unitInput.value = lookupResult.satuan;
+        }
+
+        const estSell = Number(lookupResult.estimasiHarga || lookupResult.harga_jual) || 0;
+        if (priceInput && estSell > 0) {
+          priceInput.value = estSell;
+        }
+        if (costInput) {
+          const estCost = Number(lookupResult.costPrice) || (estSell > 0 ? Math.round(estSell * 0.8) : 0);
+          if (estCost > 0) costInput.value = estCost;
+        }
+
+        const chosenPhoto = (lookupResult.fotoUrl && !String(lookupResult.fotoUrl).includes("Gagal simpan"))
+          ? lookupResult.fotoUrl
+          : (fallbackSnapshotBase64 || "");
+
+        if (chosenPhoto) {
+          if (chosenPhoto.startsWith("data:image")) {
+            tempProdImageBase64 = chosenPhoto;
+            if (imageUrlInput) imageUrlInput.value = "";
+            if (imagePreview) imagePreview.src = chosenPhoto;
+          } else {
+            if (imageUrlInput) imageUrlInput.value = chosenPhoto;
+            if (imagePreview) imagePreview.src = formatImageUrl(chosenPhoto);
+          }
+        }
+
+        if (descInput) {
+          const selectedCat = categoryInput ? categoryInput.value : (lookupResult.kategori || "ATK & Umum");
+          descInput.value = lookupResult.deskripsi || `Ready Stok ${lookupResult.nama} | Kategori: ${selectedCat} | Tersedia: ${stockInput ? stockInput.value : 25} ${lookupResult.satuan || 'Pcs'} — Dijamin Ori & Berkualitas di Delina.store`;
+          descInput.dataset.autoGenerated = "true";
+        }
+
+        showToastAdmin(`✅ Otomatis Terisi: "${lookupResult.nama}" (${lookupResult.source || 'AI & Web'})!`);
+      } else {
+        if (fallbackSnapshotBase64) {
+          tempProdImageBase64 = fallbackSnapshotBase64;
+          if (imagePreview) imagePreview.src = fallbackSnapshotBase64;
+        }
+        if (descInput) autoGenerateProductDescription();
+        showToastAdmin(`Barcode (${finalBarcode}) siap! Silakan ketik nama singkat di kolom Auto-Isi AI atau lengkapi harga.`);
+      }
+
+      setTimeout(() => {
+        if (priceInput && (!priceInput.value || Number(priceInput.value) === 0)) {
+          priceInput.focus();
+        } else if (nameInput && !nameInput.value) {
+          nameInput.focus();
+        }
+      }, 300);
+    }
+
     async function handleProductBarcodeDetected(barcodeText) {
-      const barcode = barcodeText.trim();
+      const barcode = String(barcodeText || "").trim();
       if (!barcode) return;
 
-      // Hentikan kamera dan bunyikan beepSuccess
+      // Tangkap snapshot gambar kemasan dari kamera live tepat saat barcode terdeteksi!
+      const liveSnapshotBase64 = captureLiveScannerVideoFrame();
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate([80, 40, 80]); } catch (e) {}
+      }
       beepSuccess();
       closeProductBarcodeScannerModal();
 
-      // Cek apakah barcode sudah ada di memori produk lokal terlebih dahulu
+      // 1. Cek apakah barcode sudah ada di memori produk lokal terlebih dahulu
       const localExisting = (adminData.products || []).find(p => 
         String(p.id).toUpperCase() === barcode.toUpperCase() ||
         (p.barcode && String(p.barcode).toUpperCase() === barcode.toUpperCase())
       );
 
       if (localExisting) {
-        // SUDAH ADA: Langsung buka Modal Cepat "Tambah Stok Masuk"
+        addRecentScannedBarcode(barcode, localExisting.name);
         openQuickRestockModal(localExisting);
         return;
       }
 
-      // Tampilkan Modal Loading Elegan (Gemini AI Vision & Text)
+      // 2. Tampilkan Modal Loading & Cari secara PARALEL di Client (OpenBeauty/OpenFood) + Backend (Gemini Vision + Web Search)
       showBarcodeLookupModal(barcode);
-
       const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
-      let lookupResult = null;
 
-      // Timeout protektif 12 detik agar Gemini AI memiliki waktu respons optimal
-      const timeoutPromise = new Promise((resolve) => {
-        setTimeout(() => resolve({ status: "timeout", message: "Timeout" }), 12000);
-      });
-
-      const fetchPromise = (async () => {
+      const clientPromise = lookupBarcodeClientSide(barcode);
+      const backendPromise = (async () => {
         try {
-          const res = await fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(barcode)}&pin=${encodeURIComponent(pin)}`);
-          return await res.json();
+          if (liveSnapshotBase64) {
+            const res = await fetch(GAS_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "lookupBarcode",
+                pin: pin,
+                barcode: barcode,
+                imageBase64: liveSnapshotBase64
+              })
+            });
+            return await res.json();
+          } else {
+            const res = await fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(barcode)}&pin=${encodeURIComponent(pin)}`);
+            return await res.json();
+          }
         } catch (err) {
-          console.warn("Gagal auto-lookup barcode online, menggunakan fallback lokal:", err);
-          return { status: "error", message: err.message };
+          return null;
         }
       })();
 
-      lookupResult = await Promise.race([fetchPromise, timeoutPromise]);
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve("timeout"), 12000));
+
+      // Jika clientPromise menemukan data spesifik dari OpenBeautyFacts/OpenFoodFacts lebih dulu, kita gabungkan dengan cek existing
+      let clientResult = await clientPromise;
+      let backendResult = await Promise.race([backendPromise, timeoutPromise]);
+      if (backendResult === "timeout") backendResult = null;
 
       if (isLookupCancelled) return;
       hideBarcodeLookupModal();
 
-      // 1. Jika Backend menemukan bahwa produk ternyata SUDAH ADA di Sheet 'Produk'
-      if (lookupResult && lookupResult.status === "existing" && lookupResult.product) {
-        openQuickRestockModal(lookupResult.product);
+      if (backendResult && backendResult.status === "existing" && backendResult.product) {
+        addRecentScannedBarcode(barcode, backendResult.product.name);
+        openQuickRestockModal(backendResult.product);
         return;
       }
 
-      // 2. Jika produk BARU: Buka modal "Tambah Produk Baru" dengan isian cerdas
-      openAddProductModal();
-
-      const idInput = document.getElementById("prodEditId");
-      const nameInput = document.getElementById("prodEditName");
-      const categoryInput = document.getElementById("prodEditCategory");
-      const unitInput = document.getElementById("prodEditUnit");
-      const priceInput = document.getElementById("prodEditPrice");
-      const imageUrlInput = document.getElementById("prodImageUrl");
-      const imagePreview = document.getElementById("prodImagePreview");
-      const descInput = document.getElementById("prodEditDesc");
-
-      // Auto-fill Barcode / SKU
-      if (idInput) idInput.value = barcode;
-
-      if (lookupResult && lookupResult.status === "success" && lookupResult.nama) {
-        // Auto-fill Nama Produk resmi dari Gemini AI / OpenFoodFacts
-        if (nameInput) {
-          nameInput.value = lookupResult.nama;
-        }
-
-        // Auto-select Kategori
-        if (categoryInput && lookupResult.kategori) {
-          let matched = false;
-          for (let opt of categoryInput.options) {
-            if (opt.value.toLowerCase().includes(lookupResult.kategori.toLowerCase()) || 
-                lookupResult.kategori.toLowerCase().includes(opt.value.toLowerCase())) {
-              categoryInput.value = opt.value;
-              matched = true;
-              break;
-            }
-          }
-          if (!matched && lookupResult.kategori) {
-            categoryInput.add(new Option(lookupResult.kategori, lookupResult.kategori, true, true));
-          }
-        }
-
-        // Auto-fill Satuan
-        if (unitInput && lookupResult.satuan) {
-          unitInput.value = lookupResult.satuan;
-        }
-
-        // Auto-fill Estimasi Harga
-        if (priceInput && lookupResult.estimasiHarga) {
-          priceInput.value = lookupResult.estimasiHarga;
-        }
-
-        // Auto-fill Foto URL jika tersedia
-        if (lookupResult.fotoUrl) {
-          if (imageUrlInput) imageUrlInput.value = lookupResult.fotoUrl;
-          if (imagePreview) imagePreview.src = formatImageUrl(lookupResult.fotoUrl);
-        }
-
-        // Auto-fill Deskripsi Cerdas
-        if (descInput) {
-          const selectedCat = categoryInput ? categoryInput.value : (lookupResult.kategori || 'ATK & Umum');
-          descInput.value = lookupResult.deskripsi || `Ready Stok ${lookupResult.nama || barcode} | Kategori: ${selectedCat} | Tersedia: 50 ${lookupResult.satuan || 'Pcs'} — Dijamin Ori & Berkualitas di Delina.store`;
-          descInput.dataset.autoGenerated = "true";
-        }
-
-        showToastAdmin(`✅ Produk terdeteksi: "${lookupResult.nama}" (${lookupResult.source || 'Gemini AI'})!`);
+      // Pilih hasil terbaik antara Backend (Gemini Vision + Web Search) dan Client (OpenBeautyFacts / OpenFoodFacts / GS1)
+      let bestResult = null;
+      const isBackendGeneric = !backendResult || !backendResult.nama || backendResult.source === "default" || String(backendResult.nama).toLowerCase().includes("barang dagang baru");
+      if (!isBackendGeneric) {
+        bestResult = backendResult;
+      } else if (clientResult && clientResult.nama) {
+        bestResult = clientResult;
       } else {
-        showToastAdmin(`Barcode baru (${barcode}) terdeteksi! Silakan lengkapi harga & detail.`);
-        if (descInput) {
-          autoGenerateProductDescription();
-        }
+        bestResult = backendResult || clientResult;
       }
 
-      // Kursor otomatis FOKUS ke Harga Jual (Rp) sehingga kasir tinggal ketik harga!
-      setTimeout(() => {
-        if (priceInput) {
-          priceInput.focus();
-          priceInput.select();
-          priceInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      openAddProductModal();
+      applyLookupResultToProductForm(barcode, bestResult, liveSnapshotBase64);
+    }
+
+    async function processPackagingImageBase64WithVision(compressedBase64, detectedBarcode = "") {
+      showBarcodeLookupModal(detectedBarcode || "Menganalisis Foto Kemasan...");
+      const textEl = document.getElementById("barcodeLookupCodeText");
+      if (textEl) textEl.innerText = detectedBarcode ? `Barcode: ${detectedBarcode} | Vision AI...` : "Membaca Merek & Kemasan via Google Vision AI...";
+
+      try {
+        const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        const [backendRes, clientRes] = await Promise.allSettled([
+          fetch(GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "lookupBarcode",
+              pin: pin,
+              barcode: detectedBarcode || "",
+              imageBase64: compressedBase64
+            }),
+            signal: controller.signal
+          }).then(r => r.json()),
+          detectedBarcode ? lookupBarcodeClientSide(detectedBarcode) : Promise.resolve(null)
+        ]);
+        clearTimeout(timeoutId);
+
+        if (isLookupCancelled) return;
+        hideBarcodeLookupModal();
+        beepSuccess();
+
+        const bVal = backendRes.status === "fulfilled" ? backendRes.value : null;
+        const cVal = clientRes.status === "fulfilled" ? clientRes.value : null;
+
+        if (bVal && bVal.status === "existing" && bVal.product) {
+          openQuickRestockModal(bVal.product);
+          showToastAdmin(`Produk "${bVal.product.name || 'Toko'}" sudah ada di toko!`);
+          return;
         }
-      }, 350);
+
+        const isBackendGeneric = !bVal || !bVal.nama || bVal.source === "default" || String(bVal.nama).toLowerCase().includes("barang dagang baru");
+        const finalResult = (!isBackendGeneric ? bVal : (cVal || bVal)) || {};
+        const finalBarcode = finalResult.barcode || detectedBarcode || ("DLN-899" + Date.now().toString().slice(-5));
+
+        openAddProductModal();
+        applyLookupResultToProductForm(finalBarcode, finalResult, compressedBase64);
+      } catch (err) {
+        console.error("Gagal analisa foto kemasan via AI:", err);
+        hideBarcodeLookupModal();
+        openAddProductModal();
+        applyLookupResultToProductForm(detectedBarcode || ("DLN-899" + Date.now().toString().slice(-5)), null, compressedBase64);
+      }
     }
 
     // =========================================================
@@ -6078,16 +7122,10 @@ ${escapeHtml(order.itemsText || "-")}
       if (!input || !input.files || input.files.length === 0) return;
       const file = input.files[0];
 
-      // Hentikan scanner video jika sedang aktif
       closeProductBarcodeScannerModal();
-
-      // Tampilkan modal loading analisis gambar
-      showBarcodeLookupModal("Menganalisis Foto Kemasan...");
-      const textEl = document.getElementById("barcodeLookupCodeText");
-      if (textEl) textEl.innerText = "Membaca Barcode & Kemasan via Gemini AI...";
+      showBarcodeLookupModal("Memproses Gambar Kemasan...");
 
       try {
-        // 1. Baca gambar & kompres via canvas (max 1024px, JPEG 0.82)
         const compressedBase64 = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -6119,135 +7157,130 @@ ${escapeHtml(order.itemsText || "-")}
           reader.readAsDataURL(file);
         });
 
-        // 2. Coba deteksi barcode lokal dari gambar jika pustaka Html5Qrcode tersedia
         let detectedBarcode = "";
         try {
           if (window.Html5Qrcode) {
             const html5Qr = new Html5Qrcode("product-qr-reader");
             detectedBarcode = await html5Qr.scanFile(file, true).catch(() => "");
           }
-        } catch (e) {
-          console.log("Local barcode scan not found on image, relying on Gemini Vision AI:", e);
-        }
+        } catch (e) {}
 
-        if (detectedBarcode && textEl) {
-          textEl.innerText = `Barcode: ${detectedBarcode} | AI Memproses...`;
-        }
-
-        // 3. Panggil backend GAS (POST lookupBarcode dengan Base64)
-        const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "lookupBarcode",
-            pin: pin,
-            barcode: detectedBarcode || "",
-            imageBase64: compressedBase64
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        const result = await res.json();
-        if (isLookupCancelled) return;
-        hideBarcodeLookupModal();
-
-        beepSuccess();
-
-        // 4. Jika produk ternyata sudah ada di tab Produk
-        if (result && result.status === "existing" && result.product) {
-          openQuickRestockModal(result.product);
-          showToastAdmin(`Produk "${result.product.name || 'Toko'}" sudah ada di toko!`);
-          return;
-        }
-
-        // 5. Buka modal Tambah Produk Baru dan isi otomatis
-        openAddProductModal();
-
-        const idInput = document.getElementById("prodEditId");
-        const nameInput = document.getElementById("prodEditName");
-        const categoryInput = document.getElementById("prodEditCategory");
-        const unitInput = document.getElementById("prodEditUnit");
-        const priceInput = document.getElementById("prodEditPrice");
-        const imageUrlInput = document.getElementById("prodImageUrl");
-        const imagePreview = document.getElementById("prodImagePreview");
-        const descInput = document.getElementById("prodEditDesc");
-
-        const finalBarcode = result.barcode || detectedBarcode || ("PRD-" + Date.now().toString().slice(-6));
-        if (idInput) idInput.value = finalBarcode;
-        if (nameInput && result.nama) nameInput.value = result.nama;
-        if (unitInput && result.satuan) unitInput.value = result.satuan;
-        if (priceInput && result.estimasiHarga) priceInput.value = result.estimasiHarga;
-
-        // Kategori
-        if (categoryInput && result.kategori) {
-          let matched = false;
-          for (let opt of categoryInput.options) {
-            if (opt.value.toLowerCase().includes(result.kategori.toLowerCase()) || 
-                result.kategori.toLowerCase().includes(opt.value.toLowerCase())) {
-              categoryInput.value = opt.value;
-              matched = true;
-              break;
-            }
-          }
-          if (!matched && result.kategori) {
-            categoryInput.add(new Option(result.kategori, result.kategori, true, true));
-          }
-        }
-
-        // Set foto kemasan langsung ke input & preview
-        if (imageUrlInput) imageUrlInput.value = compressedBase64;
-        if (imagePreview) {
-          imagePreview.src = compressedBase64;
-          const badge = document.getElementById("prodImageQualityBadge");
-          if (badge) badge.innerText = "FOTO AI";
-        }
-
-        // Deskripsi cerdas
-        if (descInput) {
-          const selectedCat = categoryInput ? categoryInput.value : (result.kategori || 'ATK & Kelontong');
-          descInput.value = result.deskripsi || `Ready Stok ${result.nama || finalBarcode} | Kategori: ${selectedCat} | Tersedia: 50 ${result.satuan || 'Pcs'} — Dijamin Ori & Berkualitas di Delina.store`;
-          descInput.dataset.autoGenerated = "true";
-        }
-
-        showToastAdmin(`✅ Terdeteksi via AI: "${result.nama || finalBarcode}"`);
-
-        // Fokus ke input harga
-        setTimeout(() => {
-          if (priceInput) {
-            priceInput.focus();
-            priceInput.select();
-            priceInput.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }, 350);
-
+        await processPackagingImageBase64WithVision(compressedBase64, detectedBarcode);
       } catch (err) {
-        console.error("Gagal analisa foto kemasan via AI:", err);
         hideBarcodeLookupModal();
-        beepError();
-
-        // Tetap buka modal tambah produk baru agar kasir tidak terhambat
-        openAddProductModal();
-        const imagePreview = document.getElementById("prodImagePreview");
-        const imageUrlInput = document.getElementById("prodImageUrl");
-        try {
-          if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              if (imagePreview) imagePreview.src = e.target.result;
-              if (imageUrlInput) imageUrlInput.value = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
-          }
-        } catch(e) {}
-
-        showToastAdmin("Foto kemasan tersimpan! Silakan lengkapi nama & harga secara manual.");
+        showToastAdmin("Gagal memuat foto kemasan.", "error");
       } finally {
         input.value = "";
+      }
+    }
+
+    async function runSmartProductAutoFillFromScanner() {
+      const inp = document.getElementById("scannerSmartQueryInput");
+      const query = inp ? inp.value.trim() : "";
+      if (!query) {
+        showToastAdmin("Ketik atau ucapkan nama merek / kode barcode terlebih dahulu.", "warning");
+        if (inp) inp.focus();
+        return;
+      }
+      if (/^\d{6,14}$/.test(query)) {
+        await handleProductBarcodeDetected(query);
+        return;
+      }
+      closeProductBarcodeScannerModal();
+      showBarcodeLookupModal(`Mencari "${query}"...`);
+      const result = await lookupBarcodeClientSide(query);
+      hideBarcodeLookupModal();
+      beepSuccess();
+      openAddProductModal();
+      const modalSmartInp = document.getElementById("prodModalSmartAiQueryInput");
+      if (modalSmartInp) modalSmartInp.value = query;
+      applyLookupResultToProductForm(result && result.barcode ? result.barcode : "", result, null);
+    }
+
+    async function runSmartProductAutoFillFromModal() {
+      const inp = document.getElementById("prodModalSmartAiQueryInput");
+      const btn = document.getElementById("btnProdModalSmartAutoFill");
+      const query = inp ? inp.value.trim() : (document.getElementById("prodEditName") ? document.getElementById("prodEditName").value.trim() : "");
+      if (!query) {
+        showToastAdmin("Ketik nama barang (contoh: Deodorant Dove / Nivea Roll On) terlebih dahulu.", "warning");
+        if (inp) inp.focus();
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="bi bi-arrow-repeat animate-spin"></i><span>Mencari...</span>`;
+      }
+      try {
+        const result = await lookupBarcodeClientSide(query);
+        beepSuccess();
+        const existingId = document.getElementById("prodEditId") ? document.getElementById("prodEditId").value.trim() : "";
+        applyLookupResultToProductForm(existingId || (result && result.barcode) || "", result, null);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="bi bi-stars text-amber-300"></i><span>Auto-Isi</span>`;
+        }
+      }
+    }
+
+    async function lookupCurrentBarcodeInModal() {
+      const idInput = document.getElementById("prodEditId");
+      const code = idInput ? idInput.value.trim() : "";
+      if (!code) {
+        showToastAdmin("Masukkan kode barcode pada kolom SKU terlebih dahulu.", "warning");
+        if (idInput) idInput.focus();
+        return;
+      }
+      showToastAdmin(`🔍 Mencari data barcode ${code} di internet...`);
+      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+      const [clientRes, backendRes] = await Promise.allSettled([
+        lookupBarcodeClientSide(code),
+        fetch(`${GAS_URL}?action=lookupBarcode&barcode=${encodeURIComponent(code)}&pin=${encodeURIComponent(pin)}`).then(r => r.json()).catch(() => null)
+      ]);
+      const cVal = clientRes.status === "fulfilled" ? clientRes.value : null;
+      const bVal = backendRes.status === "fulfilled" ? backendRes.value : null;
+      const isBackendGeneric = !bVal || !bVal.nama || bVal.source === "default" || String(bVal.nama).toLowerCase().includes("barang dagang baru");
+      const best = (!isBackendGeneric ? bVal : (cVal || bVal));
+      if (best && best.nama) {
+        beepSuccess();
+        applyLookupResultToProductForm(code, best, null);
+      } else {
+        showToastAdmin("Barcode belum terdaftar di database global. Gunakan kolom Auto-Isi Merek di atas!", "info");
+      }
+    }
+
+    function startVoiceRecognitionForProduct(targetInputId, autoTriggerFill = false) {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        showToastAdmin("Browser perangkat ini belum mendukung input suara langsung. Silakan ketik nama barang.", "warning");
+        const inp = document.getElementById(targetInputId);
+        if (inp) inp.focus();
+        return;
+      }
+      try {
+        const recognition = new SpeechRec();
+        recognition.lang = "id-ID";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        showToastAdmin("🎙️ Silakan ucapkan nama barang (contoh: Deodorant Dove 40ml)...");
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          const inp = document.getElementById(targetInputId);
+          if (inp && transcript) {
+            inp.value = transcript;
+            if (autoTriggerFill) {
+              runSmartProductAutoFillFromModal();
+            } else {
+              runSmartProductAutoFillFromScanner();
+            }
+          }
+        };
+        recognition.onerror = () => {
+          showToastAdmin("Suara tidak terdengar jelas, silakan coba lagi atau ketik singkat.", "warning");
+        };
+        recognition.start();
+      } catch (e) {
+        showToastAdmin("Gagal memulai mikrofon suara.", "warning");
       }
     }
 
