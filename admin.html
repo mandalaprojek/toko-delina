@@ -168,6 +168,20 @@
         size: auto;
       }
     }
+    /* Background Latar Pastel Dot-Grid Toko Delina */
+    body.delina-admin-bg {
+      background-image: url('assets/app-bg.jpg');
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: repeat;
+      background-size: cover;
+    }
+    @media (max-width: 640px) {
+      body.delina-admin-bg {
+        background-attachment: scroll;
+        background-size: cover;
+      }
+    }
   </style>
 
   <!-- HTML5 QR Code & Barcode Scanner Library (Kamera HP & Tablet) -->
@@ -177,7 +191,7 @@
   <!-- Modul Printer Bluetooth Thermal ESC/POS -->
   <script src="./js/printer.js?v=20261030_02"></script>
 </head>
-<body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200">
+<body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200 delina-admin-bg">
 
   <!-- =========================================================================
        1. LAYAR KUNCI LOGIN PIN (INTERAKTIF & KEYPAD VIRTUAL)
@@ -421,7 +435,7 @@
     </header>
 
     <!-- Kontainer Konten Utama (Edge-to-Edge Canvas di Layar Mobile & Tablet) -->
-    <main class="w-full max-w-full lg:max-w-7xl mx-auto p-0 lg:p-6 flex-1 pb-28 lg:pb-8 bg-white lg:bg-transparent" style="overflow-x: clip;">
+    <main class="w-full max-w-full lg:max-w-7xl mx-auto p-0 lg:p-6 flex-1 pb-28 lg:pb-8 bg-white/90 lg:bg-transparent backdrop-blur-xs" style="overflow-x: clip;">
 
       <!-- =========================================================
            TAB 1: DASHBOARD & KEUANGAN (KHUSUS SUPER ADMIN)

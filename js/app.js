@@ -3043,6 +3043,11 @@ function updateLacakProgressSteps(status) {
 // Modal Kiko Chat
 function openKikoChat() {
   const modal = document.getElementById("kikoChatModal");
+  const widgetContainer = document.getElementById("kikoFloatingWidget");
+  if (widgetContainer) {
+    widgetContainer.classList.remove("kiko-widget-visible");
+    widgetContainer.classList.add("kiko-widget-hidden");
+  }
   if (modal) {
     initKikoChat();
     if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
@@ -3062,6 +3067,9 @@ function closeKikoChat(notifyHistory = true) {
       setActiveBottomNav("home");
     }
     if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+    setTimeout(() => {
+      triggerChidoriCycle();
+    }, 600);
   }
 }
 
@@ -4584,10 +4592,10 @@ let isChidoriVisible = false;
 let isChidoriPaused = false;
 
 function initChidoriTooltip() {
-  const tooltip = document.getElementById("kikoFloatingTooltip");
-  if (!tooltip) return;
+  const widgetContainer = document.getElementById("kikoFloatingWidget");
+  if (!widgetContainer) return;
 
-  // Pause saat mouse hover atau layar sentuh disentuh user
+  // Pause saat mouse hover atau layar sentuh disentuh user agar tidak hilang saat ingin diklik
   const pauseLoop = () => {
     isChidoriPaused = true;
   };
@@ -4595,62 +4603,62 @@ function initChidoriTooltip() {
     isChidoriPaused = false;
   };
 
-  tooltip.addEventListener("mouseenter", pauseLoop);
-  tooltip.addEventListener("mouseleave", resumeLoop);
-  tooltip.addEventListener("touchstart", pauseLoop, { passive: true });
-  tooltip.addEventListener("touchend", resumeLoop, { passive: true });
+  widgetContainer.addEventListener("mouseenter", pauseLoop);
+  widgetContainer.addEventListener("mouseleave", resumeLoop);
+  widgetContainer.addEventListener("touchstart", pauseLoop, { passive: true });
+  widgetContainer.addEventListener("touchend", resumeLoop, { passive: true });
 
-  // Mulai siklus Gemini Box pertama setelah 1.2 detik halaman termuat
+  // Mulai siklus pertama setelah 1 detik halaman termuat
   setTimeout(() => {
     triggerChidoriCycle();
-  }, 1200);
+  }, 1000);
 }
 
 function triggerChidoriCycle() {
-  const tooltip = document.getElementById("kikoFloatingTooltip");
+  const widgetContainer = document.getElementById("kikoFloatingWidget");
   const msgEl = document.getElementById("kikoTooltipMessageText");
-  if (!tooltip) return;
+  const chatModal = document.getElementById("kikoChatModal");
+  if (!widgetContainer) return;
 
   if (chidoriTimer) clearTimeout(chidoriTimer);
 
   const runCycle = () => {
+    // Jika modal chat sedang terbuka, sembunyikan widget dan cek lagi nanti
+    if (chatModal && !chatModal.classList.contains("hidden")) {
+      widgetContainer.classList.remove("kiko-widget-visible");
+      widgetContainer.classList.add("kiko-widget-hidden");
+      isChidoriVisible = false;
+      chidoriTimer = setTimeout(runCycle, 1000);
+      return;
+    }
+
     if (isChidoriPaused) {
       chidoriTimer = setTimeout(runCycle, 600);
       return;
     }
 
     if (!isChidoriVisible) {
-      // FASE MASUK (GEMINI BOX ENTER): Tampil selama 3 Detik
-      if (msgEl) {
+      // FASE 1: TAMPIL SELAMA 3 DETIK (DENGAN EFEK LISTRIK & PESAN SAPAAN AI)
+      if (msgEl && Array.isArray(KIKO_ROTATING_MESSAGES) && KIKO_ROTATING_MESSAGES.length > 0) {
         msgEl.textContent = KIKO_ROTATING_MESSAGES[kikoMsgIndex % KIKO_ROTATING_MESSAGES.length];
         kikoMsgIndex++;
       }
-      tooltip.classList.remove("gemini-hidden", "gemini-exit-active", "chidori-hidden", "chidori-exit-active");
-      tooltip.style.display = "block";
-      void tooltip.offsetWidth; // Force reflow
-      tooltip.classList.add("gemini-enter-active");
+      widgetContainer.classList.remove("kiko-widget-hidden");
+      widgetContainer.classList.add("kiko-widget-visible");
       isChidoriVisible = true;
 
       chidoriTimer = setTimeout(() => {
         runCycle();
       }, 3000);
     } else {
-      // FASE KELUAR (GEMINI BOX EXIT): Menyusut selama 400ms lalu sembunyi 3 Detik
-      tooltip.classList.remove("gemini-enter-active");
-      tooltip.classList.add("gemini-exit-active");
+      // FASE 2: KELUAR / MENGHILANG TOTAL SELAMA 3 DETIK (OPSI B)
+      widgetContainer.classList.remove("kiko-widget-visible");
+      widgetContainer.classList.add("kiko-widget-hidden");
       isChidoriVisible = false;
-
-      setTimeout(() => {
-        if (!isChidoriVisible) {
-          tooltip.classList.remove("gemini-exit-active");
-          tooltip.classList.add("gemini-hidden");
-          tooltip.style.display = "none";
-        }
-      }, 400);
 
       chidoriTimer = setTimeout(() => {
         runCycle();
-      }, 3000 + 400);
+      }, 3000);
     }
   };
 
