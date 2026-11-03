@@ -935,7 +935,7 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
     // JALUR 3: CHAT DARI WIDGET KIKO DI WEBSITE
     // =========================================================
     if (action === "chatKiko") {
-      const jawabanAI = tanyaKikoAI(payload.message || "", "Web Widget");
+      const jawabanAI = tanyaKikoAI(payload.message || "", payload.sumber || "Web Widget", payload.history || []);
       return createJsonResponse({
         status: "success",
         reply: jawabanAI
@@ -1713,6 +1713,10 @@ function upgradeTabProduk(sheetProduk) {
 }
 
 function normalizeKategoriResmiDelina(rawCategory, productName) {
+  // 0. Hormati kategori resmi yang sudah tertulis persis di Google Sheets
+  const OFFICIAL_CATS = ["ATK & Kantor", "Kosmetik & Cantik", "Kelontongan", "Minuman"];
+  const exactCat = OFFICIAL_CATS.find(c => c.toLowerCase() === String(rawCategory || "").trim().toLowerCase());
+  if (exactCat) return exactCat;
   const cat = String(rawCategory || "").toLowerCase();
   const name = String(productName || "").toLowerCase();
   const combined = cat + " " + name;
@@ -1735,7 +1739,7 @@ function normalizeKategoriResmiDelina(rawCategory, productName) {
     "lux", "pantene", "sunsilk", "clear", "shoulders", "pepsodent", "ciptadent",
     "close up", "listerine", "charm", "laurier", "kodomo", "my baby", "kayu putih",
     "freshcare", "tolak angin", "salonpas", "hansaplast", "betadine", "deodorant",
-    "roll on", "serum", "micellar", "sunscreen", "lip", "bedak", "parfum", "shampo",
+    "roll on", "serum", "micellar", "sunscreen", "lipstik", "lipstick", "lip balm", "lip cream", "lip tint", "bedak", "parfum", "shampo",
     "sabun mandi", "body wash", "pasta gigi"
   ];
   if (cat.includes("kosmetik") || cat.includes("cantik") || cat.includes("perawatan") || kosmetikKeywords.some(k => combined.includes(k))) {
@@ -2179,7 +2183,7 @@ function generateDataDummyLengkap(ss) {
  * 5. OTAK AI KIKO BERADAB ISLAMI (GEMINI API + LIVE STOCK CONTEXT)
  * =========================================================================
  */
-function tanyaKikoAI(pesanUser, sumber) {
+function tanyaKikoAI(pesanUser, sumber, riwayatChat) {
   try {
     const props = PropertiesService.getScriptProperties();
     const geminiApiKey = props.getProperty("GEMINI_API_KEY");
@@ -2188,15 +2192,39 @@ function tanyaKikoAI(pesanUser, sumber) {
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
     const sheetTarif = ss.getSheetByName(TAB_TARIF);
 
+    // Katalog live dari Google Sheets, kategori dinormalisasi ke 4 Kategori Resmi
+    // (ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman) agar istilah lama
+    // seperti "Sembako & Dapur" / "Makanan & Minuman" tetap terpetakan dengan benar.
     let daftarStok = [];
     if (sheetProduk && sheetProduk.getLastRow() > 1) {
       const dataProduk = sheetProduk.getDataRange().getValues();
       for (let i = 1; i < dataProduk.length; i++) {
         const r = dataProduk[i];
         if (r[0]) {
-          daftarStok.push(`- ${r[1]} | Harga: Rp ${Number(r[3]).toLocaleString("id-ID")} | Sisa Stok: ${r[4]} ${r[5]} (Kategori: ${r[2]})`);
+          let kategoriResmi = r[2];
+          try { kategoriResmi = mapKategoriKeDaftarToko(r[2]); } catch (eKat) {}
+          const stokNum = Number(r[4]) || 0;
+          const statusStok = stokNum <= 0 ? "HABIS" : (stokNum <= 5 ? "Hampir Habis" : "Tersedia");
+          daftarStok.push(`- [${r[0]}] ${r[1]} | Harga: Rp ${Number(r[3]).toLocaleString("id-ID")} | Sisa Stok: ${r[4]} ${r[5]} (${statusStok}) | Kategori: ${kategoriResmi}`);
         }
       }
+    }
+
+    // Kupon promo aktif dari Tab Kupon
+    let daftarKupon = [];
+    try {
+      daftarKupon = getKuponData(ss)
+        .filter(c => c.status === "AKTIF")
+        .map(c => `- Kode ${c.code}: ${c.description || (c.type === "PERSEN" ? "Diskon " + c.value + "%" : "Potongan Rp " + c.value.toLocaleString("id-ID"))} (Min. belanja Rp ${c.minSpend.toLocaleString("id-ID")})`);
+    } catch (eKupon) {}
+
+    // Riwayat percakapan singkat (maks 6 pesan terakhir) agar Kiko ingat konteks
+    let konteksRiwayat = "";
+    if (Array.isArray(riwayatChat) && riwayatChat.length > 0) {
+      konteksRiwayat = riwayatChat.slice(-6).map(h => {
+        const siapa = h && h.role === "user" ? "Pelanggan" : "Kiko";
+        return `${siapa}: ${String((h && h.text) || "").slice(0, 300)}`;
+      }).join("\n");
     }
 
     let daftarTarif = [];
@@ -2229,16 +2257,23 @@ Format Gaya Balasan yang WAJIB Kamu Gunakan:
 5. Berikan rekomendasi produk alternatif jika stok kosong atau tawarkan promo terkait.
 6. Berikan petunjuk belanja: "Barang ini bisa langsung dipesan lewat website resmi Toko Delina nggih kak."
 7. Jangan pernah mengarang harga atau stok di luar data katalog yang diberikan!
-8. Akhiri balasan dengan doa keberkahan khas Delina:
+8. Toko Delina kini fokus pada 4 Kategori Resmi: ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman.
+   Jika pelanggan menyebut istilah lama ("sembako", "dapur", "makanan & minuman"), arahkan ke kategori resmi yang sesuai (sembako/dapur/snack -> Kelontongan, minuman -> Minuman).
+9. Jika pelanggan baru bingung cara belanja, jelaskan singkat 4 langkah: pilih barang -> masukkan keranjang -> checkout (pilih Ambil di Toko / Diantar Kurir + jam) -> bayar QRIS/Transfer, lalu lacak pesanan dengan nomor nota.
+10. Jika ada kupon promo aktif yang relevan, tawarkan dengan sopan.
+11. Akhiri balasan dengan doa keberkahan khas Delina:
    "Semoga Allah memberkahi segala urusan dan aktivitas kakak hari ini. Barakallahu fiik. 🤲✨"
 
-DATA KATALOG ATK REAL-TIME TOKO DELINA:
+DATA KATALOG REAL-TIME TOKO DELINA (Google Sheets):
 ${contextKatalog}
 
 DATA TARIF JASA FOTOKOPI & CETAK:
 ${contextTarif}
 
-Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elegan, dan sangat nyaman dibaca di layar HP.`;
+KUPON PROMO AKTIF:
+${daftarKupon.length ? daftarKupon.join("\n") : "- (Belum ada kupon aktif)"}
+${konteksRiwayat ? "\nRIWAYAT PERCAKAPAN SEBELUMNYA:\n" + konteksRiwayat + "\n" : ""}
+Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elegan, ringkas (maks. ~12 baris), dan sangat nyaman dibaca di layar HP.`;
 
     if (!geminiApiKey) {
       return fallbackKikoLocal(pesanUser, daftarStok);
@@ -2297,7 +2332,10 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
 Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋
 
 Ada yang bisa Kiko bantu cekkan hari ini?
-• 📦 *Ketersediaan Stok:* Kertas HVS, buku, pulpen, map, dll.
+• ✏️ *ATK & Kantor:* Kertas HVS, buku, pulpen, stapler, dll.
+• 💄 *Kosmetik & Cantik:* Deodorant, micellar water, sunscreen, dll.
+• 🛒 *Kelontongan:* Minyak goreng, beras, gula, mie instan, deterjen, dll.
+• 🥤 *Minuman:* Air mineral, teh, kopi, susu UHT, dll.
 • 📄 *Tarif Fotokopi:* Cetak hitam-putih, cetak warna, jilid skripsi
 • 🚚 *Pemesanan Cepat:* Ambil di toko atau diantar kurir
 
@@ -2343,7 +2381,7 @@ Wa'alaikumsalam Warahmatullahi Wabarakatuh kak.
 Afwan, untuk kata kunci *"${kataKunci}"* saat ini belum kami temukan di katalog etalase Toko Delina.
 
 💡 *Saran Kiko:*
-Coba gunakan nama umum barang (misal: *kertas*, *buku*, *pulpen*, *map*, *stapler*), atau kakak bisa hubungi langsung Admin Pemilik Toko untuk konfirmasi stok di gudang.
+Coba gunakan nama umum barang (misal: *pulpen*, *deodorant*, *minyak goreng*, *teh*), atau sebut kategorinya (*ATK & Kantor*, *Kosmetik & Cantik*, *Kelontongan*, *Minuman*). Kakak juga bisa hubungi langsung Admin Toko untuk konfirmasi stok di gudang.
 
 _Semoga berkah selalu urusannya nggih kak._ 🤲✨`;
 }

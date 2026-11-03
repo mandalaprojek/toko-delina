@@ -3140,6 +3140,10 @@
     };
 
     function normalizeStoreCategory(rawCategory, productName = "") {
+  // 0. Hormati kategori resmi yang sudah tertulis persis di Google Sheets
+  const OFFICIAL_CATS = ["ATK & Kantor", "Kosmetik & Cantik", "Kelontongan", "Minuman"];
+  const exactCat = OFFICIAL_CATS.find(c => c.toLowerCase() === String(rawCategory || "").trim().toLowerCase());
+  if (exactCat) return exactCat;
       const cat = String(rawCategory || "").toLowerCase();
       const name = String(productName || "").toLowerCase();
       const combined = `${cat} ${name}`;
@@ -3162,7 +3166,7 @@
         "lux", "pantene", "sunsilk", "clear", "shoulders", "pepsodent", "ciptadent",
         "close up", "listerine", "charm", "laurier", "kodomo", "my baby", "kayu putih",
         "freshcare", "tolak angin", "salonpas", "hansaplast", "betadine", "deodorant",
-        "roll on", "serum", "micellar", "sunscreen", "lip", "bedak", "parfum", "shampo",
+        "roll on", "serum", "micellar", "sunscreen", "lipstik", "lipstick", "lip balm", "lip cream", "lip tint", "bedak", "parfum", "shampo",
         "sabun mandi", "body wash", "pasta gigi"
       ];
       if (cat.includes("kosmetik") || cat.includes("cantik") || cat.includes("perawatan") || kosmetikKeywords.some(k => combined.includes(k))) {

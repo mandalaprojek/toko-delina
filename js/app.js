@@ -372,6 +372,10 @@ function fileToBase64(file) {
 
 // Helper Normalisasi Kategori ke 4 Kategori Resmi (ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman)
 function normalizeStoreCategory(rawCategory, productName = "") {
+  // 0. Hormati kategori resmi yang sudah tertulis persis di Google Sheets
+  const OFFICIAL_CATS = ["ATK & Kantor", "Kosmetik & Cantik", "Kelontongan", "Minuman"];
+  const exactCat = OFFICIAL_CATS.find(c => c.toLowerCase() === String(rawCategory || "").trim().toLowerCase());
+  if (exactCat) return exactCat;
   const cat = String(rawCategory || "").toLowerCase();
   const name = String(productName || "").toLowerCase();
   const combined = `${cat} ${name}`;
@@ -396,7 +400,7 @@ function normalizeStoreCategory(rawCategory, productName = "") {
     "lux", "pantene", "sunsilk", "clear", "shoulders", "pepsodent", "ciptadent",
     "close up", "listerine", "charm", "laurier", "kodomo", "my baby", "kayu putih",
     "freshcare", "tolak angin", "salonpas", "hansaplast", "betadine", "deodorant",
-    "roll on", "serum", "micellar", "sunscreen", "lip", "bedak", "parfum", "shampo",
+    "roll on", "serum", "micellar", "sunscreen", "lipstik", "lipstick", "lip balm", "lip cream", "lip tint", "bedak", "parfum", "shampo",
     "sabun mandi", "body wash", "pasta gigi"
   ];
   if (cat.includes("kosmetik") || cat.includes("cantik") || cat.includes("perawatan") || kosmetikKeywords.some(k => combined.includes(k))) {
@@ -3038,8 +3042,11 @@ function updateLacakProgressSteps(status) {
 function openKikoChat() {
   const modal = document.getElementById("kikoChatModal");
   if (modal) {
+    initKikoChat();
     modal.classList.remove("hidden");
     if (typeof pushModalState === "function") pushModalState("kikoChatModal");
+    const kikoMsgs = document.getElementById("kikoChatMessages");
+    if (kikoMsgs) kikoMsgs.scrollTop = kikoMsgs.scrollHeight;
   }
 }
 
@@ -3071,6 +3078,406 @@ function toggleKikoChat() {
 
 let isKikoThinking = false;
 
+// -------------------------------------------------------------------------
+// KIKO v2 - Asisten Belanja Pintar (Sinkron 4 Kategori Resmi + Google Sheets)
+// Fitur baru:
+//  1. Kartu Produk Interaktif (foto, harga, stok + tombol "+ Keranjang") di chat
+//  2. Panduan Pelanggan Baru 4 Langkah + Menu Kategori Bergambar
+//  3. Lacak Status Pesanan langsung di chat (nota otomatis dari pesanan terakhir)
+//  4. Paket Belanja Hemat Sesuai Budget ("paket sekolah 50rb") + Masukkan Semua
+//  5. Info Kupon Promo Aktif + Salin Kode, Ringkasan Keranjang + Checkout
+//  6. Input Suara (Bahasa Indonesia), Riwayat Chat Tersimpan & Ingatan Konteks AI
+// -------------------------------------------------------------------------
+const KIKO_HISTORY_KEY = "delina_kiko_chat_history_v2";
+const KIKO_MAX_HISTORY = 40;
+let kikoHistory = [];
+let kikoInitialized = false;
+
+// Peta kata kunci -> 4 Kategori Resmi (termasuk istilah lama agar tetap dipahami)
+const KIKO_CATEGORY_KEYWORDS = {
+  "ATK & Kantor": ["atk", "kantor", "alat tulis", "sekolah", "tulis", "kuliah", "ujian"],
+  "Kosmetik & Cantik": ["kosmetik", "cantik", "skincare", "kecantikan", "perawatan", "makeup", "glowing"],
+  "Kelontongan": ["kelontong", "kelontongan", "sembako", "dapur", "bahan pokok", "rumah tangga", "warung", "masak"],
+  "Minuman": ["minuman", "minum", "haus", "makanan & minuman", "makanan dan minuman", "segar"]
+};
+
+const KIKO_CATEGORY_ICON = {
+  "ATK & Kantor": "✏️",
+  "Kosmetik & Cantik": "💄",
+  "Kelontongan": "🛒",
+  "Minuman": "🥤"
+};
+
+// Sinonim pencarian agar bahasa sehari-hari pelanggan tetap ketemu barangnya
+const KIKO_SYNONYMS = {
+  "hvs": ["kertas"], "kertas": ["hvs"], "pena": ["pulpen"], "bolpoin": ["pulpen"], "bolpen": ["pulpen"],
+  "pulpen": ["pen"], "tipex": ["tipe-x", "correction"], "tipe": ["tipe-x"], "steples": ["stapler", "staples"],
+  "deodoran": ["deodorant"], "ketek": ["deodorant"], "sabun": ["sabun", "wash"], "cuci": ["cuci", "wash"],
+  "mie": ["indomie", "mi"], "mi": ["indomie"], "migor": ["minyak"], "minyak": ["minyak"],
+  "air": ["mineral"], "aqua": ["mineral"], "jus": ["jus", "pulpy"], "kopi": ["kopi"], "teh": ["teh"],
+  "susu": ["susu", "uht"], "beras": ["beras"], "gula": ["gula"], "sunblock": ["sunscreen"], "tabir": ["sunscreen"],
+  "pembersih": ["micellar", "wash"], "pelembab": ["moisturizer", "cream"], "detergen": ["deterjen"]
+};
+
+const KIKO_STOP_WORDS = [
+  "ada", "apakah", "apa", "punya", "jual", "mau", "beli", "tanya", "kak", "kiko", "bisa", "berapa", "harga",
+  "stok", "delina", "toko", "assalamu", "alaikum", "assalamualaikum", "halo", "hai", "selamat", "pagi", "siang",
+  "sore", "malam", "dong", "ya", "yang", "untuk", "buat", "saya", "aku", "min", "admin", "tolong", "cari",
+  "carikan", "ga", "gak", "nggak", "tidak", "dan", "atau", "di", "ke", "dari", "ini", "itu", "nya", "sih",
+  "rekomendasi", "bagus", "murah", "mana", "info", "cek", "masih", "sedia", "tersedia", "produk", "barang",
+  "tampilkan", "lihat", "terlaris", "kategori", "semua", "kasih", "minta", "butuh", "perlu", "lagi"
+];
+
+function kikoNormalize(text) {
+  return String(text || "").toLowerCase().replace(/[^a-z0-9&\s\-]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function kikoGetProducts() {
+  return Array.isArray(DUMMY_PRODUCTS) ? DUMMY_PRODUCTS : [];
+}
+
+function kikoFindProduct(id) {
+  return kikoGetProducts().find(p => String(p.id) === String(id));
+}
+
+function kikoDetectCategory(q) {
+  for (const cat in KIKO_CATEGORY_KEYWORDS) {
+    if (KIKO_CATEGORY_KEYWORDS[cat].some(k => q.includes(k))) return cat;
+  }
+  return null;
+}
+
+function kikoSearchProducts(q, limit = 4) {
+  const categoryWords = Object.values(KIKO_CATEGORY_KEYWORDS).flat();
+  let tokens = kikoNormalize(q).split(" ").filter(w => w.length >= 2 && !KIKO_STOP_WORDS.includes(w) && !categoryWords.includes(w));
+  if (tokens.length === 0) return [];
+  // Sinonim hanya dicocokkan per kata utuh agar tidak salah tangkap (mis. "pen" vs "pengganti")
+  const original = new Set(tokens);
+  const synonyms = new Set();
+  tokens.forEach(t => (KIKO_SYNONYMS[t] || []).forEach(s => { if (!original.has(s)) synonyms.add(s); }));
+
+  const scored = kikoGetProducts().map(p => {
+    const name = kikoNormalize(p.name);
+    const words = name.split(" ");
+    let score = 0;
+    original.forEach(t => {
+      if (words.includes(t)) score += 3;
+      else if (t.length >= 3 && name.includes(t)) score += 2;
+    });
+    synonyms.forEach(s => {
+      if (words.includes(s)) score += 2;
+    });
+    return { p, score };
+  }).filter(x => x.score >= 2);
+
+  scored.sort((a, b) => b.score - a.score || (b.p.sold || 0) - (a.p.sold || 0));
+  return scored.slice(0, limit).map(x => x.p);
+}
+
+function kikoTopProductsByCategory(cat, limit = 4) {
+  return kikoGetProducts()
+    .filter(p => normalizeStoreCategory(p.category, p.name) === cat)
+    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+    .slice(0, limit);
+}
+
+function kikoParseBudget(q) {
+  const m = q.match(/(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(ribu|rb|k|jt|juta)?(?![a-z])/i);
+  if (!m) return 0;
+  let num = parseInt(m[1].replace(/[.,]/g, ""), 10);
+  const unit = (m[2] || "").toLowerCase();
+  if (unit === "ribu" || unit === "rb" || unit === "k") num *= 1000;
+  else if (unit === "jt" || unit === "juta") num *= 1000000;
+  else if (num < 1000) num *= 1000;
+  return num >= 5000 ? num : 0;
+}
+
+function kikoMemberName() {
+  try {
+    if (typeof currentMemberSession !== "undefined" && currentMemberSession && currentMemberSession.name) {
+      return String(currentMemberSession.name).split(" ")[0];
+    }
+  } catch (e) {}
+  return "";
+}
+
+// ---------- Penyimpanan Riwayat Chat ----------
+function kikoLoadHistory() {
+  try {
+    const raw = localStorage.getItem(KIKO_HISTORY_KEY);
+    kikoHistory = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(kikoHistory)) kikoHistory = [];
+  } catch (e) {
+    kikoHistory = [];
+  }
+}
+
+function kikoSaveHistory() {
+  try {
+    localStorage.setItem(KIKO_HISTORY_KEY, JSON.stringify(kikoHistory.slice(-KIKO_MAX_HISTORY)));
+  } catch (e) {}
+}
+
+function clearKikoChat() {
+  kikoHistory = [];
+  kikoSaveHistory();
+  const container = document.getElementById("kikoChatMessages");
+  if (container) container.innerHTML = "";
+  kikoRenderWelcome();
+  showToast("Riwayat chat Kiko dibersihkan.", "info");
+}
+
+// ---------- Inisialisasi Widget ----------
+function initKikoChat() {
+  if (kikoInitialized) return;
+  kikoInitialized = true;
+  const container = document.getElementById("kikoChatMessages");
+  if (!container) return;
+
+  // Delegasi klik untuk semua tombol aksi di dalam chat
+  container.addEventListener("click", e => {
+    const btn = e.target.closest("[data-kiko-cmd]");
+    if (btn) {
+      e.preventDefault();
+      kikoRunAction(btn.getAttribute("data-kiko-cmd"), btn);
+    }
+  });
+
+  // Sembunyikan tombol mic jika browser tidak mendukung input suara
+  const micBtn = document.getElementById("kikoMicBtn");
+  if (micBtn && !(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+    micBtn.classList.add("hidden");
+  }
+
+  kikoLoadHistory();
+  container.innerHTML = "";
+  kikoRenderWelcome();
+  kikoHistory.forEach(entry => kikoRenderEntry(entry));
+}
+
+function kikoRenderWelcome() {
+  const nama = kikoMemberName();
+  const sapaan = nama ? `kak *${nama}*` : "kak";
+  kikoRenderEntry({
+    role: "kiko",
+    text: `Assalamu'alaikum Warahmatullahi Wabarakatuh ${sapaan}! 👋\nSaya *Kiko*, asisten belanja Toko Delina. Kiko bisa bantu cari barang, buatkan paket hemat sesuai budget, cek promo, sampai lacak pesanan kakak.\n\nMau mulai dari kategori mana?`,
+    categories: true,
+    actions: [
+      { label: "🧭 Saya Pelanggan Baru", cmd: "ask:Saya pelanggan baru, bagaimana cara belanja?" },
+      { label: "📦 Lacak Pesanan Saya", cmd: "ask:Lacak pesanan saya" }
+    ]
+  }, false);
+}
+
+// ---------- Render Pesan ----------
+function kikoProductCardHtml(p) {
+  const img = typeof formatImageUrl === "function" ? formatImageUrl(p.image) : p.image;
+  const stok = Number(p.stock) || 0;
+  const stokLabel = stok <= 0
+    ? `<span class="text-red-500 font-bold">Stok habis</span>`
+    : (stok <= 5 ? `<span class="text-amber-600 font-bold">Sisa ${stok} ${escapeHtml(p.unit || "")}</span>` : `<span class="text-emerald-600">Stok ${stok} ${escapeHtml(p.unit || "")}</span>`);
+  return `
+    <div class="kiko-product-card flex-shrink-0 w-[132px] bg-white border border-gray-100 rounded-xl overflow-hidden shadow-xs">
+      <button type="button" data-kiko-cmd="detail:${escapeHtml(p.id)}" class="block w-full aspect-square bg-gray-50 overflow-hidden">
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="w-full h-full object-cover"
+          onerror="this.onerror=null;this.src='https://placehold.co/300x300/ecfdf5/047857?text=Delina';" />
+      </button>
+      <div class="p-2 space-y-1">
+        <div class="text-[10px] font-semibold text-gray-700 leading-tight line-clamp-2 min-h-[26px]">${escapeHtml(p.name)}</div>
+        <div class="text-[11px] font-extrabold text-emerald-700">${formatRupiah(p.price)}</div>
+        <div class="text-[9px]">${stokLabel}</div>
+        <button type="button" data-kiko-cmd="add:${escapeHtml(p.id)}" ${stok <= 0 ? "disabled" : ""}
+          class="w-full mt-1 text-[10px] font-bold py-1.5 rounded-lg ${stok <= 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-tokopedia-green hover:bg-emerald-600 text-white active:scale-95"} transition-all">
+          <i class="bi bi-cart-plus"></i> Keranjang
+        </button>
+      </div>
+    </div>`;
+}
+
+function kikoRenderEntry(entry) {
+  const container = document.getElementById("kikoChatMessages");
+  if (!container || !entry) return;
+
+  const wrap = document.createElement("div");
+  if (entry.role === "user") {
+    wrap.className = "flex justify-end gap-2";
+    wrap.innerHTML = `
+      <div class="bg-tokopedia-green text-white p-3 rounded-2xl rounded-tr-none text-xs leading-relaxed max-w-[85%] shadow-xs">
+        ${escapeHtml(entry.text)}
+      </div>`;
+    container.appendChild(wrap);
+    container.scrollTop = container.scrollHeight;
+    return;
+  }
+
+  let extra = "";
+
+  if (entry.categories) {
+    extra += `<div class="grid grid-cols-2 gap-1.5 mt-2">` +
+      Object.keys(KIKO_CATEGORY_ICON).map(cat => `
+        <button type="button" data-kiko-cmd="ask:Tampilkan produk ${escapeHtml(cat)}"
+          class="flex items-center gap-1.5 px-2 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-[10px] font-bold text-emerald-800 text-left transition-colors">
+          <span class="text-sm">${KIKO_CATEGORY_ICON[cat]}</span><span class="leading-tight">${escapeHtml(cat)}</span>
+        </button>`).join("") + `</div>`;
+  }
+
+  const products = (entry.productIds || []).map(kikoFindProduct).filter(Boolean);
+  let cardsHtml = "";
+  if (products.length > 0) {
+    cardsHtml = `<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pl-8 pr-1">${products.map(kikoProductCardHtml).join("")}</div>`;
+  }
+
+  let actionsHtml = "";
+  if (Array.isArray(entry.actions) && entry.actions.length > 0) {
+    actionsHtml = `<div class="flex flex-wrap gap-1.5 pl-8">` + entry.actions.map(a => `
+      <button type="button" data-kiko-cmd="${escapeHtml(a.cmd)}"
+        class="px-2.5 py-1.5 rounded-full bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-[10px] font-bold whitespace-nowrap shadow-xs active:scale-95 transition-all">
+        ${escapeHtml(a.label)}
+      </button>`).join("") + `</div>`;
+  }
+
+  wrap.className = "space-y-2";
+  wrap.innerHTML = `
+    <div class="flex gap-2">
+      <div class="w-6 h-6 rounded-full bg-delina-emerald text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs">K</div>
+      <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 text-gray-700 shadow-xs leading-relaxed max-w-[85%] text-xs">
+        ${formatMarkdown(entry.text)}
+        ${extra}
+      </div>
+    </div>
+    ${cardsHtml}
+    ${actionsHtml}`;
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function kikoPush(entry) {
+  kikoHistory.push(entry);
+  kikoSaveHistory();
+  kikoRenderEntry(entry);
+}
+
+// Kompatibilitas dengan pemanggilan lama
+function appendChatBubble(sender, text) {
+  kikoPush({ role: sender === "user" ? "user" : "kiko", text: text });
+}
+
+// ---------- Aksi Tombol di Chat ----------
+function kikoAddToCart(productId, silent) {
+  const p = kikoFindProduct(productId);
+  if (!p) return false;
+  if ((Number(p.stock) || 0) <= 0) {
+    if (!silent) showToast(`Afwan, stok ${p.name.slice(0, 25)} sedang habis.`, "warning");
+    return false;
+  }
+  addToCart(productId);
+  return true;
+}
+
+function kikoRunAction(cmd, btn) {
+  if (!cmd) return;
+  const idx = cmd.indexOf(":");
+  const type = idx > -1 ? cmd.slice(0, idx) : cmd;
+  const arg = idx > -1 ? cmd.slice(idx + 1) : "";
+
+  switch (type) {
+    case "ask":
+      sendQuickKikoQuestion(arg);
+      break;
+    case "add":
+      kikoAddToCart(arg);
+      break;
+    case "addall": {
+      const ids = arg.split(",").filter(Boolean);
+      let ok = 0;
+      ids.forEach(id => { if (kikoAddToCart(id, true)) ok++; });
+      showToast(`Alhamdulillah, ${ok} barang paket masuk ke keranjang.`);
+      kikoPush({
+        role: "kiko",
+        text: `✅ *${ok} barang* dari paket sudah Kiko masukkan ke keranjang kak. Mau langsung checkout?`,
+        actions: [{ label: "🛍️ Lihat Keranjang", cmd: "cart" }, { label: "💳 Checkout Sekarang", cmd: "checkout" }]
+      });
+      break;
+    }
+    case "detail":
+      closeKikoChat();
+      if (typeof openProductDetailModal === "function") openProductDetailModal(arg);
+      break;
+    case "cat":
+      closeKikoChat();
+      selectCategory(arg);
+      break;
+    case "cart":
+      closeKikoChat();
+      if (typeof setActiveBottomNav === "function") setActiveBottomNav("cart");
+      toggleCartDrawer(true);
+      break;
+    case "checkout":
+      if (!cart || cart.length === 0) {
+        showToast("Keranjang masih kosong kak.", "warning");
+        return;
+      }
+      closeKikoChat();
+      if (typeof openCheckoutModal === "function") openCheckoutModal();
+      break;
+    case "track":
+      closeKikoChat();
+      if (typeof openLacakPesananModal === "function") openLacakPesananModal(arg || undefined);
+      break;
+    case "copy":
+      if (typeof copyToClipboard === "function") copyToClipboard(arg, btn);
+      showToast(`Kode ${arg} tersalin. Tempel saat checkout nggih kak.`);
+      break;
+    case "member":
+      closeKikoChat();
+      if (typeof openMemberModal === "function") openMemberModal();
+      break;
+    case "clear":
+      clearKikoChat();
+      break;
+  }
+}
+
+// ---------- Input Suara (Web Speech API) ----------
+let kikoRecognition = null;
+function startKikoVoiceInput() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showToast("Afwan, browser ini belum mendukung input suara.", "warning");
+    return;
+  }
+  const micBtn = document.getElementById("kikoMicBtn");
+  if (kikoRecognition) {
+    kikoRecognition.stop();
+    return;
+  }
+  kikoRecognition = new SR();
+  kikoRecognition.lang = "id-ID";
+  kikoRecognition.interimResults = true;
+  kikoRecognition.maxAlternatives = 1;
+  const input = document.getElementById("kikoChatInput");
+  if (micBtn) micBtn.classList.add("bg-red-500", "text-white", "animate-pulse");
+  if (input) input.placeholder = "Kiko mendengarkan... silakan bicara";
+
+  kikoRecognition.onresult = ev => {
+    let transcript = "";
+    for (let i = 0; i < ev.results.length; i++) transcript += ev.results[i][0].transcript;
+    if (input) input.value = transcript;
+    if (ev.results[ev.results.length - 1].isFinal) {
+      kikoRecognition.stop();
+      sendKikoMessage();
+    }
+  };
+  kikoRecognition.onerror = () => showToast("Suara belum terdengar jelas, coba lagi nggih kak.", "warning");
+  kikoRecognition.onend = () => {
+    kikoRecognition = null;
+    if (micBtn) micBtn.classList.remove("bg-red-500", "text-white", "animate-pulse");
+    if (input) input.placeholder = "Tanya barang, paket hemat, promo, lacak pesanan...";
+  };
+  kikoRecognition.start();
+}
+
+// ---------- Pengiriman Pesan ----------
 function sendQuickKikoQuestion(questionText) {
   const input = document.getElementById("kikoChatInput");
   if (input) {
@@ -3084,12 +3491,16 @@ async function sendKikoMessage() {
   const messagesContainer = document.getElementById("kikoChatMessages");
   const sendBtn = document.getElementById("kikoSendBtn");
   if (!input || !messagesContainer) return;
+  initKikoChat();
 
   const userText = input.value.trim();
   if (!userText || isKikoThinking) return;
 
+  // Riwayat untuk konteks AI diambil sebelum pesan baru ditambahkan
+  const historyForAI = kikoHistory.slice(-6).map(h => ({ role: h.role, text: h.text }));
+
   // 1. Tampilkan Bubble Pengguna
-  appendChatBubble("user", userText);
+  kikoPush({ role: "user", text: userText });
   input.value = "";
 
   // 2. Tampilkan Indikator Mengetik
@@ -3098,41 +3509,43 @@ async function sendKikoMessage() {
   const typingId = appendTypingIndicator();
 
   try {
-    let kikoReply = "";
-    if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
-      const response = await fetch(CONFIG.GAS_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify({
-          action: "chatKiko",
-          message: userText,
-          sumber: "Web Widget"
-        })
-      });
+    // 3. Coba jawab langsung dengan mesin pintar lokal (data katalog live dari Google Sheets)
+    let reply = await kikoHandleLocalIntent(userText);
 
-      if (response.ok) {
-        const json = await response.json();
-        if (json && json.reply) {
-          kikoReply = json.reply;
+    // 4. Pertanyaan bebas -> Gemini AI di backend (dengan ingatan percakapan)
+    if (!reply && typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
+      try {
+        const response = await fetch(CONFIG.GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "chatKiko",
+            message: userText,
+            sumber: "Web Widget",
+            history: historyForAI
+          })
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.reply) {
+            const related = kikoSearchProducts(userText, 4);
+            reply = { text: json.reply, productIds: related.map(p => p.id) };
+          }
         }
+      } catch (errApi) {
+        console.warn("Kiko live error, using smart fallback:", errApi);
       }
     }
 
-    // Jika belum ada balasan dari API, berikan balasan cerdas lokal berbasis stok
-    if (!kikoReply) {
-      kikoReply = generateLocalKikoReply(userText);
-    }
+    // 5. Cadangan cerdas lokal
+    if (!reply) reply = generateLocalKikoReply(userText);
 
     removeTypingIndicator(typingId);
-    appendChatBubble("kiko", kikoReply);
-
+    kikoPush(Object.assign({ role: "kiko" }, typeof reply === "string" ? { text: reply } : reply));
   } catch (err) {
-    console.warn("Kiko live error, using smart fallback:", err);
+    console.warn("Kiko error, using smart fallback:", err);
     removeTypingIndicator(typingId);
-    const fallback = generateLocalKikoReply(userText);
-    appendChatBubble("kiko", fallback);
+    kikoPush({ role: "kiko", text: generateLocalKikoReply(userText) });
   } finally {
     isKikoThinking = false;
     if (sendBtn) sendBtn.disabled = false;
@@ -3140,31 +3553,222 @@ async function sendKikoMessage() {
   }
 }
 
-function appendChatBubble(sender, text) {
-  const container = document.getElementById("kikoChatMessages");
-  if (!container) return;
+// ---------- Mesin Intent Lokal ----------
+async function kikoHandleLocalIntent(userText) {
+  const q = kikoNormalize(userText);
+  const raw = String(userText || "");
 
-  const bubbleDiv = document.createElement("div");
-  if (sender === "user") {
-    bubbleDiv.className = "flex justify-end gap-2";
-    bubbleDiv.innerHTML = `
-      <div class="bg-tokopedia-green text-white p-3 rounded-2xl rounded-tr-none text-xs leading-relaxed max-w-[85%] shadow-xs">
-        ${escapeHtml(text)}
-      </div>
-    `;
-  } else {
-    bubbleDiv.className = "flex gap-2";
-    const formattedText = formatMarkdown(text);
-    bubbleDiv.innerHTML = `
-      <div class="w-6 h-6 rounded-full bg-delina-emerald text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs">K</div>
-      <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 text-gray-700 shadow-xs leading-relaxed max-w-[85%] text-xs">
-        ${formattedText}
-      </div>
-    `;
+  // A. Panduan Pelanggan Baru
+  if (/(pelanggan baru|cara (belanja|beli|pesan|order|checkout|bayar)|bagaimana (belanja|pesan|beli|order)|panduan|tutorial|baru pertama)/.test(q)) {
+    return {
+      text: `🧭 *Panduan Belanja Toko Delina (4 Langkah Mudah)*\n━━━━━━━━━━━━━━━━━━━━\n*1. Pilih Barang* — cari lewat kategori atau tanya Kiko langsung.\n*2. Masukkan Keranjang* — tekan tombol *+ Keranjang* (bisa langsung dari chat ini).\n*3. Checkout* — pilih *Ambil Sendiri di Toko* (gratis) atau *Diantar Kurir Toko*, lalu pilih jam pengambilan/pengantaran.\n*4. Bayar & Lacak* — bayar via *QRIS / Transfer*, simpan nomor nota untuk melacak status pesanan.\n\n🎁 Daftar *Member VIP* gratis untuk kumpulkan poin & hadiah. Upload KTP berpeluang dapat *Voucher Rahasia*!`,
+      categories: true,
+      actions: [
+        { label: "🎒 Paket Sekolah 50rb", cmd: "ask:Buatkan paket sekolah budget 50 ribu" },
+        { label: "🎟️ Promo Hari Ini", cmd: "ask:Ada promo apa hari ini?" },
+        { label: "👑 Daftar Member", cmd: "member" }
+      ]
+    };
   }
 
-  container.appendChild(bubbleDiv);
-  container.scrollTop = container.scrollHeight;
+  // B. Lacak Pesanan
+  const notaMatch = raw.toUpperCase().match(/#?DLN-[A-Z0-9-]{4,}/);
+  if (notaMatch || /(lacak|status pesanan|pesanan saya|cek pesanan|pesananku|orderan|resi|nota saya|sudah sampai|kapan (siap|diantar|sampai))/.test(q)) {
+    return await kikoTrackOrder(notaMatch ? notaMatch[0] : "");
+  }
+
+  // C. Ringkasan Keranjang
+  if (/(keranjang|total belanja|isi troli|troli saya|cart)/.test(q) && !/(cara|bagaimana)/.test(q)) {
+    if (!cart || cart.length === 0) {
+      return {
+        text: "🛒 Keranjang kakak masih kosong. Yuk Kiko bantu pilihkan barang terlaris!",
+        categories: true
+      };
+    }
+    const total = cart.reduce((s, it) => s + it.price * it.qty, 0);
+    const lines = cart.slice(0, 8).map(it => `• ${it.name.slice(0, 38)} × ${it.qty} = *${formatRupiah(it.price * it.qty)}*`).join("\n");
+    return {
+      text: `🛒 *Isi Keranjang Kakak*\n━━━━━━━━━━━━━━━━━━━━\n${lines}${cart.length > 8 ? `\n• ...dan ${cart.length - 8} barang lainnya` : ""}\n━━━━━━━━━━━━━━━━━━━━\n💰 *Subtotal: ${formatRupiah(total)}*`,
+      actions: [{ label: "🛍️ Buka Keranjang", cmd: "cart" }, { label: "💳 Checkout", cmd: "checkout" }, { label: "🎟️ Cek Kupon", cmd: "ask:Ada promo apa hari ini?" }]
+    };
+  }
+
+  // D. Paket Belanja Hemat Sesuai Budget
+  const budget = kikoParseBudget(q);
+  if (/(paket|bundle|budget|bujet|modal|uang|duit|hemat)/.test(q) && (budget > 0 || /paket/.test(q))) {
+    return kikoBuildBundle(q, budget || 100000);
+  }
+
+  // E. Promo & Kupon
+  if (/(promo|kupon|voucher|diskon|potongan|kode)/.test(q)) {
+    const coupons = Object.values(typeof PROMO_COUPONS === "object" ? PROMO_COUPONS : {});
+    if (coupons.length === 0) {
+      return "🎟️ Afwan kak, saat ini belum ada kupon promo aktif. InsyaAllah segera hadir promo berkah berikutnya!";
+    }
+    const lines = coupons.slice(0, 6).map(c => `🏷️ *${c.code}* — ${c.desc || ""}`).join("\n");
+    return {
+      text: `🎟️ *Kupon Promo Aktif Toko Delina*\n━━━━━━━━━━━━━━━━━━━━\n${lines}\n\nTekan tombol kode untuk *menyalin*, lalu tempel di kolom kupon saat checkout nggih kak.`,
+      actions: coupons.slice(0, 6).map(c => ({ label: `📋 ${c.code}`, cmd: `copy:${c.code}` }))
+    };
+  }
+
+  // F. Tarif Fotokopi & Cetak (data live dari Tab Tarif_Fotokopi)
+  if (/(fotokopi|foto kopi|fotocopy|cetak|print|jilid|scan dokumen)/.test(q)) {
+    const t = typeof LIVE_TARIF === "object" ? LIVE_TARIF : {};
+    return `🖨️ *Tarif Fotokopi & Cetak Toko Delina*\n━━━━━━━━━━━━━━━━━━━━\n• Hitam-Putih A4: *${formatRupiah(t.PRINT_BW_A4 || 250)}*/lbr\n• Warna A4: *${formatRupiah(t.PRINT_COLOR_A4 || 1000)}*/lbr\n• Hitam-Putih F4: *${formatRupiah(t.PRINT_BW_F4 || 300)}*/lbr\n• Warna F4: *${formatRupiah(t.PRINT_COLOR_F4 || 1200)}*/lbr\n• Jilid Lakban: *${formatRupiah(t.JILID_LAKBAN || 4000)}*\n• Jilid Spiral: *${formatRupiah(t.JILID_SPIRAL || 10000)}*\n\nKakak bisa upload dokumen & hitung estimasi di menu *Fotokopi* tanpa antre nggih.`;
+  }
+
+  // G. Pencarian Produk (prioritas nama barang spesifik)
+  const found = kikoSearchProducts(q, 4);
+  if (found.length > 0) {
+    const top = found[0];
+    const habis = (Number(top.stock) || 0) <= 0;
+    return {
+      text: habis
+        ? `Afwan kak, *${top.name}* sedang *habis*. Berikut alternatif yang tersedia di Toko Delina 👇`
+        : `Alhamdulillah, Kiko menemukan *${found.length} barang* yang cocok di etalase Toko Delina 👇\nTekan *Keranjang* untuk langsung pesan, atau tekan fotonya untuk lihat detail.`,
+      productIds: habis ? kikoTopProductsByCategory(normalizeStoreCategory(top.category, top.name), 4).filter(p => (Number(p.stock) || 0) > 0).map(p => p.id) : found.map(p => p.id),
+      actions: [{ label: "🛍️ Lihat Keranjang", cmd: "cart" }]
+    };
+  }
+
+  // H. Kategori (termasuk istilah lama: sembako/dapur -> Kelontongan, makanan & minuman -> Minuman)
+  const cat = kikoDetectCategory(q);
+  if (cat) {
+    const list = kikoTopProductsByCategory(cat, 6);
+    if (list.length > 0) {
+      return {
+        text: `${KIKO_CATEGORY_ICON[cat]} *Produk Terlaris Kategori ${cat}*\nBerikut pilihan favorit pelanggan Toko Delina 👇`,
+        productIds: list.map(p => p.id),
+        actions: [{ label: `📂 Lihat Semua ${cat}`, cmd: `cat:${cat}` }]
+      };
+    }
+  }
+
+  // I. Sapaan singkat
+  if (q.split(" ").length <= 4 && /\b(assalamu\w*|halo|hai|hallo|pagi|siang|sore|malam|permisi|hi)\b/.test(q)) {
+    return {
+      text: "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 😊 Ada yang bisa Kiko bantu hari ini? Pilih kategori di bawah atau ketik nama barang yang dicari.",
+      categories: true
+    };
+  }
+
+  return null; // Serahkan ke Gemini AI
+}
+
+async function kikoTrackOrder(notaInput) {
+  let nota = String(notaInput || "").trim().toUpperCase();
+  const history = typeof getCustomerOrdersFromLocalHistory === "function" ? getCustomerOrdersFromLocalHistory() : [];
+  if (!nota) nota = localStorage.getItem("delina_last_order_id") || (history[0] && history[0].orderId) || "";
+  if (!nota) {
+    return {
+      text: "📦 Kiko belum menemukan pesanan di perangkat ini kak. Silakan ketik nomor nota kakak (contoh: *#DLN-2026-XXXX*) agar Kiko cekkan statusnya.",
+      actions: [{ label: "🔎 Buka Lacak Pesanan", cmd: "track:" }]
+    };
+  }
+  if (!nota.startsWith("#")) nota = "#" + nota;
+
+  let order = null;
+  if (typeof CONFIG !== "undefined" && CONFIG.GAS_API_URL) {
+    try {
+      const res = await fetch(`${CONFIG.GAS_API_URL}?action=trackOrder&nota=${encodeURIComponent(nota)}`);
+      const json = await res.json();
+      if (json && json.status === "success" && json.found && json.order) {
+        order = {
+          orderId: json.order.orderId,
+          status: json.order.status,
+          total: typeof json.order.total === "number" ? formatRupiah(json.order.total) : String(json.order.total || "-"),
+          deliveryMethod: json.order.deliveryMethod,
+          time: json.order.timestamp
+        };
+      }
+    } catch (e) {
+      console.warn("Kiko trackOrder notice:", e);
+    }
+  }
+  if (!order) {
+    const local = history.find(o => String(o.orderId || "").replace(/#/g, "") === nota.replace(/#/g, ""));
+    if (local) {
+      order = { orderId: local.orderId, status: local.status, total: local.total, deliveryMethod: local.deliveryMethod, time: local.orderTime };
+    }
+  }
+  if (!order) {
+    return {
+      text: `🔎 Afwan kak, nota *${nota}* belum ditemukan. Pastikan nomor nota sudah benar ya, atau hubungi Admin Toko via WhatsApp.`,
+      actions: [{ label: "🔎 Buka Lacak Pesanan", cmd: "track:" }]
+    };
+  }
+
+  const st = String(order.status || "Menunggu Verifikasi Toko");
+  const sl = st.toLowerCase();
+  let icon = "⏳", tip = "Pesanan sedang menunggu verifikasi admin toko.";
+  if (sl.includes("proses") || sl.includes("dikemas")) { icon = "📦"; tip = "Pesanan sedang disiapkan oleh tim Toko Delina."; }
+  if (sl.includes("siap") || sl.includes("diantar") || sl.includes("kirim")) { icon = "🚚"; tip = "Pesanan siap diambil / sedang diantar kurir toko."; }
+  if (sl.includes("selesai")) { icon = "✅"; tip = "Alhamdulillah, pesanan sudah selesai. Terima kasih sudah berbelanja!"; }
+  if (sl.includes("batal")) { icon = "❌"; tip = "Pesanan dibatalkan. Hubungi admin bila ada pertanyaan."; }
+
+  return {
+    text: `${icon} *Status Pesanan ${order.orderId}*\n━━━━━━━━━━━━━━━━━━━━\n• Status: *${st}*\n• Metode: ${order.deliveryMethod || "-"}\n• Total: *${order.total || "-"}*\n• Waktu: ${typeof formatWaktuWIB === "function" ? formatWaktuWIB(order.time) : (order.time || "-")}\n\n💡 ${tip}`,
+    actions: [{ label: "📲 Lihat QR Pengambilan", cmd: `track:${order.orderId}` }]
+  };
+}
+
+function kikoBuildBundle(q, budget) {
+  let cat = kikoDetectCategory(q);
+  let tema = "Campuran Kebutuhan Harian";
+  if (/(skincare|glowing|cantik|kosmetik|wajah|mandi)/.test(q)) cat = "Kosmetik & Cantik";
+  if (cat === "ATK & Kantor") tema = "Perlengkapan Sekolah & Kantor";
+  else if (cat === "Kosmetik & Cantik") tema = "Perawatan & Kecantikan";
+  else if (cat === "Kelontongan") tema = "Kebutuhan Dapur & Rumah";
+  else if (cat === "Minuman") tema = "Minuman Segar";
+
+  let pool = kikoGetProducts().filter(p => (Number(p.stock) || 0) > 0);
+  if (cat) {
+    pool = pool.filter(p => normalizeStoreCategory(p.category, p.name) === cat);
+  }
+  pool.sort((a, b) => (b.sold || 0) - (a.sold || 0));
+
+  // Jika campuran: ambil bergiliran dari setiap kategori agar bervariasi
+  if (!cat) {
+    const byCat = {};
+    pool.forEach(p => {
+      const c = normalizeStoreCategory(p.category, p.name);
+      (byCat[c] = byCat[c] || []).push(p);
+    });
+    const mixed = [];
+    let added = true;
+    for (let i = 0; added; i++) {
+      added = false;
+      Object.keys(byCat).forEach(c => {
+        if (byCat[c][i]) { mixed.push(byCat[c][i]); added = true; }
+      });
+    }
+    pool = mixed;
+  }
+
+  const picked = [];
+  let total = 0;
+  pool.forEach(p => {
+    if (picked.length < 6 && total + p.price <= budget) {
+      picked.push(p);
+      total += p.price;
+    }
+  });
+
+  if (picked.length === 0) {
+    const cheapest = pool.slice().sort((a, b) => a.price - b.price)[0];
+    return `Afwan kak, budget *${formatRupiah(budget)}* belum cukup untuk paket ${tema}.${cheapest ? ` Barang termurah saat ini *${cheapest.name}* seharga *${formatRupiah(cheapest.price)}*.` : ""}`;
+  }
+
+  const lines = picked.map(p => `• ${p.name.slice(0, 40)} — *${formatRupiah(p.price)}*`).join("\n");
+  return {
+    text: `🎁 *Paket Hemat ${tema}*\nBudget: *${formatRupiah(budget)}*\n━━━━━━━━━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━━━━━━━━━\n💰 *Total: ${formatRupiah(total)}* (sisa ${formatRupiah(budget - total)})\n\nTekan *Masukkan Semua* untuk langsung memasukkan paket ke keranjang.`,
+    productIds: picked.map(p => p.id),
+    actions: [
+      { label: "🛒 Masukkan Semua ke Keranjang", cmd: `addall:${picked.map(p => p.id).join(",")}` },
+      { label: "🔁 Paket Lain", cmd: `ask:Buatkan paket ${cat === "Kelontongan" ? "minuman" : "dapur"} budget ${Math.round(budget / 1000)} ribu` }
+    ]
+  };
 }
 
 function appendTypingIndicator() {
@@ -3196,23 +3800,23 @@ function removeTypingIndicator(id) {
 }
 
 function generateLocalKikoReply(userText) {
-  const q = userText.toLowerCase();
+  const q = kikoNormalize(userText);
 
-  if (q.includes("assalamu") || q.includes("halo") || q.includes("hai") || q.includes("pagi") || q.includes("siang")) {
-    return "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! Ada yang bisa Kiko bantu terkait belanja perlengkapan ATK atau jasa fotokopi hari ini? InsyaAllah Toko Delina siap melayani.";
+  if (/(assalamu|halo|hai|pagi|siang|sore|malam)/.test(q)) {
+    return {
+      text: "Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! Ada yang bisa Kiko bantu terkait belanja ATK, kosmetik, kelontongan, atau minuman hari ini? InsyaAllah Toko Delina siap melayani.",
+      categories: true
+    };
   }
 
-  if (q.includes("fotokopi") || q.includes("cetak") || q.includes("print") || q.includes("jilid")) {
-    return "Alhamdulillah untuk layanan fotokopi & cetak di Toko Delina:\n- Hitam-Putih HVS A4: Rp 250 / lbr\n- Warna HVS A4: Rp 1.000 / lbr\n- Jilid Lakban Biasa: Rp 4.000\n- Jilid Spiral: Rp 10.000\n\nKakak bisa langsung hitung estimasi biaya & upload dokumen di menu **Fotokopi** di halaman depan tanpa perlu antre nggih.";
-  }
-
-  const matched = DUMMY_PRODUCTS.filter(p => q.includes(p.name.toLowerCase().slice(0, 10)) || p.category.toLowerCase().split(" ").some(w => q.includes(w)));
-  if (matched.length > 0) {
-    const p = matched[0];
-    return `Alhamdulillah untuk *${p.name}* saat ini tersedia di Toko Delina dengan harga *${formatRupiah(p.price)}* (sisa stok: ${p.stock} ${p.unit}). Apakah ingin Kiko bantu masukkan ke keranjang belanja kak? Semoga berkah belanjanya.`;
-  }
-
-  return "Assalamu'alaikum Warahmatullahi Wabarakatuh kak! Kiko siap membantu cek stok ATK, info harga, dan panduan cetak dokumen di Toko Delina. Kakak bisa menyebutkan nama barang yang dicari, insyaAllah Kiko cekkan ketersediaannya.";
+  return {
+    text: "Afwan kak, Kiko belum menemukan jawaban yang pas. 🙏\nCoba sebut *nama barang* (misal: *pulpen*, *deodorant*, *minyak goreng*, *teh*), pilih kategori di bawah, atau minta *paket hemat* sesuai budget kakak.",
+    categories: true,
+    actions: [
+      { label: "🧭 Cara Belanja", cmd: "ask:Saya pelanggan baru, bagaimana cara belanja?" },
+      { label: "🎟️ Promo", cmd: "ask:Ada promo apa hari ini?" }
+    ]
+  };
 }
 
 function escapeHtml(text) {
@@ -6083,6 +6687,10 @@ if (typeof window !== "undefined") {
   window.closeKikoChat = closeKikoChat;
   window.toggleKikoChat = toggleKikoChat;
   window.sendQuickKikoQuestion = sendQuickKikoQuestion;
+window.sendKikoMessage = sendKikoMessage;
+window.clearKikoChat = clearKikoChat;
+window.startKikoVoiceInput = startKikoVoiceInput;
+window.kikoRunAction = kikoRunAction;
   window.addToCart = addToCart;
   window.updateCartQty = updateCartQty;
   window.calculateFotokopi = calculateFotokopi;

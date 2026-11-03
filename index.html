@@ -694,54 +694,70 @@
           <div>
             <h4 class="text-xs font-bold">Kiko (Asisten AI Delina)</h4>
             <span class="text-[10px] text-emerald-200 flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online • Beradab Islami
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online • Asisten Belanja Pintar
             </span>
           </div>
         </div>
-        <button onclick="closeKikoChat()" class="text-white/80 hover:text-white text-lg">
-          <i class="bi bi-x-lg"></i>
-        </button>
+        <div class="flex items-center gap-1">
+          <button onclick="clearKikoChat()" class="w-8 h-8 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-sm flex items-center justify-center" title="Bersihkan riwayat chat">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+          <button onclick="closeKikoChat()" class="w-8 h-8 rounded-full text-white/80 hover:text-white hover:bg-white/10 text-lg flex items-center justify-center" title="Tutup">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Container Percakapan Kiko Live -->
+      <!-- Container Percakapan Kiko Live (pesan sambutan, kartu produk & riwayat dirender oleh app.js) -->
       <div id="kikoChatMessages"
-        class="p-4 flex-1 overflow-y-auto space-y-3 text-xs bg-gray-50/70 min-h-[260px] max-h-[380px]">
-        <div class="flex gap-2">
-          <div
-            class="w-6 h-6 rounded-full bg-delina-emerald text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs">
-            K</div>
-          <div
-            class="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 text-gray-700 shadow-xs leading-relaxed max-w-[85%]">
-            Assalamu'alaikum Warahmatullahi Wabarakatuh kak! Saya Kiko, asisten toko Delina. Ada yang bisa Kiko bantu
-            terkait stok ATK atau hitungan biaya fotokopi hari ini?
-          </div>
-        </div>
+        class="p-4 flex-1 overflow-y-auto space-y-3 text-xs bg-gray-50/70 min-h-[260px] max-h-[60vh] sm:max-h-[420px]">
       </div>
 
       <!-- Quick Suggestion Chips -->
       <div
         class="px-3 py-1.5 bg-gray-100/70 border-t border-gray-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[10px]">
-        <button type="button" onclick="sendQuickKikoQuestion('Stok kertas HVS A4 ada?')"
+        <button type="button" onclick="sendQuickKikoQuestion('Saya pelanggan baru, bagaimana cara belanja?')"
           class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
-          📄 Stok Kertas HVS
+          🧭 Cara Belanja
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Buatkan paket sekolah budget 50 ribu')"
+          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          🎒 Paket Sekolah 50rb
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Buatkan paket dapur budget 100 ribu')"
+          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          🛒 Paket Dapur 100rb
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Lacak pesanan saya')"
+          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          📦 Lacak Pesanan
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Ada promo apa hari ini?')"
+          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          🎟️ Promo
+        </button>
+        <button type="button" onclick="sendQuickKikoQuestion('Cek isi keranjang saya')"
+          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
+          🛍️ Keranjang
         </button>
         <button type="button" onclick="sendQuickKikoQuestion('Berapa tarif fotokopi warna dan jilid?')"
           class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
-          🖨️ Tarif Fotokopi & Jilid
-        </button>
-        <button type="button" onclick="sendQuickKikoQuestion('Rekomendasi pulpen yang bagus untuk ujian')"
-          class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 hover:border-emerald-400 whitespace-nowrap transition-colors">
-          ✒️ Pulpen Ujian
+          🖨️ Fotokopi
         </button>
       </div>
 
       <!-- Input Chat Kiko -->
       <div class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
-        <input type="text" id="kikoChatInput" placeholder="Tanya stok, harga, atau jasa fotokopi..."
-          class="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white transition-all"
+        <button id="kikoMicBtn" type="button" onclick="startKikoVoiceInput()"
+          class="w-9 h-9 flex-shrink-0 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 flex items-center justify-center transition-all active:scale-95"
+          title="Bicara ke Kiko (input suara)">
+          <i class="bi bi-mic-fill text-sm"></i>
+        </button>
+        <input type="text" id="kikoChatInput" placeholder="Tanya barang, paket hemat, promo, lacak pesanan..."
+          class="flex-1 min-w-0 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-tokopedia-green focus:bg-white transition-all"
           onkeydown="if(event.key === 'Enter') sendKikoMessage()" />
         <button id="kikoSendBtn" onclick="sendKikoMessage()"
-          class="w-9 h-9 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-sm active:scale-95"
+          class="w-9 h-9 flex-shrink-0 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-sm active:scale-95"
           title="Kirim pesan">
           <i class="bi bi-send-fill text-xs"></i>
         </button>
@@ -3068,9 +3084,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261103_01"></script>
-  <script src="./js/printer.js?v=20261103_01"></script>
-  <script src="./js/app.js?v=20261103_01"></script>
+  <script src="./js/config.js?v=20261103_02"></script>
+  <script src="./js/printer.js?v=20261103_02"></script>
+  <script src="./js/app.js?v=20261103_02"></script>
 
 </body>
 
