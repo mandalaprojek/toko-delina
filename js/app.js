@@ -3354,8 +3354,8 @@ function kikoRenderEntry(entry) {
   wrap.className = "space-y-2";
   wrap.innerHTML = `
     <div class="flex gap-2">
-      <div class="w-6 h-6 rounded-full bg-delina-emerald text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs">K</div>
-      <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 text-gray-700 shadow-xs leading-relaxed max-w-[85%] text-xs">
+      <img src="assets/Logo.png" alt="Delina" class="w-6 h-6 rounded-full bg-white p-0.5 object-contain flex-shrink-0 shadow-xs border border-emerald-200" />
+      <div class="bg-white/95 backdrop-blur-xs p-3 rounded-2xl rounded-tl-none border border-emerald-100 text-gray-800 shadow-xs leading-relaxed max-w-[85%] text-xs">
         ${formatMarkdown(entry.text)}
         ${extra}
       </div>
@@ -3871,12 +3871,12 @@ function appendTypingIndicator() {
   typingDiv.id = id;
   typingDiv.className = "flex gap-2 items-center text-xs text-gray-400";
   typingDiv.innerHTML = `
-    <div class="w-6 h-6 rounded-full bg-delina-emerald/70 text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold">K</div>
-    <div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none border border-gray-100 shadow-xs flex items-center gap-1.5">
+    <img src="assets/Logo.png" alt="Delina" class="w-6 h-6 rounded-full bg-white p-0.5 object-contain flex-shrink-0 shadow-xs border border-emerald-200" />
+    <div class="bg-white/95 backdrop-blur-xs px-3 py-2 rounded-2xl rounded-tl-none border border-emerald-100 shadow-xs flex items-center gap-1.5">
       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"></span>
       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style="animation-delay: 0.2s"></span>
       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style="animation-delay: 0.4s"></span>
-      <span class="text-[10px] text-gray-400 ml-1">Kiko sedang berpikir...</span>
+      <span class="text-[10px] text-gray-500 ml-1 font-medium">Kiko sedang berpikir...</span>
     </div>
   `;
   container.appendChild(typingDiv);
@@ -4568,10 +4568,17 @@ function copyModalRekening(btnElement) {
 }
 
 // =========================================================================
-// 17. ANIMASI PETIR CHIDORI SASUKE - TOOLTIP KIKO FLOATING BUTTON
-// Siklus Loop: 4 Detik Tampil - 4 Detik Sembunyi, Pause Saat Hover / Touch
+// 17. ANIMASI GEMINI AI BOX - TOOLTIP KIKO FLOATING BUTTON (3s TAMPIL / 3s KELUAR ROTATING)
+// Siklus Loop: 3 Detik Tampil - 3 Detik Sembunyi, Pause Saat Hover / Touch
 // =========================================================================
 
+const KIKO_ROTATING_MESSAGES = [
+  "Assalamu'alaikum kak! Butuh bantuan belanja ATK & Cetak?",
+  "✨ Mau info promo & diskon berkah hari ini?",
+  "📦 Butuh perlengkapan kantor, kosmetik, atau kelontongan?",
+  "⚡ Pesan sekarang, siap ambil tanpa antre di toko!"
+];
+let kikoMsgIndex = 0;
 let chidoriTimer = null;
 let isChidoriVisible = false;
 let isChidoriPaused = false;
@@ -4593,7 +4600,7 @@ function initChidoriTooltip() {
   tooltip.addEventListener("touchstart", pauseLoop, { passive: true });
   tooltip.addEventListener("touchend", resumeLoop, { passive: true });
 
-  // Mulai siklus petir Chidori pertama setelah 1.2 detik halaman termuat
+  // Mulai siklus Gemini Box pertama setelah 1.2 detik halaman termuat
   setTimeout(() => {
     triggerChidoriCycle();
   }, 1200);
@@ -4601,43 +4608,49 @@ function initChidoriTooltip() {
 
 function triggerChidoriCycle() {
   const tooltip = document.getElementById("kikoFloatingTooltip");
+  const msgEl = document.getElementById("kikoTooltipMessageText");
   if (!tooltip) return;
 
   if (chidoriTimer) clearTimeout(chidoriTimer);
 
   const runCycle = () => {
     if (isChidoriPaused) {
-      // Jika kursor/touch sedang aktif pada balon, tunda pengecekan tiap 800ms
-      chidoriTimer = setTimeout(runCycle, 800);
+      chidoriTimer = setTimeout(runCycle, 600);
       return;
     }
 
     if (!isChidoriVisible) {
-      // FASE MASUK (CHIDORI ENTER): Sambaran Kilat Petir Cyan-White, Tampil Selama 4 Detik
-      tooltip.classList.remove("chidori-exit-active", "chidori-hidden");
-      tooltip.classList.add("chidori-enter-active");
+      // FASE MASUK (GEMINI BOX ENTER): Tampil selama 3 Detik
+      if (msgEl) {
+        msgEl.textContent = KIKO_ROTATING_MESSAGES[kikoMsgIndex % KIKO_ROTATING_MESSAGES.length];
+        kikoMsgIndex++;
+      }
+      tooltip.classList.remove("gemini-hidden", "gemini-exit-active", "chidori-hidden", "chidori-exit-active");
+      tooltip.style.display = "block";
+      void tooltip.offsetWidth; // Force reflow
+      tooltip.classList.add("gemini-enter-active");
       isChidoriVisible = true;
 
       chidoriTimer = setTimeout(() => {
         runCycle();
-      }, 4000);
+      }, 3000);
     } else {
-      // FASE KELUAR (CHIDORI EXIT): Electric Zap Menyusut Masuk Tombol Kiko, Sembunyi Selama 4 Detik
-      tooltip.classList.remove("chidori-enter-active");
-      tooltip.classList.add("chidori-exit-active");
+      // FASE KELUAR (GEMINI BOX EXIT): Menyusut selama 400ms lalu sembunyi 3 Detik
+      tooltip.classList.remove("gemini-enter-active");
+      tooltip.classList.add("gemini-exit-active");
       isChidoriVisible = false;
 
-      // Tunggu animasi exit selesai (450ms) lalu sembunyikan total
       setTimeout(() => {
         if (!isChidoriVisible) {
-          tooltip.classList.remove("chidori-exit-active");
-          tooltip.classList.add("chidori-hidden");
+          tooltip.classList.remove("gemini-exit-active");
+          tooltip.classList.add("gemini-hidden");
+          tooltip.style.display = "none";
         }
-      }, 450);
+      }, 400);
 
       chidoriTimer = setTimeout(() => {
         runCycle();
-      }, 4000 + 450);
+      }, 3000 + 400);
     }
   };
 
@@ -7164,18 +7177,20 @@ window.addEventListener("popstate", (e) => {
 });
 
 // =========================================================================
-// AUTO-CLOSE KEYBOARD (AUTO-BLUR VIRTUAL KEYBOARD ON MOBILE SCROLL/SWIPE)
+// AUTO-CLOSE KEYBOARD & MOBILE INPUT STABILITY (ANTI-MENTAL PADA PONSEL)
 // =========================================================================
 function initAutoCloseKeyboard() {
   let touchStartY = 0;
   let touchStartX = 0;
   let isTouching = false;
+  let touchTarget = null;
 
   window.addEventListener("touchstart", (e) => {
     if (e.touches && e.touches.length > 0) {
       touchStartY = e.touches[0].clientY;
       touchStartX = e.touches[0].clientX;
       isTouching = true;
+      touchTarget = e.target;
     }
   }, { passive: true });
 
@@ -7183,9 +7198,13 @@ function initAutoCloseKeyboard() {
     if (!isTouching || !e.touches || e.touches.length === 0) return;
     const active = document.activeElement;
     if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+      // JANGAN pernah blur jika sentuhan terjadi di dalam modal atau kontrol formulir aktif
+      if (touchTarget && (touchTarget.closest("#kikoChatModal") || touchTarget.closest("#checkoutModal") || touchTarget.closest("#memberModal") || touchTarget.closest(".modal-card") || touchTarget.tagName === "INPUT" || touchTarget.tagName === "TEXTAREA")) {
+        return;
+      }
       const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
       const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
-      if (deltaY > 12 || deltaX > 12) {
+      if (deltaY > 50 && deltaY > deltaX * 2) {
         active.blur();
       }
     }
@@ -7193,14 +7212,22 @@ function initAutoCloseKeyboard() {
 
   window.addEventListener("touchend", () => {
     isTouching = false;
+    touchTarget = null;
   }, { passive: true });
 
-  window.addEventListener("scroll", () => {
-    const active = document.activeElement;
-    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-      active.blur();
+  // Auto-center input saat fokus di ponsel agar tidak tertutup keyboard
+  document.addEventListener("focusin", (e) => {
+    if (e.target && (e.target.id === "kikoChatInput" || e.target.id === "custAddress" || e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) {
+      const modalParent = e.target.closest("#kikoChatModal, #checkoutModal, #memberModal");
+      if (modalParent) {
+        setTimeout(() => {
+          try {
+            e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+          } catch (err) {}
+        }, 320);
+      }
     }
-  }, { passive: true });
+  });
 }
 
 // Inisialisasi auto-close keyboard

@@ -79,7 +79,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261031_01" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261104_01" />
 </head>
 
 <body
@@ -614,31 +614,32 @@
     </div>
   </section>
 
-  <!-- ================= FLOATING BUTTON KIKO AI (POJOK KANAN BAWAH) ================= -->
+  <!-- ================= FLOATING BUTTON KIKO AI DENGAN GEMINI AURA BOX ================= -->
   <div class="fixed bottom-24 right-4 sm:right-6 z-30 flex items-center gap-2">
-    <!-- Balon Dialog Sapaan Kiko (Chidori Lightning Anime Loop) -->
+    <!-- Balon Dialog Sapaan Kiko (Gemini AI Animated Gradient Box 3 Detik Tampil / 3 Detik Keluar) -->
     <div id="kikoFloatingTooltip" onclick="openKikoChat()"
-      class="cursor-pointer items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border-2 border-emerald-200 text-xs text-gray-800 chidori-hidden select-none max-w-[210px] sm:max-w-xs transition-transform"
+      class="gemini-box-wrap shadow-2xl select-none max-w-[230px] sm:max-w-xs cursor-pointer transition-all gemini-hidden"
       title="Klik untuk chat dengan Kiko AI">
-      <div class="flex items-center gap-1.5 leading-snug">
-        <span
-          class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black flex-shrink-0">
-          ⚡
-        </span>
-        <p class="text-[11px] sm:text-xs">
-          <strong class="text-emerald-700 font-extrabold">Kiko:</strong> "Assalamu'alaikum! Butuh bantuan ATK dan
-          Fotokopi?"
-        </p>
+      <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2.5 rounded-[1.15rem] flex items-center gap-2.5">
+        <img src="assets/Logo.png" alt="Delina AI" class="w-6 h-6 rounded-full object-contain flex-shrink-0 bg-white shadow-2xs border border-emerald-200" />
+        <div class="leading-tight min-w-0">
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600">Kiko AI</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          </div>
+          <p id="kikoTooltipMessageText" class="text-[11px] sm:text-xs text-gray-800 dark:text-slate-100 font-semibold line-clamp-2 mt-0.5">
+            Assalamu'alaikum! Butuh bantuan belanja ATK & Cetak?
+          </p>
+        </div>
       </div>
     </div>
 
-    <!-- Tombol Lingkaran Kiko -->
+    <!-- Tombol Lingkaran Kiko dengan Logo Delina Resmi & Gemini Glow Aura -->
     <button onclick="openKikoChat()"
-      class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-delina-emerald to-tokopedia-green text-white flex items-center justify-center text-xl sm:text-2xl shadow-lg hover:scale-105 active:scale-95 transition-all relative border-2 border-white flex-shrink-0"
-      title="Tanya Kiko Asisten AI">
-      <i class="bi bi-chat-quote-fill"></i>
-      <span
-        class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white pulse-badge"></span>
+      class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-white p-1 text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all relative border-2 border-emerald-400 flex-shrink-0 gemini-pulse-glow cursor-pointer"
+      title="Tanya Kiko Asisten AI Delina">
+      <img src="assets/Logo.png" alt="Delina AI" class="w-full h-full object-contain rounded-full" />
+      <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white pulse-badge"></span>
     </button>
   </div>
 
@@ -682,14 +683,14 @@
   <!-- ================= POPUP / WIDGET CHAT KIKO SEMENTARA (PREVIEW FASE 1) ================= -->
   <div id="kikoChatModal" onclick="if(event.target === this) closeKikoChat()"
     class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div
+    <div onclick="event.stopPropagation()"
       class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[85vh]">
       <!-- Header Kiko -->
       <div
         class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-3.5 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-amber-300 font-bold">
-            <i class="bi bi-robot"></i>
+          <div class="w-9 h-9 rounded-full bg-white p-1 flex items-center justify-center shadow-xs border border-emerald-300">
+            <img src="assets/Logo.png" alt="Logo Delina" class="w-full h-full object-contain rounded-full" />
           </div>
           <div>
             <h4 class="text-xs font-bold">Kiko (Asisten AI Delina)</h4>
@@ -699,18 +700,19 @@
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <button onclick="clearKikoChat()" class="w-8 h-8 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-sm flex items-center justify-center" title="Bersihkan riwayat chat">
+          <button onclick="clearKikoChat()" class="w-8 h-8 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-sm flex items-center justify-center cursor-pointer" title="Bersihkan riwayat chat">
             <i class="bi bi-arrow-counterclockwise"></i>
           </button>
-          <button onclick="closeKikoChat()" class="w-8 h-8 rounded-full text-white/80 hover:text-white hover:bg-white/10 text-lg flex items-center justify-center" title="Tutup">
+          <button onclick="closeKikoChat()" class="w-8 h-8 rounded-full text-white/80 hover:text-white hover:bg-white/10 text-lg flex items-center justify-center cursor-pointer" title="Tutup">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
       </div>
 
-      <!-- Container Percakapan Kiko Live (pesan sambutan, kartu produk & riwayat dirender oleh app.js) -->
+      <!-- Container Percakapan Kiko Live (Background Doodle WhatsApp Asli) -->
       <div id="kikoChatMessages"
-        class="p-4 flex-1 overflow-y-auto space-y-3 text-xs bg-gray-50/70 min-h-[260px] max-h-[60vh] sm:max-h-[420px]">
+        class="p-4 flex-1 overflow-y-auto space-y-3 text-xs bg-repeat bg-center min-h-[260px] max-h-[60vh] sm:max-h-[420px]"
+        style="background-image: url('assets/kiko-bg.jpg'); background-size: 320px auto; background-color: #efeae2;">
       </div>
 
       <!-- Bilah Ringkas Keranjang Belanja Mengambang di Chat Kiko (Sticky Mini-Cart Bar) -->
@@ -793,7 +795,7 @@
   <!-- ================= MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2) ================= -->
   <div id="checkoutModal" onclick="if(event.target === this) closeCheckoutModal()"
     class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
-    <div
+    <div onclick="event.stopPropagation()"
       class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[92vh] animate-fadeIn">
 
       <!-- Header Modal Checkout -->
@@ -3109,9 +3111,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261103_03"></script>
-  <script src="./js/printer.js?v=20261103_03"></script>
-  <script src="./js/app.js?v=20261103_03"></script>
+  <script src="./js/config.js?v=20261104_01"></script>
+  <script src="./js/printer.js?v=20261104_01"></script>
+  <script src="./js/app.js?v=20261104_01"></script>
 
 </body>
 

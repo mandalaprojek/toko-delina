@@ -2298,7 +2298,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"];
+    const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -3054,7 +3054,7 @@ ${storeCategories.join(", ")}
 Wajib kembalikan HANYA format JSON murni tanpa markdown:
 {"barcode": "...", "nama": "...", "kategori": "...", "satuan": "Pcs", "harga_jual": 0, "deskripsi": "..."}`;
 
-        const visionModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+        const visionModels = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
         for (let m = 0; m < visionModels.length; m++) {
           const modelName = visionModels[m];
           try {
@@ -3303,7 +3303,7 @@ Tentukan satuan yang tepat (Pcs, Btl, Roll, Pack, Box, Rim, Sachet) dan estimasi
 Kembalikan HANYA format JSON murni:
 {"nama": "...", "kategori": "...", "satuan": "Pcs", "harga_jual": 0, "deskripsi": "..."}`;
 
-      const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+      const models = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
       for (let m = 0; m < models.length; m++) {
         const modelName = models[m];
         try {
