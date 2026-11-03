@@ -165,14 +165,14 @@ function setupDatabaseOtomatis() {
     formatHeaderSheet(sheetProduk, headerProduk[0].length);
 
     const sampleProduk = [
-      ["ATK-001", "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)", "Kertas & Buku", 48000, 85, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=60", "Kertas HVS putih bersih berkualitas tinggi."],
-      ["ATK-002", "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku", "Kertas & Buku", 36500, 40, "Pack", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=60", "Buku tulis bergaris standar sekolah dan kuliah."],
-      ["ATK-003", "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat", "Alat Tulis & Pulpen", 15500, 120, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60", "Pulpen gel berkualitas dengan tinta cepat kering."],
-      ["ATK-004", "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)", "Alat Tulis & Pulpen", 24000, 65, "Lusin", "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=500&auto=format&fit=crop&q=60", "Pulpen sejuta umat, awet dan nyaman."],
-      ["ATK-005", "Map Folder Plastik L Document Bag Clear Holder F4 Folio", "Peralatan Kantor & Map", 6500, 200, "Pcs", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60", "Map plastik transparan bebas basah."],
-      ["ATK-006", "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)", "Peralatan Kantor & Map", 18500, 50, "Set", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=500&auto=format&fit=crop&q=60", "Stapler Joyko kuat include isi."],
-      ["ATK-007", "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)", "Kertas & Buku", 19500, 75, "Pack", "https://images.unsplash.com/photo-1517842645767-c639042777db?w=500&auto=format&fit=crop&q=60", "Kertas double folio ujian dan laporan."],
-      ["ATK-008", "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)", "Alat Tulis & Pulpen", 9000, 90, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60", "Koreksi pita kertas kering tanpa bau."]
+      ["ATK-001", "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)", "ATK & Kantor", 48000, 85, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS putih bersih berkualitas tinggi."],
+      ["ATK-002", "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku", "ATK & Kantor", 36500, 40, "Pack", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Buku tulis bergaris standar sekolah dan kuliah."],
+      ["ATK-003", "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat", "ATK & Kantor", 15500, 120, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pulpen gel berkualitas dengan tinta cepat kering."],
+      ["ATK-004", "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)", "ATK & Kantor", 24000, 65, "Lusin", "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=600&auto=format&fit=crop&q=80", "Pulpen sejuta umat, awet dan nyaman."],
+      ["ATK-005", "Map Folder Plastik L Document Bag Clear Holder F4 Folio", "ATK & Kantor", 6500, 200, "Pcs", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80", "Map plastik transparan bebas basah."],
+      ["ATK-006", "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)", "ATK & Kantor", 18500, 50, "Set", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Stapler Joyko kuat include isi."],
+      ["ATK-007", "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)", "ATK & Kantor", 19500, 75, "Pack", "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&auto=format&fit=crop&q=80", "Kertas double folio ujian dan laporan."],
+      ["ATK-008", "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)", "ATK & Kantor", 9000, 90, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Koreksi pita kertas kering tanpa bau."]
     ];
     sheetProduk.getRange(2, 1, sampleProduk.length, sampleProduk[0].length).setValues(sampleProduk);
     sheetProduk.autoResizeColumns(1, headerProduk[0].length);
@@ -1712,6 +1712,57 @@ function upgradeTabProduk(sheetProduk) {
   sheetProduk.autoResizeColumns(1, 10);
 }
 
+function normalizeKategoriResmiDelina(rawCategory, productName) {
+  const cat = String(rawCategory || "").toLowerCase();
+  const name = String(productName || "").toLowerCase();
+  const combined = cat + " " + name;
+
+  const drinkKeywords = [
+    "minuman", "kopi", "coffee", "koffie", "kapal api", "luwak", "good day", "nescafe",
+    "teh", "sariwangi", "sosro", "pucuk", "susu", "ultra milk", "bear brand", "frisian",
+    "dancow", "indomilk", "air mineral", "aqua", "le minerale", "pocari", "floridina",
+    "jus", "juice", "sirup", "marjan", "abc squash", "energen", "nutrisari", "adem sari",
+    "larutan", "coca", "sprite", "fanta", "pepsi", "mizone", "you c1000", "hydro coco"
+  ];
+  if (cat === "minuman" || drinkKeywords.some(k => name.includes(k))) {
+    return "Minuman";
+  }
+
+  const kosmetikKeywords = [
+    "kosmetik", "cantik", "perawatan", "skincare", "kecantikan", "wardah", "garnier",
+    "emina", "kahf", "dove", "nivea", "rexona", "posh", "maybelline", "somethinc",
+    "azarine", "scarlett", "vaseline", "citra", "marina", "biore", "ponds", "lifebuoy",
+    "lux", "pantene", "sunsilk", "clear", "shoulders", "pepsodent", "ciptadent",
+    "close up", "listerine", "charm", "laurier", "kodomo", "my baby", "kayu putih",
+    "freshcare", "tolak angin", "salonpas", "hansaplast", "betadine", "deodorant",
+    "roll on", "serum", "micellar", "sunscreen", "lip", "bedak", "parfum", "shampo",
+    "sabun mandi", "body wash", "pasta gigi"
+  ];
+  if (cat.includes("kosmetik") || cat.includes("cantik") || cat.includes("perawatan") || kosmetikKeywords.some(k => combined.includes(k))) {
+    return "Kosmetik & Cantik";
+  }
+
+  const kelontongKeywords = [
+    "kelontong", "sembako", "dapur", "minyak", "bimoli", "sania", "beras", "ramos",
+    "gula", "gulaku", "tepung", "segitiga biru", "garam", "kecap", "bango", "saus",
+    "bumbu", "royco", "masako", "sasa", "santan", "kara", "telur", "sarden", "kornet",
+    "indomie", "mie", "sedaap", "biskuit", "roma", "wafer", "nabati", "oreo",
+    "silverqueen", "beng-beng", "chitato", "qtela", "kacang", "garuda", "kopiko",
+    "choki", "khong guan", "deterjen", "rinso", "sunlight", "mama lemon", "downy",
+    "soklin", "baygon", "tissue", "paseo", "lampu", "hannochs", "baterai", "alkaline",
+    "korek", "tokai", "plastik", "sapu", "pel lantai", "makanan", "snack"
+  ];
+  if (cat.includes("kelontong") || cat.includes("sembako") || cat.includes("dapur") || kelontongKeywords.some(k => combined.includes(k))) {
+    return "Kelontongan";
+  }
+
+  if (cat.includes("minum")) {
+    return "Minuman";
+  }
+
+  return "ATK & Kantor";
+}
+
 function ambilDaftarProduk(ss) {
   const sheetProduk = ss.getSheetByName(TAB_PRODUK);
   const produkList = [];
@@ -1725,14 +1776,23 @@ function ambilDaftarProduk(ss) {
     const row = data[i];
     const idVal = row[cols.colId - 1];
     if (idVal) {
+      const prodName = String(row[cols.colNama - 1] || "");
+      const rawCat = String(row[cols.colKategori - 1] || "");
+      const normCat = normalizeKategoriResmiDelina(rawCat, prodName);
+      if (rawCat !== normCat && cols.colKategori > 0) {
+        try {
+          sheetProduk.getRange(i + 1, cols.colKategori).setValue(normCat);
+        } catch (eCat) {}
+      }
+
       const hargaJual = Number(row[cols.colHargaJual - 1]) || 0;
       const hargaBeli = cols.colHargaBeli > 0 ? (Number(row[cols.colHargaBeli - 1]) || Math.round(hargaJual * 0.8)) : Math.round(hargaJual * 0.8);
       const statusVal = cols.colStatus > 0 ? String(row[cols.colStatus - 1] || "Aktif") : "Aktif";
 
       produkList.push({
         id: String(idVal),
-        name: String(row[cols.colNama - 1] || ""),
-        category: String(row[cols.colKategori - 1] || "Umum"),
+        name: prodName,
+        category: normCat,
         costPrice: hargaBeli,
         price: hargaJual,
         stock: Number(row[cols.colStok - 1]) || 0,
@@ -1948,24 +2008,24 @@ function generateDataDummyLengkap(ss) {
   formatHeaderSheet(sheetProduk, headerProduk[0].length);
 
   const masterProduk = [
-    ["ATK-001", "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)", "Kertas & Buku", 48000, 85, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS putih bersih berkualitas tinggi dengan teknologi ColorLok. Sangat cocok untuk cetak dokumen resmi, tugas sekolah, skripsi, dan laporan kantor."],
-    ["ATK-002", "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku", "Kertas & Buku", 36500, 42, "Pack", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Buku tulis bergaris tebal standar sekolah dan kuliah merk Sinar Dunia. Kertas halus tidak tembus tinta."],
-    ["ATK-003", "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat", "Alat Tulis & Pulpen", 15500, 110, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pulpen gel Jepang terbaik dengan klip pegas fleksibel. Tinta pigmen berbasis air, tahan air dan tidak luntur."],
-    ["ATK-004", "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)", "Alat Tulis & Pulpen", 24000, 65, "Lusin", "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=600&auto=format&fit=crop&q=80", "Pulpen legendaris sejuta umat. Ujung ballpoint halus lancar menulis ribuan kata tanpa macet."],
-    ["ATK-005", "Map Folder Plastik L Document Bag Clear Holder F4 Folio", "Peralatan Kantor & Map", 6500, 180, "Pcs", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80", "Map plastik L bening ukuran Folio/F4. Menyimpan dokumen penting aman dari cipratan air dan debu."],
-    ["ATK-006", "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)", "Peralatan Kantor & Map", 18500, 45, "Set", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Stapler Joyko orisinal berbahan logam kokoh dilapisi plastik ergonomis. Sudah termasuk 1 kotak anak staples No. 10."],
-    ["ATK-007", "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)", "Kertas & Buku", 19500, 55, "Pack", "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&auto=format&fit=crop&q=80", "Kertas double folio bergaris presisi untuk ujian sekolah, tugas kuliah, dan pembuatan berkas laporan."],
-    ["ATK-008", "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)", "Alat Tulis & Pulpen", 9000, 70, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pita koreksi kering instant tanpa noda dan bau. Langsung bisa ditulis kembali di atasnya."],
-    ["ATK-009", "Paket Jilid Skripsi Kilat (Hard Cover + Emboss Emas + 100 Hal Cetak)", "Jasa Cetak & Fotokopi", 45000, 999, "Paket", "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&auto=format&fit=crop&q=80", "Layanan kilat jilid hardcover tebal dengan foil tulisan emas mengkilap. Sudah termasuk pita pembatas dan sudut siku rapi standar universitas."],
-    ["ATK-010", "Paket Modul Kantor & Pelatihan (Jilid Spiral Kawat + Cover Mika + 50 Hal)", "Jasa Cetak & Fotokopi", 35000, 999, "Paket", "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&auto=format&fit=crop&q=80", "Paket cetak booklet / modul presentasi perusahaan. Menggunakan jilid spiral kawat besi kokoh dan cover mika doff elegan."],
-    ["ATK-011", "Paket Bundling ATK Sekolah Juara (Buku SiDu + 3 Pulpen Gel + Tipe-X)", "Paket Hemat", 68000, 25, "Paket", "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=80", "Paket komplit hemat persiapan masuk sekolah semester baru. Berisi 1 pack buku tulis SiDu, 3 pulpen gel Sarasa, pensil 2B, dan Tipe-X Joyko."],
-    ["ATK-012", "Paket Starter Mahasiswa Baru (Binder B5 + Loose Leaf 100 Lbr + Sarasa)", "Paket Hemat", 52000, 30, "Paket", "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600&auto=format&fit=crop&q=80", "Bundling favorit mahasiswa baru: Binder ring B5 pastel, isi kertas bergaris 100 lembar, pulpen Sarasa hitam, dan set index pembatas warna."],
-    ["ATK-013", "Paket Pengadaan Kantor Ekonomis (Kertas HVS 5 Rim + Pulpen + Map)", "Paket Hemat", 275000, 15, "Paket", "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80", "Paket bundling kebutuhan bulanan kantor atau instansi. Hemat hingga 15% dibanding beli eceran."],
-    ["ATK-014", "Spidol Whiteboard Snowman BG-12 Hitam / Biru (Non-Permanent)", "Alat Tulis & Pulpen", 9500, 2, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol papan tulis mudah dihapus bersih tanpa residu. Tinta pekat ramah lingkungan. (Stok menipis sisa 2 pcs)."],
-    ["ATK-015", "Gunting Kantor Stainless Steel Kenko SC-838 Anti Karat", "Peralatan Kantor & Map", 12000, 1, "Pcs", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Gunting tajam berbahan baja stainless dengan pegangan karet lembut. (Stok menipis sisa 1 pcs)."],
-    ["ATK-016", "Sticky Notes Joyko Pastel 3x3 Inch (Isi 100 Lembar Sticky Pad)", "Peralatan Kantor & Map", 7500, 3, "Pad", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas memo tempel warna pastel lembut dengan daya rekat kuat tidak merusak kertas."],
-    ["ATK-017", "Penggaris Besi Joyko 30cm Presisi Baja Anti Patah", "Peralatan Kantor & Map", 8500, 60, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Penggaris logam baja anti karat berskala milimeter presisi."],
-    ["ATK-018", "Kertas HVS PaperOne F4 Folio 75gsm (1 Rim / 500 Lembar)", "Kertas & Buku", 54000, 50, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS ukuran Folio / F4 standar perkantoran dan notaris."]
+    ["ATK-001", "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)", "ATK & Kantor", 48000, 85, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS putih bersih berkualitas tinggi dengan teknologi ColorLok. Sangat cocok untuk cetak dokumen resmi, tugas sekolah, skripsi, dan laporan kantor."],
+    ["ATK-002", "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku", "ATK & Kantor", 36500, 42, "Pack", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Buku tulis bergaris tebal standar sekolah dan kuliah merk Sinar Dunia. Kertas halus tidak tembus tinta."],
+    ["ATK-003", "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat", "ATK & Kantor", 15500, 110, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pulpen gel Jepang terbaik dengan klip pegas fleksibel. Tinta pigmen berbasis air, tahan air dan tidak luntur."],
+    ["ATK-004", "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)", "ATK & Kantor", 24000, 65, "Lusin", "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=600&auto=format&fit=crop&q=80", "Pulpen legendaris sejuta umat. Ujung ballpoint halus lancar menulis ribuan kata tanpa macet."],
+    ["ATK-005", "Map Folder Plastik L Document Bag Clear Holder F4 Folio", "ATK & Kantor", 6500, 180, "Pcs", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80", "Map plastik L bening ukuran Folio/F4. Menyimpan dokumen penting aman dari cipratan air dan debu."],
+    ["ATK-006", "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)", "ATK & Kantor", 18500, 45, "Set", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Stapler Joyko orisinal berbahan logam kokoh dilapisi plastik ergonomis. Sudah termasuk 1 kotak anak staples No. 10."],
+    ["ATK-007", "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)", "ATK & Kantor", 19500, 55, "Pack", "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&auto=format&fit=crop&q=80", "Kertas double folio bergaris presisi untuk ujian sekolah, tugas kuliah, dan pembuatan berkas laporan."],
+    ["ATK-008", "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)", "ATK & Kantor", 9000, 70, "Pcs", "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80", "Pita koreksi kering instant tanpa noda dan bau. Langsung bisa ditulis kembali di atasnya."],
+    ["ATK-009", "Paket Jilid Skripsi Kilat (Hard Cover + Emboss Emas + 100 Hal Cetak)", "ATK & Kantor", 45000, 999, "Paket", "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&auto=format&fit=crop&q=80", "Layanan kilat jilid hardcover tebal dengan foil tulisan emas mengkilap. Sudah termasuk pita pembatas dan sudut siku rapi standar universitas."],
+    ["ATK-010", "Paket Modul Kantor & Pelatihan (Jilid Spiral Kawat + Cover Mika + 50 Hal)", "ATK & Kantor", 35000, 999, "Paket", "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&auto=format&fit=crop&q=80", "Paket cetak booklet / modul presentasi perusahaan. Menggunakan jilid spiral kawat besi kokoh dan cover mika doff elegan."],
+    ["ATK-011", "Paket Bundling ATK Sekolah Juara (Buku SiDu + 3 Pulpen Gel + Tipe-X)", "ATK & Kantor", 68000, 25, "Paket", "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=80", "Paket komplit hemat persiapan masuk sekolah semester baru. Berisi 1 pack buku tulis SiDu, 3 pulpen gel Sarasa, pensil 2B, dan Tipe-X Joyko."],
+    ["ATK-012", "Paket Starter Mahasiswa Baru (Binder B5 + Loose Leaf 100 Lbr + Sarasa)", "ATK & Kantor", 52000, 30, "Paket", "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600&auto=format&fit=crop&q=80", "Bundling favorit mahasiswa baru: Binder ring B5 pastel, isi kertas bergaris 100 lembar, pulpen Sarasa hitam, dan set index pembatas warna."],
+    ["ATK-013", "Paket Pengadaan Kantor Ekonomis (Kertas HVS 5 Rim + Pulpen + Map)", "ATK & Kantor", 275000, 15, "Paket", "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80", "Paket bundling kebutuhan bulanan kantor atau instansi. Hemat hingga 15% dibanding beli eceran."],
+    ["ATK-014", "Spidol Whiteboard Snowman BG-12 Hitam / Biru (Non-Permanent)", "ATK & Kantor", 9500, 2, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol papan tulis mudah dihapus bersih tanpa residu. Tinta pekat ramah lingkungan. (Stok menipis sisa 2 pcs)."],
+    ["ATK-015", "Gunting Kantor Stainless Steel Kenko SC-838 Anti Karat", "ATK & Kantor", 12000, 1, "Pcs", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Gunting tajam berbahan baja stainless dengan pegangan karet lembut. (Stok menipis sisa 1 pcs)."],
+    ["ATK-016", "Sticky Notes Joyko Pastel 3x3 Inch (Isi 100 Lembar Sticky Pad)", "ATK & Kantor", 7500, 3, "Pad", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas memo tempel warna pastel lembut dengan daya rekat kuat tidak merusak kertas."],
+    ["ATK-017", "Penggaris Besi Joyko 30cm Presisi Baja Anti Patah", "ATK & Kantor", 8500, 60, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Penggaris logam baja anti karat berskala milimeter presisi."],
+    ["ATK-018", "Kertas HVS PaperOne F4 Folio 75gsm (1 Rim / 500 Lembar)", "ATK & Kantor", 54000, 50, "Rim", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Kertas HVS ukuran Folio / F4 standar perkantoran dan notaris."]
   ];
   sheetProduk.getRange(2, 1, masterProduk.length, masterProduk[0].length).setValues(masterProduk);
   sheetProduk.autoResizeColumns(1, headerProduk[0].length);
@@ -2695,10 +2755,10 @@ function setupTabKategori(sheet) {
   formatHeaderSheet(sheet, header[0].length);
 
   const defaultCategories = [
-    ["CAT-01", "ATK & Perlengkapan Kantor", "bi-pencil-square", 1, "AKTIF"],
-    ["CAT-02", "Kosmetik & Perawatan Diri", "bi-heart-pulse-fill", 2, "AKTIF"],
-    ["CAT-03", "Sembako & Kelontongan", "bi-basket2-fill", 3, "AKTIF"],
-    ["CAT-04", "Makanan & Minuman", "bi-cup-hot-fill", 4, "AKTIF"]
+    ["CAT-01", "ATK & Kantor", "bi-pencil-square", 1, "AKTIF"],
+    ["CAT-02", "Kosmetik & Cantik", "bi-stars", 2, "AKTIF"],
+    ["CAT-03", "Kelontongan", "bi-shop", 3, "AKTIF"],
+    ["CAT-04", "Minuman", "bi-cup-straw", 4, "AKTIF"]
   ];
   sheet.getRange(2, 1, defaultCategories.length, defaultCategories[0].length).setValues(defaultCategories);
   sheet.autoResizeColumns(1, header[0].length);
@@ -2720,9 +2780,15 @@ function ambilDaftarKategori(ss) {
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    const nama = String(row[1] || "").trim();
+    const rawNama = String(row[1] || "").trim();
+    const nama = normalizeKategoriResmiDelina(rawNama, "");
     const status = String(row[4] || "AKTIF").toUpperCase();
-    if (nama && status === "AKTIF") {
+    if (rawNama && nama !== rawNama) {
+      try {
+        sheet.getRange(i + 1, 2).setValue(nama);
+      } catch (e) {}
+    }
+    if (nama && status === "AKTIF" && !categories.some(c => c.nama === nama)) {
       categories.push({
         id: String(row[0] || "CAT-" + i),
         nama: nama,
@@ -2815,35 +2881,12 @@ function prosesDeleteCategory(payload, ss) {
 
 function mapKategoriKeDaftarToko(rawCategory, storeCategories) {
   if (!storeCategories || storeCategories.length === 0) {
-    storeCategories = ["ATK & Perlengkapan Kantor", "Kosmetik & Perawatan Diri", "Sembako & Kelontongan", "Makanan & Minuman"];
+    storeCategories = ["ATK & Kantor", "Kosmetik & Cantik", "Kelontongan", "Minuman"];
   }
-  if (!rawCategory) return storeCategories[0];
-  const raw = String(rawCategory).toLowerCase();
-
-  for (let cat of storeCategories) {
-    if (cat.toLowerCase() === raw) return cat;
-  }
-  for (let cat of storeCategories) {
-    if (raw.includes(cat.toLowerCase()) || cat.toLowerCase().includes(raw)) return cat;
-  }
-  if (raw.includes("atk") || raw.includes("buku") || raw.includes("kertas") || raw.includes("tulis") || raw.includes("kantor") || raw.includes("pen") || raw.includes("spidol")) {
-    const found = storeCategories.find(c => c.toLowerCase().includes("atk") || c.toLowerCase().includes("kantor"));
-    if (found) return found;
-  }
-  if (raw.includes("kosmetik") || raw.includes("skincare") || raw.includes("perawatan") || raw.includes("sabun") || raw.includes("shampo") || raw.includes("facial") || raw.includes("sunscreen") || raw.includes("lotion") || raw.includes("deodorant") || raw.includes("roll on") || raw.includes("dove") || raw.includes("nivea") || raw.includes("rexona") || raw.includes("wardah") || raw.includes("garnier") || raw.includes("parfum") || raw.includes("beauty")) {
-    const found = storeCategories.find(c => c.toLowerCase().includes("kosmetik") || c.toLowerCase().includes("perawatan") || c.toLowerCase().includes("cantik"));
-    if (found) return found;
-  }
-  if (raw.includes("sembako") || raw.includes("kelontong") || raw.includes("beras") || raw.includes("minyak") || raw.includes("gula") || raw.includes("tepung") || raw.includes("deterjen") || raw.includes("rinso") || raw.includes("tissue") || raw.includes("sabun cuci")) {
-    const found = storeCategories.find(c => c.toLowerCase().includes("sembako") || c.toLowerCase().includes("kelontong"));
-    if (found) return found;
-  }
-  if (raw.includes("makanan") || raw.includes("minuman") || raw.includes("snack") || raw.includes("mie") || raw.includes("kopi") || raw.includes("teh") || raw.includes("air") || raw.includes("biskuit") || raw.includes("susu") || raw.includes("cokelat")) {
-    const found = storeCategories.find(c => c.toLowerCase().includes("makanan") || c.toLowerCase().includes("minuman"));
-    if (found) return found;
-  }
-
-  return storeCategories[0];
+  const normalized = normalizeKategoriResmiDelina(rawCategory, "");
+  const matched = storeCategories.find(c => normalizeKategoriResmiDelina(c, "") === normalized);
+  if (matched) return matched;
+  return normalized;
 }
 
 function cariSnippetWebBarcode(barcode) {
@@ -3146,33 +3189,33 @@ Wajib kembalikan HANYA format JSON murni tanpa markdown:
     }
   }
 
-  // 3. Deteksi Merek Indonesia & Internasional (Unilever/Dove, Beiersdorf/Nivea, Wardah, Garnier, ATK, Sembako)
+  // 3. Deteksi Merek Indonesia & Internasional (Unilever/Dove, Beiersdorf/Nivea, Wardah, Garnier, ATK, Kelontongan, Minuman)
   const indonesianBrands = {
-    "8999999": { brand: "Unilever Indonesia (Dove / Rexona / Lifebuoy / Pepsodent / Sunsilk)", category: "Kosmetik & Perawatan Diri", sample: "Produk Perawatan Diri Unilever (Dove / Rexona)" },
-    "8992747": { brand: "Unilever Indonesia", category: "Kosmetik & Perawatan Diri", sample: "Produk Perawatan Diri Dove / Rexona Unilever" },
-    "4005808": { brand: "Nivea (Beiersdorf)", category: "Kosmetik & Perawatan Diri", sample: "Nivea Deodorant / Body Care" },
-    "4005900": { brand: "Nivea (Beiersdorf)", category: "Kosmetik & Perawatan Diri", sample: "Nivea Extra Brightening Deodorant Roll On" },
-    "8850029": { brand: "Nivea (Beiersdorf Asia)", category: "Kosmetik & Perawatan Diri", sample: "Nivea Deodorant Roll On / Spray" },
-    "8999777": { brand: "Nivea Indonesia", category: "Kosmetik & Perawatan Diri", sample: "Nivea Care & Protection" },
-    "4800888": { brand: "Dove / Rexona (Unilever)", category: "Kosmetik & Perawatan Diri", sample: "Dove Deodorant Roll On" },
-    "8851932": { brand: "Dove / Vaseline (Unilever Asia)", category: "Kosmetik & Perawatan Diri", sample: "Dove Deodorant / Body Lotion" },
-    "8998899": { brand: "Wardah (Paragon)", category: "Kosmetik & Perawatan Diri", sample: "Wardah Skincare / Kosmetik" },
-    "8997032": { brand: "Emina / Kahf / Make Over", category: "Kosmetik & Perawatan Diri", sample: "Skincare Paragon (Emina / Kahf)" },
-    "8997010": { brand: "Garnier", category: "Kosmetik & Perawatan Diri", sample: "Garnier Bright Complete / Micellar Water" },
-    "8992304": { brand: "L'Oreal / Garnier Indonesia", category: "Kosmetik & Perawatan Diri", sample: "Garnier Skincare / Men" },
-    "8993379": { brand: "Pond's", category: "Kosmetik & Perawatan Diri", sample: "Pond's Bright Miracle Facial Foam" },
-    "8992388": { brand: "Sinar Dunia (SiDu)", category: "ATK & Perlengkapan Kantor", sample: "Buku Tulis Sinar Dunia 38 Lembar" },
-    "8998866": { brand: "Indofood / Wings", category: "Makanan & Minuman", sample: "Produk Indofood / Mie Instan" },
-    "8992745": { brand: "Standard Pen", category: "ATK & Perlengkapan Kantor", sample: "Pulpen Standard AE7 0.5mm" },
-    "8991389": { brand: "Snowman", category: "ATK & Perlengkapan Kantor", sample: "Spidol Snowman Boardmarker Hitam" },
-    "8996001": { brand: "Danone Aqua / Le Minerale", category: "Makanan & Minuman", sample: "Air Mineral Botol 600ml" },
-    "8992775": { brand: "Sosro", category: "Makanan & Minuman", sample: "Teh Botol Sosro" },
-    "8991001": { brand: "Mayora", category: "Makanan & Minuman", sample: "Produk Mayora" },
-    "8997009": { brand: "Joyko", category: "ATK & Perlengkapan Kantor", sample: "Alat Tulis Kantor Joyko" },
-    "8993175": { brand: "Kenko", category: "ATK & Perlengkapan Kantor", sample: "Perlengkapan Kantor Kenko" },
-    "8992759": { brand: "PaperOne", category: "ATK & Perlengkapan Kantor", sample: "Kertas HVS PaperOne A4 75gsm" },
-    "8993005": { brand: "Wings Care / Food", category: "Sembako & Kelontongan", sample: "Produk Wings (SoKlin / Nuvo / Mie Sedaap)" },
-    "8992999": { brand: "Faber-Castell", category: "ATK & Perlengkapan Kantor", sample: "Pensil 2B Faber-Castell" }
+    "8999999": { brand: "Unilever Indonesia (Dove / Rexona / Lifebuoy / Pepsodent / Sunsilk)", category: "Kosmetik & Cantik", sample: "Produk Perawatan Diri Unilever (Dove / Rexona)" },
+    "8992747": { brand: "Unilever Indonesia", category: "Kosmetik & Cantik", sample: "Produk Perawatan Diri Dove / Rexona Unilever" },
+    "4005808": { brand: "Nivea (Beiersdorf)", category: "Kosmetik & Cantik", sample: "Nivea Deodorant / Body Care" },
+    "4005900": { brand: "Nivea (Beiersdorf)", category: "Kosmetik & Cantik", sample: "Nivea Extra Brightening Deodorant Roll On" },
+    "8850029": { brand: "Nivea (Beiersdorf Asia)", category: "Kosmetik & Cantik", sample: "Nivea Deodorant Roll On / Spray" },
+    "8999777": { brand: "Nivea Indonesia", category: "Kosmetik & Cantik", sample: "Nivea Care & Protection" },
+    "4800888": { brand: "Dove / Rexona (Unilever)", category: "Kosmetik & Cantik", sample: "Dove Deodorant Roll On" },
+    "8851932": { brand: "Dove / Vaseline (Unilever Asia)", category: "Kosmetik & Cantik", sample: "Dove Deodorant / Body Lotion" },
+    "8998899": { brand: "Wardah (Paragon)", category: "Kosmetik & Cantik", sample: "Wardah Skincare / Kosmetik" },
+    "8997032": { brand: "Emina / Kahf / Make Over", category: "Kosmetik & Cantik", sample: "Skincare Paragon (Emina / Kahf)" },
+    "8997010": { brand: "Garnier", category: "Kosmetik & Cantik", sample: "Garnier Bright Complete / Micellar Water" },
+    "8992304": { brand: "L'Oreal / Garnier Indonesia", category: "Kosmetik & Cantik", sample: "Garnier Skincare / Men" },
+    "8993379": { brand: "Pond's", category: "Kosmetik & Cantik", sample: "Pond's Bright Miracle Facial Foam" },
+    "8992388": { brand: "Sinar Dunia (SiDu)", category: "ATK & Kantor", sample: "Buku Tulis Sinar Dunia 38 Lembar" },
+    "8998866": { brand: "Indofood / Wings", category: "Kelontongan", sample: "Produk Indofood / Mie Instan" },
+    "8992745": { brand: "Standard Pen", category: "ATK & Kantor", sample: "Pulpen Standard AE7 0.5mm" },
+    "8991389": { brand: "Snowman", category: "ATK & Kantor", sample: "Spidol Snowman Boardmarker Hitam" },
+    "8996001": { brand: "Danone Aqua / Le Minerale", category: "Minuman", sample: "Air Mineral Botol 600ml" },
+    "8992775": { brand: "Sosro", category: "Minuman", sample: "Teh Botol Sosro" },
+    "8991001": { brand: "Mayora", category: "Minuman", sample: "Produk Mayora" },
+    "8997009": { brand: "Joyko", category: "ATK & Kantor", sample: "Alat Tulis Kantor Joyko" },
+    "8993175": { brand: "Kenko", category: "ATK & Kantor", sample: "Perlengkapan Kantor Kenko" },
+    "8992759": { brand: "PaperOne", category: "ATK & Kantor", sample: "Kertas HVS PaperOne A4 75gsm" },
+    "8993005": { brand: "Wings Care / Food", category: "Kelontongan", sample: "Produk Wings (SoKlin / Nuvo / Mie Sedaap)" },
+    "8992999": { brand: "Faber-Castell", category: "ATK & Kantor", sample: "Pensil 2B Faber-Castell" }
   };
   const prefix7 = cleanBarcode.substring(0, 7);
   const matchedBrand = indonesianBrands[prefix7];
@@ -3296,9 +3339,9 @@ Kembalikan HANYA format JSON murni:
     source: "default",
     barcode: cleanBarcode,
     nama: `Barang Dagang Baru (${cleanBarcode})`,
-    kategori: storeCategories[0] || "ATK & Perlengkapan Kantor",
+    kategori: storeCategories[0] || "ATK & Kantor",
     satuan: "Pcs",
-    deskripsi: `Ready Stok Barang Baru | Kategori: ${storeCategories[0] || 'ATK'} — Dijamin Ori & Berkualitas di Delina.store`,
+    deskripsi: `Ready Stok Barang Baru | Kategori: ${storeCategories[0] || 'ATK & Kantor'} — Dijamin Ori & Berkualitas di Delina.store`,
     fotoUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500"
   };
 }
@@ -3306,16 +3349,16 @@ Kembalikan HANYA format JSON murni:
 function getDefaultPhotoForCategory(kategori, nama) {
   const text = `${kategori || ""} ${nama || ""}`.toLowerCase();
   if (text.includes("dove") || text.includes("nivea") || text.includes("rexona") || text.includes("deodorant") || text.includes("roll on") || text.includes("parfum")) {
-    return "https://images.unsplash.com/photo-1608248597359-0e6d526a6888?w=500&auto=format&fit=crop&q=80";
+    return "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&auto=format&fit=crop&q=80";
   }
-  if (text.includes("kosmetik") || text.includes("skincare") || text.includes("wardah") || text.includes("garnier") || text.includes("serum") || text.includes("facial") || text.includes("sabun") || text.includes("perawatan")) {
+  if (text.includes("kosmetik") || text.includes("cantik") || text.includes("skincare") || text.includes("wardah") || text.includes("garnier") || text.includes("serum") || text.includes("facial") || text.includes("sabun") || text.includes("perawatan")) {
     return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80";
   }
   if (text.includes("sembako") || text.includes("minyak") || text.includes("beras") || text.includes("gula") || text.includes("kelontong")) {
     return "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80";
   }
-  if (text.includes("makanan") || text.includes("minuman") || text.includes("kopi") || text.includes("teh") || text.includes("susu") || text.includes("snack") || text.includes("indomie") || text.includes("mie")) {
-    return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80";
+  if (text.includes("minuman") || text.includes("kopi") || text.includes("teh") || text.includes("susu") || text.includes("aqua") || text.includes("jus")) {
+    return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80";
   }
   if (text.includes("kertas") || text.includes("paper") || text.includes("hvs")) {
     return "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500";
@@ -4096,11 +4139,11 @@ function prosesVerifyClaim(payload, ss) {
 /**
  * SEEDER 100 PRODUK LENGKAP DENGAN MENJAGA PRODUK YANG SUDAH ADA
  * Melestarikan 19 produk yang sudah ada di tab Produk (termasuk hasil scan kemarin)
- * Mengisi hingga 100 produk terbagi di 4 kategori:
- * 1. ATK & Perlengkapan Kantor
- * 2. Kosmetik & Perawatan Diri
- * 3. Sembako & Kelontongan
- * 4. Makanan & Minuman
+ * Mengisi hingga 100 produk terbagi di 4 kategori resmi Toko Delina:
+ * 1. ATK & Kantor
+ * 2. Kosmetik & Cantik
+ * 3. Kelontongan
+ * 4. Minuman
  */
 function seed100ProdukPreserveExisting(ss) {
   if (!ss) ss = getDelinaSpreadsheet();
@@ -4155,101 +4198,103 @@ function seed100ProdukPreserveExisting(ss) {
 
     // Sesuaikan kategori produk lama agar masuk ke 4 kategori resmi
     const oldCat = String(existingData[i][2] || "").trim();
-    if (["Kertas & Buku", "Alat Tulis & Pulpen", "Peralatan Kantor & Map", "Paket Hemat", "Jasa Cetak & Fotokopi", "Buku"].includes(oldCat)) {
-      sheetProduk.getRange(i + 1, 3).setValue("ATK & Perlengkapan Kantor");
+    const prodNama = String(existingData[i][1] || "").trim();
+    const normCat = normalizeKategoriResmiDelina(oldCat, prodNama);
+    if (oldCat !== normCat) {
+      sheetProduk.getRange(i + 1, 3).setValue(normCat);
     }
   }
 
-  // Daftar 81 Produk Tambahan Berkualitas Tinggi
+  // Daftar 81 Produk Tambahan Berkualitas Tinggi (4 Kategori Resmi: ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman)
   const itemsToAdd = [
-    // ATK & Perlengkapan Kantor (Tambahan ATK-020 s/d ATK-025)
-    ["ATK-020", "Binder Bantex B5 Pastel Ring Metal 26 Ring Exclusive", "ATK & Perlengkapan Kantor", 38000, 45, "Pcs", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Binder cover kulit sintesis warna pastel elegan dengan ring besi tahan karat dan slot kartu nama."],
-    ["ATK-021", "Kertas Loose Leaf B5 Bergaris Merk Joyko (1 Pack Isi 100 Lembar)", "ATK & Perlengkapan Kantor", 12500, 80, "Pack", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Refill binder B5 kertas tebal 80 gsm putih bersih dan tidak tembus tinta pulpen gel."],
-    ["ATK-022", "Lakban Bening Daimaru 2 Inch (Lebar 48mm x Panjang 90 Yard)", "ATK & Perlengkapan Kantor", 14000, 60, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Lakban perekat packing kualitas nomor 1 kuat, tidak mudah putus saat ditarik kencang."],
-    ["ATK-023", "Kalkulator Meja 12 Digit Citizen SDC-868L Layar Besar", "ATK & Perlengkapan Kantor", 65000, 25, "Pcs", "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop&q=80", "Kalkulator kasir meja 12 digit dual power tenaga surya dan baterai awet tahan lama."],
-    ["ATK-024", "Spidol Permanen Snowman Jumbo 500 Hitam Anti Air Tahan Lama", "ATK & Perlengkapan Kantor", 11000, 90, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol marker serbaguna permanen cepat kering cocok untuk menulis di kardus dan karung."],
-    ["ATK-025", "Cutter Joyko L-500 Besar + 1 Tube Isi Ulang Pisau Baja", "ATK & Perlengkapan Kantor", 16500, 40, "Set", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Pisau cutter besar berbobot dengan sistem autolock dan mata pisau tajam anti macet."],
+    // ATK & Kantor (Tambahan ATK-020 s/d ATK-025)
+    ["ATK-020", "Binder Bantex B5 Pastel Ring Metal 26 Ring Exclusive", "ATK & Kantor", 38000, 45, "Pcs", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80", "Binder cover kulit sintesis warna pastel elegan dengan ring besi tahan karat dan slot kartu nama."],
+    ["ATK-021", "Kertas Loose Leaf B5 Bergaris Merk Joyko (1 Pack Isi 100 Lembar)", "ATK & Kantor", 12500, 80, "Pack", "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80", "Refill binder B5 kertas tebal 80 gsm putih bersih dan tidak tembus tinta pulpen gel."],
+    ["ATK-022", "Lakban Bening Daimaru 2 Inch (Lebar 48mm x Panjang 90 Yard)", "ATK & Kantor", 14000, 60, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Lakban perekat packing kualitas nomor 1 kuat, tidak mudah putus saat ditarik kencang."],
+    ["ATK-023", "Kalkulator Meja 12 Digit Citizen SDC-868L Layar Besar", "ATK & Kantor", 65000, 25, "Pcs", "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop&q=80", "Kalkulator kasir meja 12 digit dual power tenaga surya dan baterai awet tahan lama."],
+    ["ATK-024", "Spidol Permanen Snowman Jumbo 500 Hitam Anti Air Tahan Lama", "ATK & Kantor", 11000, 90, "Pcs", "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80", "Spidol marker serbaguna permanen cepat kering cocok untuk menulis di kardus dan karung."],
+    ["ATK-025", "Cutter Joyko L-500 Besar + 1 Tube Isi Ulang Pisau Baja", "ATK & Kantor", 16500, 40, "Set", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Pisau cutter besar berbobot dengan sistem autolock dan mata pisau tajam anti macet."],
 
-    // Kosmetik & Perawatan Diri (ATK-026 s/d ATK-050)
-    ["ATK-026", "Wardah Lightening Micellar Gentle Wash 100ml Non-SLS", "Kosmetik & Perawatan Diri", 29500, 35, "Tub", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Sabun cuci muka pencerah dengan busa lembut dan niacinamide murni ramah kulit sensitif."],
-    ["ATK-027", "Wardah UV Shield Essential Sunscreen Gel SPF 35 PA+++ 40ml", "Kosmetik & Perawatan Diri", 34000, 40, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen ringan bebas alkohol tanpa white-cast lindungi wajah dari sinar matahari terik."],
-    ["ATK-028", "Emina Bright Stuff Moisturizing Cream 20ml Pelembap Cerah Alami", "Kosmetik & Perawatan Diri", 23500, 50, "Tub", "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=80", "Krim pelembap remaja dengan ekstrak plum musim panas dan vitamin E bikin wajah glowing."],
-    ["ATK-029", "Kahf Oil and Acne Care Face Wash Men 100ml Sabun Muka Pria", "Kosmetik & Perawatan Diri", 36000, 30, "Tub", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Pembersih wajah pria dengan ekstrak kopi dan formula HydroBalance cegah jerawat berlebih."],
-    ["ATK-030", "Garnier Micellar Cleansing Water Pink All-in-1 Pembersih Make Up 125ml", "Kosmetik & Perawatan Diri", 32500, 45, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Pembersih wajah sekali usap tanpa bilas, mengangkat debu dan sisa make up hingga bersih."],
-    ["ATK-031", "Nivea Extra White Body Serum Care and Protect SPF 15 PA 180ml", "Kosmetik & Perawatan Diri", 38500, 35, "Tub", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Lotion serum pencerah tubuh dengan 95% kemurnian vitamin C dan perlindungan triple filter UV."],
-    ["ATK-032", "Vaseline Repairing Jelly Original 50ml Petroleum Murni Multi-Khasiat", "Kosmetik & Perawatan Diri", 25000, 60, "Pot", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Gel pelembap serbaguna mengatasi bibir pecah-pecah, tumit kering, dan kulit iritasi ringan."],
-    ["ATK-033", "Ponds Bright Beauty Triple Glow Serum Mencerahkan Wajah 30ml", "Kosmetik & Perawatan Diri", 75000, 20, "Btl", "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&auto=format&fit=crop&q=80", "Serum konsentrat pencerah dengan Gluta-Boost-C dan hyaluronic acid menyamarkan noda hitam."],
-    ["ATK-034", "Biore UV Aqua Rich Watery Essence SPF 50+ PA++++ 50g Sunscreen Dingin", "Kosmetik & Perawatan Diri", 98000, 25, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen viral sensasi dingin menyegarkan dengan micro-defense kapsul air tahan keringat."],
-    ["ATK-035", "Hada Labo Gokujyun Ultimate Moisturizing Lotion Strip Hijau / Orange 100ml", "Kosmetik & Perawatan Diri", 47000, 30, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Hydrating toner Jepang dengan 3 jenis Hyaluronic Acid menjaga elastisitas kelembapan kulit."],
-    ["ATK-036", "Implora Urban Lip Matte Cream Best Shade 01 Dusky Nude Tahan 12 Jam", "Kosmetik & Perawatan Diri", 22000, 75, "Pcs", "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&auto=format&fit=crop&q=80", "Lip cream matte ringan tekstur lembut wangi vanilla tidak membuat bibir kering pecah."],
-    ["ATK-037", "Madame Gie Sweet Cheek Blushed On Baked Natural Glow 01", "Kosmetik & Perawatan Diri", 18500, 50, "Pcs", "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&auto=format&fit=crop&q=80", "Perona pipi bubuk padat pigmen halus tahan lama memberi rona segar cerah alami."],
-    ["ATK-038", "Viva Air Mawar Ekstrak Mawar Asli 100ml Penyegar Kulit & Campuran Masker", "Kosmetik & Perawatan Diri", 7000, 120, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Air mawar legendaris aroma wangi menenangkan melembutkan kulit wajah setelah beraktivitas."],
-    ["ATK-039", "Kapas Kecantikan Selection Facial Cotton Tebal Lembut Isi 100 Lembar", "Kosmetik & Perawatan Diri", 13000, 85, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Kapas bulat persegi 100% kapas murni higienis tanpa pemutih bebas debu serabut."],
-    ["ATK-040", "Sunsilk Hijab Refresh and Anti-Dandruff Shampoo Botol 160ml", "Kosmetik & Perawatan Diri", 24000, 40, "Btl", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600&auto=format&fit=crop&q=80", "Shampo khusus wanita berhijab dengan buah tin dan jeruk nipis bikin rambut sejuk bebas ketombe."],
-    ["ATK-041", "Lifebuoy Total 10 Antibacterial Body Wash Pouch Refill 450ml", "Kosmetik & Perawatan Diri", 25500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Sabun mandi cair antibakterial perlindungan kuman keluarga dengan formula activ silver+."],
-    ["ATK-042", "Dettol Sabun Mandi Batang Antiseptik Original 100g (Pack Isi 3 Batang)", "Kosmetik & Perawatan Diri", 23000, 45, "Pack", "https://images.unsplash.com/photo-1607006314330-80278148b577?w=600&auto=format&fit=crop&q=80", "Sabun batang antiseptik pembunuh kuman nomor satu harum bersih menyegarkan sepanjang hari."],
-    ["ATK-043", "Pepsodent Pencegah Gigi Berlubang Pasta Gigi Herbal Alami 190g", "Kosmetik & Perawatan Diri", 16500, 70, "Tub", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Pasta gigi formula mikro kalsium aktif dan fluoride melindungi email gigi dari asam makanan."],
-    ["ATK-044", "Sikat Gigi Formula Sparkling White Bulu Halus Extra Soft (Pack 3 Pcs)", "Kosmetik & Perawatan Diri", 15000, 60, "Pack", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Sikat gigi bulu lembut 0.01mm menjangkau sela gigi sempit tanpa melukai gusi."],
-    ["ATK-045", "Rexona Women Deodorant Roll On Advanced Whitening Glowing 45ml", "Kosmetik & Perawatan Diri", 19500, 50, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Deodorant pencerah ketiak tahan keringat dan bau badan hingga 48 jam wangi segar."],
-    ["ATK-046", "Rexona Men Ice Cool Roll On Deodorant Sensasi Es Dingin 45ml", "Kosmetik & Perawatan Diri", 19500, 45, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Deodorant pria dengan sensasi es dingin segar bebas bau keringat cocok untuk yang aktif olahraga."],
-    ["ATK-047", "Parfum Pria Casablanca Body Mist Cologne Sport Blue 100ml Botol Kaca", "Kosmetik & Perawatan Diri", 24500, 35, "Btl", "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&auto=format&fit=crop&q=80", "Cologne pria maskulin sporty elegan aroma segar woody mewah tahan semerbak."],
-    ["ATK-048", "Marina Hand Body Lotion Natural Rich Moisturizing Avocado 475ml Pump", "Kosmetik & Perawatan Diri", 17000, 40, "Btl", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Body lotion alpukat dan minyak zaitun melembapkan kulit kering seharian wangi lembut manis."],
-    ["ATK-049", "Minyak Kayu Putih Cap Lang 60ml Hangat Alami Anti Masuk Angin", "Kosmetik & Perawatan Diri", 23500, 65, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Minyak kayu putih asli Ambon aromaterapi melegakan pernapasan dan menghangatkan perut kembung."],
-    ["ATK-050", "Minyak Telon My Baby Plus Minyak Sereh Eucalyptus Anti Nyamuk 90ml", "Kosmetik & Perawatan Diri", 22000, 55, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Minyak telon bayi melindungi dari gigitan nyamuk hingga 8 jam wangi khas bayi menenangkan."],
+    // Kosmetik & Cantik (ATK-026 s/d ATK-050)
+    ["ATK-026", "Wardah Lightening Micellar Gentle Wash 100ml Non-SLS", "Kosmetik & Cantik", 29500, 35, "Tub", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Sabun cuci muka pencerah dengan busa lembut dan niacinamide murni ramah kulit sensitif."],
+    ["ATK-027", "Wardah UV Shield Essential Sunscreen Gel SPF 35 PA+++ 40ml", "Kosmetik & Cantik", 34000, 40, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen ringan bebas alkohol tanpa white-cast lindungi wajah dari sinar matahari terik."],
+    ["ATK-028", "Emina Bright Stuff Moisturizing Cream 20ml Pelembap Cerah Alami", "Kosmetik & Cantik", 23500, 50, "Tub", "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=80", "Krim pelembap remaja dengan ekstrak plum musim panas dan vitamin E bikin wajah glowing."],
+    ["ATK-029", "Kahf Oil and Acne Care Face Wash Men 100ml Sabun Muka Pria", "Kosmetik & Cantik", 36000, 30, "Tub", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Pembersih wajah pria dengan ekstrak kopi dan formula HydroBalance cegah jerawat berlebih."],
+    ["ATK-030", "Garnier Micellar Cleansing Water Pink All-in-1 Pembersih Make Up 125ml", "Kosmetik & Cantik", 32500, 45, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Pembersih wajah sekali usap tanpa bilas, mengangkat debu dan sisa make up hingga bersih."],
+    ["ATK-031", "Nivea Extra White Body Serum Care and Protect SPF 15 PA 180ml", "Kosmetik & Cantik", 38500, 35, "Tub", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Lotion serum pencerah tubuh dengan 95% kemurnian vitamin C dan perlindungan triple filter UV."],
+    ["ATK-032", "Vaseline Repairing Jelly Original 50ml Petroleum Murni Multi-Khasiat", "Kosmetik & Cantik", 25000, 60, "Pot", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Gel pelembap serbaguna mengatasi bibir pecah-pecah, tumit kering, dan kulit iritasi ringan."],
+    ["ATK-033", "Ponds Bright Beauty Triple Glow Serum Mencerahkan Wajah 30ml", "Kosmetik & Cantik", 75000, 20, "Btl", "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&auto=format&fit=crop&q=80", "Serum konsentrat pencerah dengan Gluta-Boost-C dan hyaluronic acid menyamarkan noda hitam."],
+    ["ATK-034", "Biore UV Aqua Rich Watery Essence SPF 50+ PA++++ 50g Sunscreen Dingin", "Kosmetik & Cantik", 98000, 25, "Tub", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&auto=format&fit=crop&q=80", "Sunscreen viral sensasi dingin menyegarkan dengan micro-defense kapsul air tahan keringat."],
+    ["ATK-035", "Hada Labo Gokujyun Ultimate Moisturizing Lotion Strip Hijau / Orange 100ml", "Kosmetik & Cantik", 47000, 30, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Hydrating toner Jepang dengan 3 jenis Hyaluronic Acid menjaga elastisitas kelembapan kulit."],
+    ["ATK-036", "Implora Urban Lip Matte Cream Best Shade 01 Dusky Nude Tahan 12 Jam", "Kosmetik & Cantik", 22000, 75, "Pcs", "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&auto=format&fit=crop&q=80", "Lip cream matte ringan tekstur lembut wangi vanilla tidak membuat bibir kering pecah."],
+    ["ATK-037", "Madame Gie Sweet Cheek Blushed On Baked Natural Glow 01", "Kosmetik & Cantik", 18500, 50, "Pcs", "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&auto=format&fit=crop&q=80", "Perona pipi bubuk padat pigmen halus tahan lama memberi rona segar cerah alami."],
+    ["ATK-038", "Viva Air Mawar Ekstrak Mawar Asli 100ml Penyegar Kulit & Campuran Masker", "Kosmetik & Cantik", 7000, 120, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Air mawar legendaris aroma wangi menenangkan melembutkan kulit wajah setelah beraktivitas."],
+    ["ATK-039", "Kapas Kecantikan Selection Facial Cotton Tebal Lembut Isi 100 Lembar", "Kosmetik & Cantik", 13000, 85, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Kapas bulat persegi 100% kapas murni higienis tanpa pemutih bebas debu serabut."],
+    ["ATK-040", "Sunsilk Hijab Refresh and Anti-Dandruff Shampoo Botol 160ml", "Kosmetik & Cantik", 24000, 40, "Btl", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600&auto=format&fit=crop&q=80", "Shampo khusus wanita berhijab dengan buah tin dan jeruk nipis bikin rambut sejuk bebas ketombe."],
+    ["ATK-041", "Lifebuoy Total 10 Antibacterial Body Wash Pouch Refill 450ml", "Kosmetik & Cantik", 25500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Sabun mandi cair antibakterial perlindungan kuman keluarga dengan formula activ silver+."],
+    ["ATK-042", "Dettol Sabun Mandi Batang Antiseptik Original 100g (Pack Isi 3 Batang)", "Kosmetik & Cantik", 23000, 45, "Pack", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Sabun batang antiseptik pembunuh kuman nomor satu harum bersih menyegarkan sepanjang hari."],
+    ["ATK-043", "Pepsodent Pencegah Gigi Berlubang Pasta Gigi Herbal Alami 190g", "Kosmetik & Cantik", 16500, 70, "Tub", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Pasta gigi formula mikro kalsium aktif dan fluoride melindungi email gigi dari asam makanan."],
+    ["ATK-044", "Sikat Gigi Formula Sparkling White Bulu Halus Extra Soft (Pack 3 Pcs)", "Kosmetik & Cantik", 15000, 60, "Pack", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&auto=format&fit=crop&q=80", "Sikat gigi bulu lembut 0.01mm menjangkau sela gigi sempit tanpa melukai gusi."],
+    ["ATK-045", "Rexona Women Deodorant Roll On Advanced Whitening Glowing 45ml", "Kosmetik & Cantik", 19500, 50, "Btl", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80", "Deodorant pencerah ketiak tahan keringat dan bau badan hingga 48 jam wangi segar."],
+    ["ATK-046", "Rexona Men Ice Cool Roll On Deodorant Sensasi Es Dingin 45ml", "Kosmetik & Cantik", 19500, 45, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Deodorant pria dengan sensasi es dingin segar bebas bau keringat cocok untuk yang aktif olahraga."],
+    ["ATK-047", "Parfum Pria Casablanca Body Mist Cologne Sport Blue 100ml Botol Kaca", "Kosmetik & Cantik", 24500, 35, "Btl", "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&auto=format&fit=crop&q=80", "Cologne pria maskulin sporty elegan aroma segar woody mewah tahan semerbak."],
+    ["ATK-048", "Marina Hand Body Lotion Natural Rich Moisturizing Avocado 475ml Pump", "Kosmetik & Cantik", 17000, 40, "Btl", "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&auto=format&fit=crop&q=80", "Body lotion alpukat dan minyak zaitun melembapkan kulit kering seharian wangi lembut manis."],
+    ["ATK-049", "Minyak Kayu Putih Cap Lang 60ml Hangat Alami Anti Masuk Angin", "Kosmetik & Cantik", 23500, 65, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Minyak kayu putih asli Ambon aromaterapi melegakan pernapasan dan menghangatkan perut kembung."],
+    ["ATK-050", "Minyak Telon My Baby Plus Minyak Sereh Eucalyptus Anti Nyamuk 90ml", "Kosmetik & Cantik", 22000, 55, "Btl", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80", "Minyak telon bayi melindungi dari gigitan nyamuk hingga 8 jam wangi khas bayi menenangkan."],
 
-    // Sembako & Kelontongan (ATK-051 s/d ATK-075)
-    ["ATK-051", "Beras Premium Sania Pulen Bersih Alami Kemasan 5 Kg", "Sembako & Kelontongan", 74500, 30, "Sak", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80", "Beras berkualitas kepala super putih alami tanpa pemutih wangi pulen lezat saat dimasak."],
-    ["ATK-052", "Minyak Goreng Bimoli Klasik Pouch Refill 2 Liter 2x Penyaringan", "Sembako & Kelontongan", 37500, 45, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng kelapa sawit murni bening tahan panas tinggi hasil gorengan renyah matang merata."],
-    ["ATK-053", "Minyak Goreng Tropical Botol 1 Liter Non-Kolesterol", "Sembako & Kelontongan", 19500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng bermutu tinggi dengan kandungan vitamin E dan asam lemak tak jenuh."],
-    ["ATK-054", "Gula Pasir Gulaku Kuning Premium Tebu Alami Kemasan 1 Kg", "Sembako & Kelontongan", 17500, 80, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Gula pasir dari tebu murni pilihan warna kuning alami rasa manis legit gurih tanpa bahan kimia."],
-    ["ATK-055", "Tepung Terigu Segitiga Biru Bogasari Protein Sedang Kemasan 1 Kg", "Sembako & Kelontongan", 13500, 70, "Pack", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80", "Tepung serbaguna cocok untuk gorengan renyah, kue basah, donat, dan martabak manis."],
-    ["ATK-056", "Garam Meja Beryodium Cap Daun Bawang / Dolpin 250g Garam Halus", "Sembako & Kelontongan", 3500, 100, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Garam meja halus beryodium tinggi mencegah penyakit gondok dan menyedapkan masakan rumah."],
-    ["ATK-057", "Kecap Manis Bango Pouch Refill Kemasan Besar 520ml Dari Kedelai Hitam Mallika", "Sembako & Kelontongan", 22500, 60, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Kecap manis kental gurih dari kedelai hitam alami asli warisan nusantara rasa mantap."],
-    ["ATK-058", "Saus Sambal ABC Asli Botol Kaca 335ml Pedas Segar Alami", "Sembako & Kelontongan", 15500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Saus sambal pedas nikmat perpaduan cabai segar pilihan dan bawang putih gurih mantap."],
-    ["ATK-059", "Margarin Blue Band Serbaguna Sachet Foil 200g Wangi Gurih", "Sembako & Kelontongan", 10500, 65, "Pack", "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80", "Margarin kaya nutrisi omega 3 & 6 cocok untuk olesan roti, memasak nasi goreng, dan bikin kue."],
-    ["ATK-060", "Santan Kelapa Instan Kara Segitiga UHT 65ml (Pack Isi 5 Pcs)", "Sembako & Kelontongan", 16000, 45, "Pack", "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80", "Santan kelapa murni siap pakai praktis kental gurih untuk opor, lodeh, dan kolak pisang."],
-    ["ATK-061", "Bumbu Masak Racik Indofood Sayur Asem / Ayam Goreng (Pack Isi 10 Sachet)", "Sembako & Kelontongan", 18000, 50, "Pack", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Bumbu racik rempah asli tanpa bahan pengawet bikin masakan selezat masakan restoran."],
-    ["ATK-062", "Masako Kaldu Ayam / Sapi Penyedap Rasa Gurih Kemasan Renteng Isi 12 Sachet", "Sembako & Kelontongan", 6500, 90, "Renteng", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Kaldu daging asli dan bumbu rempah pilihan penyedap wajib sup, tumisan, dan gorengan."],
-    ["ATK-063", "Sabun Cuci Piring Sunlight Jeruk Nipis 100 Pouch Refill Besar 700ml", "Sembako & Kelontongan", 14500, 75, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pencuci piring ekstrak jeruk nipis asli hilangkan lemak membandel 5x lebih cepat."],
-    ["ATK-064", "Deterjen Bubuk Rinso Molto Anti Noda Classic Fresh Kemasan 770g", "Sembako & Kelontongan", 23500, 45, "Pack", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Deterjen formula busa cerdas hilangkan noda dalam 1x kucek wangi tahan harum 21 hari."],
-    ["ATK-065", "Pewangi dan Pelembut Pakaian Downy Mystique Pouch 650ml Aroma Parfum Mewah", "Sembako & Kelontongan", 29000, 40, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Pelembut konsentrat wangi parfum elegan tahan lama di serat pakaian cegah bau apek."],
-    ["ATK-066", "Pembersih Lantai SoKlin Pembersih Lantai Apel Wangi Segar Pouch 780ml", "Sembako & Kelontongan", 11500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pembersih lantai bunuh kuman 99% kilau bersih bebas lengket wangi segar semerbak."],
-    ["ATK-067", "Obat Nyamuk Semprot Baygon Aerosol Fresh Citrus Anti Nyamuk & Lalat 600ml", "Sembako & Kelontongan", 39500, 30, "Klg", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Aerosol semprot anti nyamuk demam berdarah dan serangga aroma jeruk segar tidak menyengat."],
-    ["ATK-068", "Tissue Wajah Paseo Smart Facial Tissue 250 Sheets 2 Ply Halus Kuat", "Sembako & Kelontongan", 14000, 90, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Tisu wajah higienis 100% serat alami virgin pulp lembut nyaman di kulit tanpa iritasi."],
-    ["ATK-069", "Lampu LED Hannochs Sonic 9 Watt Cahaya Putih Terang Hemat Listrik", "Sembako & Kelontongan", 21000, 40, "Pcs", "https://images.unsplash.com/photo-1550524514-9b552d438965?w=600&auto=format&fit=crop&q=80", "Bohlam lampu LED 9W setara lampu pijar 80W tahan hingga 10.000 jam garansi resmi."],
-    ["ATK-070", "Baterai ABC Alkaline AA / A2 (Pack Isi 4 Baterai) Daya Tahan 6x Lebih Kuat", "Sembako & Kelontongan", 18500, 60, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai alkaline anti bocor daya stabil untuk jam dinding, mouse wireless, dan remote TV."],
-    ["ATK-071", "Baterai ABC Alkaline AAA / A3 Kecil (Pack Isi 4 Baterai) Untuk Remote AC", "Sembako & Kelontongan", 18500, 55, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai mikro alkaline daya tinggi tahan lama untuk remote AC, timbangan, dan mainan anak."],
-    ["ATK-072", "Korek Gas Tokai Pemantik Api Rumah Tangga Original (Pack 3 Pcs)", "Sembako & Kelontongan", 12000, 80, "Pack", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Korek api gas standar SNI api stabil aman dan awet untuk menyalakan kompor gas."],
-    ["ATK-073", "Kantong Plastik Sampah Roll Hitam Tebal 50x60cm (Isi 30 Lembar)", "Sembako & Kelontongan", 14500, 70, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Trash bag roll plastik elastis kuat tidak mudah bocor menjaga kebersihan rumah dan kantor."],
-    ["ATK-074", "Sapu Ijuk Kayu Mahoni Halus Tradisional Awet Tidak Rontok", "Sembako & Kelontongan", 25000, 25, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Sapu lantai ijuk hitam murni gagang kayu kokoh sapu bersih debu lantai tanpa gores keramik."],
-    ["ATK-075", "Pel Lantai Benang Katun Gagang Besi Anti Karat Delina Home", "Sembako & Kelontongan", 28000, 20, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Alat pel lantai benang katun tebal daya serap air tinggi lantai cepat kering mengilap."],
+    // Kelontongan (ATK-051 s/d ATK-078)
+    ["ATK-051", "Beras Premium Sania Pulen Bersih Alami Kemasan 5 Kg", "Kelontongan", 74500, 30, "Sak", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80", "Beras berkualitas kepala super putih alami tanpa pemutih wangi pulen lezat saat dimasak."],
+    ["ATK-052", "Minyak Goreng Bimoli Klasik Pouch Refill 2 Liter 2x Penyaringan", "Kelontongan", 37500, 45, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng kelapa sawit murni bening tahan panas tinggi hasil gorengan renyah matang merata."],
+    ["ATK-053", "Minyak Goreng Tropical Botol 1 Liter Non-Kolesterol", "Kelontongan", 19500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Minyak goreng bermutu tinggi dengan kandungan vitamin E dan asam lemak tak jenuh."],
+    ["ATK-054", "Gula Pasir Gulaku Kuning Premium Tebu Alami Kemasan 1 Kg", "Kelontongan", 17500, 80, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Gula pasir dari tebu murni pilihan warna kuning alami rasa manis legit gurih tanpa bahan kimia."],
+    ["ATK-055", "Tepung Terigu Segitiga Biru Bogasari Protein Sedang Kemasan 1 Kg", "Kelontongan", 13500, 70, "Pack", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80", "Tepung serbaguna cocok untuk gorengan renyah, kue basah, donat, dan martabak manis."],
+    ["ATK-056", "Garam Meja Beryodium Cap Daun Bawang / Dolpin 250g Garam Halus", "Kelontongan", 3500, 100, "Pack", "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?w=600&auto=format&fit=crop&q=80", "Garam meja halus beryodium tinggi mencegah penyakit gondok dan menyedapkan masakan rumah."],
+    ["ATK-057", "Kecap Manis Bango Pouch Refill Kemasan Besar 520ml Dari Kedelai Hitam Mallika", "Kelontongan", 22500, 60, "Pouch", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Kecap manis kental gurih dari kedelai hitam alami asli warisan nusantara rasa mantap."],
+    ["ATK-058", "Saus Sambal ABC Asli Botol Kaca 335ml Pedas Segar Alami", "Kelontongan", 15500, 50, "Btl", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80", "Saus sambal pedas nikmat perpaduan cabai segar pilihan dan bawang putih gurih mantap."],
+    ["ATK-059", "Margarin Blue Band Serbaguna Sachet Foil 200g Wangi Gurih", "Kelontongan", 10500, 65, "Pack", "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80", "Margarin kaya nutrisi omega 3 & 6 cocok untuk olesan roti, memasak nasi goreng, dan bikin kue."],
+    ["ATK-060", "Santan Kelapa Instan Kara Segitiga UHT 65ml (Pack Isi 5 Pcs)", "Kelontongan", 16000, 45, "Pack", "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80", "Santan kelapa murni siap pakai praktis kental gurih untuk opor, lodeh, dan kolak pisang."],
+    ["ATK-061", "Bumbu Masak Racik Indofood Sayur Asem / Ayam Goreng (Pack Isi 10 Sachet)", "Kelontongan", 18000, 50, "Pack", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Bumbu racik rempah asli tanpa bahan pengawet bikin masakan selezat masakan restoran."],
+    ["ATK-062", "Masako Kaldu Ayam / Sapi Penyedap Rasa Gurih Kemasan Renteng Isi 12 Sachet", "Kelontongan", 6500, 90, "Renteng", "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80", "Kaldu daging asli dan bumbu rempah pilihan penyedap wajib sup, tumisan, dan gorengan."],
+    ["ATK-063", "Sabun Cuci Piring Sunlight Jeruk Nipis 100 Pouch Refill Besar 700ml", "Kelontongan", 14500, 75, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pencuci piring ekstrak jeruk nipis asli hilangkan lemak membandel 5x lebih cepat."],
+    ["ATK-064", "Deterjen Bubuk Rinso Molto Anti Noda Classic Fresh Kemasan 770g", "Kelontongan", 23500, 45, "Pack", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Deterjen formula busa cerdas hilangkan noda dalam 1x kucek wangi tahan harum 21 hari."],
+    ["ATK-065", "Pewangi dan Pelembut Pakaian Downy Mystique Pouch 650ml Aroma Parfum Mewah", "Kelontongan", 29000, 40, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Pelembut konsentrat wangi parfum elegan tahan lama di serat pakaian cegah bau apek."],
+    ["ATK-066", "Pembersih Lantai SoKlin Pembersih Lantai Apel Wangi Segar Pouch 780ml", "Kelontongan", 11500, 55, "Pouch", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Cairan pembersih lantai bunuh kuman 99% kilau bersih bebas lengket wangi segar semerbak."],
+    ["ATK-067", "Obat Nyamuk Semprot Baygon Aerosol Fresh Citrus Anti Nyamuk & Lalat 600ml", "Kelontongan", 39500, 30, "Klg", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80", "Aerosol semprot anti nyamuk demam berdarah dan serangga aroma jeruk segar tidak menyengat."],
+    ["ATK-068", "Tissue Wajah Paseo Smart Facial Tissue 250 Sheets 2 Ply Halus Kuat", "Kelontongan", 14000, 90, "Pack", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80", "Tisu wajah higienis 100% serat alami virgin pulp lembut nyaman di kulit tanpa iritasi."],
+    ["ATK-069", "Lampu LED Hannochs Sonic 9 Watt Cahaya Putih Terang Hemat Listrik", "Kelontongan", 21000, 40, "Pcs", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Bohlam lampu LED 9W setara lampu pijar 80W tahan hingga 10.000 jam garansi resmi."],
+    ["ATK-070", "Baterai ABC Alkaline AA / A2 (Pack Isi 4 Baterai) Daya Tahan 6x Lebih Kuat", "Kelontongan", 18500, 60, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai alkaline anti bocor daya stabil untuk jam dinding, mouse wireless, dan remote TV."],
+    ["ATK-071", "Baterai ABC Alkaline AAA / A3 Kecil (Pack Isi 4 Baterai) Untuk Remote AC", "Kelontongan", 18500, 55, "Pack", "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=600&auto=format&fit=crop&q=80", "Baterai mikro alkaline daya tinggi tahan lama untuk remote AC, timbangan, dan mainan anak."],
+    ["ATK-072", "Korek Gas Tokai Pemantik Api Rumah Tangga Original (Pack 3 Pcs)", "Kelontongan", 12000, 80, "Pack", "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&auto=format&fit=crop&q=80", "Korek api gas standar SNI api stabil aman dan awet untuk menyalakan kompor gas."],
+    ["ATK-073", "Kantong Plastik Sampah Roll Hitam Tebal 50x60cm (Isi 30 Lembar)", "Kelontongan", 14500, 70, "Roll", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Trash bag roll plastik elastis kuat tidak mudah bocor menjaga kebersihan rumah dan kantor."],
+    ["ATK-074", "Sapu Ijuk Kayu Mahoni Halus Tradisional Awet Tidak Rontok", "Kelontongan", 25000, 25, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Sapu lantai ijuk hitam murni gagang kayu kokoh sapu bersih debu lantai tanpa gores keramik."],
+    ["ATK-075", "Pel Lantai Benang Katun Gagang Besi Anti Karat Delina Home", "Kelontongan", 28000, 20, "Pcs", "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80", "Alat pel lantai benang katun tebal daya serap air tinggi lantai cepat kering mengilap."],
+    ["ATK-076", "Indomie Mi Instan Goreng Spesial 85g Bumbu Gurih Bawang Goreng Renyah", "Kelontongan", 3500, 200, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie instan goreng terfavorit di dunia dengan aroma bawang khas dan kecap manis nikmat mantap."],
+    ["ATK-077", "Indomie Mi Kuah Rasa Soto Mie 70g Gurih Jeruk Nipis Hangat", "Kelontongan", 3500, 180, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Kuah soto bumbu rempah asli segar gurih perpaduan jeruk nipis hangat cocok di musim hujan."],
+    ["ATK-078", "Mie Sedaap Goreng Kriuk-Kriuk Bawang Gurih Renyah 90g", "Kelontongan", 3500, 150, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie kenyal gurih dengan taburan bawang kriuk renyah sensasi makan mie goreng paling mantap."],
 
-    // Makanan & Minuman (ATK-076 s/d ATK-100)
-    ["ATK-076", "Indomie Mi Instan Goreng Spesial 85g Bumbu Gurih Bawang Goreng Renyah", "Makanan & Minuman", 3500, 200, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie instan goreng terfavorit di dunia dengan aroma bawang khas dan kecap manis nikmat mantap."],
-    ["ATK-077", "Indomie Mi Kuah Rasa Soto Mie 70g Gurih Jeruk Nipis Hangat", "Makanan & Minuman", 3500, 180, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Kuah soto bumbu rempah asli segar gurih perpaduan jeruk nipis hangat cocok di musim hujan."],
-    ["ATK-078", "Mie Sedaap Goreng Kriuk-Kriuk Bawang Gurih Renyah 90g", "Makanan & Minuman", 3500, 150, "Bks", "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80", "Mie kenyal gurih dengan taburan bawang kriuk renyah sensasi makan mie goreng paling mantap."],
-    ["ATK-079", "Kopi Kapal Api Special Mix Kopi Plus Gula Mantap (Pack Isi 10 Sachet x 24g)", "Makanan & Minuman", 16500, 80, "Pack", "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80", "Kopi hitam bubuk asli perpaduan biji kopi pilihan dan gula murni aroma semerbak harum."],
-    ["ATK-080", "Luwak White Koffie Original Rendah Asam Aman di Lambung (Pack Isi 10 Sachet)", "Makanan & Minuman", 15000, 75, "Pack", "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80", "Kopi putih lembut nikmat bebas kembung proses pembekuan mutakhir aman diminum setiap hari."],
-    ["ATK-081", "Teh Celup SariWangi Teh Asli Nusantara (Kotak Isi 30 Kantong Celup)", "Makanan & Minuman", 8500, 90, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Teh hitam pilihan aroma wangi menyegarkan cocok untuk minum teh hangat bersama keluarga."],
-    ["ATK-082", "Susu UHT Ultra Milk Cokelat / Full Cream Botol Karton 250ml", "Makanan & Minuman", 7000, 110, "Kotak", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi segar alami kaya kalsium dan vitamin D membantu pertumbuhan tulang dan energi aktif."],
-    ["ATK-083", "Susu Beruang Bear Brand Steril 189ml Murni Kemurnian Terjaga", "Makanan & Minuman", 10500, 85, "Klg", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi steril 100% murni tanpa pengawet baik diminum saat pemulihan tubuh dan jaga imun."],
-    ["ATK-084", "Air Mineral Aqua Botol Sedang 600ml Segar Dari Sumber Pegunungan", "Makanan & Minuman", 3500, 180, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral murni terlindungi alami dari mata air pegunungan vulkanik sejuk menyegarkan."],
-    ["ATK-085", "Le Minerale Air Mineral Botol 600ml Ada Manis-Manisnya", "Makanan & Minuman", 3500, 160, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral kaya mineral alami bikarbonat dan kalsium kesegaran murni terlindungi tutup bersegel."],
-    ["ATK-086", "Teh Botol Sosro Kotak Tetra Pak 250ml Segar Manis Alami Melati", "Makanan & Minuman", 4000, 120, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Minuman teh melati asli siap minum pelepas dahaga nomor 1 dinikmati dingin lebih nikmat."],
-    ["ATK-087", "Pocari Sweat Botol Pet 500ml Pengganti Ion Tubuh Cepat", "Makanan & Minuman", 8000, 70, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Minuman isotonik kemposisi mirip cairan tubuh kembalikan kesegaran setelah lelah beraktivitas."],
-    ["ATK-088", "Floridina Pulpy Orange Jus Jeruk Segar Bulir Asli 350ml", "Makanan & Minuman", 3500, 130, "Btl", "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80", "Jus jeruk Florida segar dengan bulir jeruk asli kaya vitamin C diminum dingin sangat segar."],
-    ["ATK-089", "Biskuit Roma Kelapa Biskuit Renyah Gurih Kemasan Besar 300g", "Makanan & Minuman", 12500, 65, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit kelapa asli gurih renyah diperkaya vitamin B1, B2, B6 dan kalsium pas dicelup teh hangat."],
-    ["ATK-090", "Wafer Nabati Richeese Keju Kaleng / Pouch Kemasan 130g", "Makanan & Minuman", 8500, 85, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Wafer renyah krim keju asli kaya vitamin A, B1, B2, B6, B12 rasa gurih manis lumer di mulut."],
-    ["ATK-091", "Biskuit Oreo Krim Vanilla Kemasan Roll 119.6g Diputar Dijilat Dicelupin", "Makanan & Minuman", 9500, 90, "Roll", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit sandwich cokelat renyah dengan krim vanila tebal manis kesukaan semua generasi."],
-    ["ATK-092", "Cokelat SilverQueen Cashew Susu Cokelat Mede Gurih 58g", "Makanan & Minuman", 16500, 60, "Batang", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Cokelat susu nikmat berpadu dengan kacang mete renyah gurih pelepas stres dan cemilan manis."],
-    ["ATK-093", "Beng-Beng Cokelat Wafer Karamel Crispy 4 Kelezatan (Pack Isi 20 Pcs)", "Makanan & Minuman", 35000, 45, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Kombinasi 4 kelezatan wafer renyah, krim susu, karamel legit, dan crispy balut cokelat tebal."],
-    ["ATK-094", "Chitato Keripik Kentang Sapi Panggang Beef Barbeque 68g Bergelombang", "Makanan & Minuman", 11500, 70, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik kentang asli potongan bergelombang bumbu rasa sapi panggang barbeque renyah mantap."],
-    ["ATK-095", "Qtela Keripik Singkong Barbeque / Balado 60g Gurih Renyah Khas", "Makanan & Minuman", 7500, 80, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik singkong tradisional renyah dengan bumbu khas rempah balado gurih nagih."],
-    ["ATK-096", "Kacang Garuda Rosta Bawang Panggang Renyah 95g Tanpa Kolesterol", "Makanan & Minuman", 11000, 65, "Pack", "https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=600&auto=format&fit=crop&q=80", "Kacang bersalut rasa bawang gurih dipanggang oven bukan digoreng renyah garing sehat."],
-    ["ATK-097", "Permen Kopiko Coffee Candy Ekstrak Kopi Asli (Bag Isi 50 Butir)", "Makanan & Minuman", 9500, 95, "Bag", "https://images.unsplash.com/photo-1582293041079-7814c2f12063?w=600&auto=format&fit=crop&q=80", "Permen kopi nomor satu dari ekstrak biji kopi asli ampuh hilangkan kantuk saat bekerja."],
-    ["ATK-098", "Choki Choki Pasta Cokelat Cashew Stik (Pack Isi 20 Stik)", "Makanan & Minuman", 18000, 70, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Pasta cokelat lembut manis dengan kacang mede cemilan stik manis favorit anak-anak."],
-    ["ATK-099", "Biskuit Khong Guan Red Assorted Biscuit Kaleng Kotak Klasik 650g", "Makanan & Minuman", 58000, 25, "Klg", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Kaleng biskuit aneka rasa legendaris cocok untuk suguhan tamu dan oleh-oleh keluarga."],
-    ["ATK-100", "Energen Sereal dan Susu Cokelat / Vanila Bergizi (Renceng Isi 10 Sachet)", "Makanan & Minuman", 21500, 75, "Renceng", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Minuman sereal gandum bergizi dengan susu dan telur sarapan sehat penambah tenaga aktif."]
+    // Minuman (ATK-079 s/d ATK-100)
+    ["ATK-079", "Kopi Kapal Api Special Mix Kopi Plus Gula Mantap (Pack Isi 10 Sachet x 24g)", "Minuman", 16500, 80, "Pack", "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80", "Kopi hitam bubuk asli perpaduan biji kopi pilihan dan gula murni aroma semerbak harum."],
+    ["ATK-080", "Luwak White Koffie Original Rendah Asam Aman di Lambung (Pack Isi 10 Sachet)", "Minuman", 15000, 75, "Pack", "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80", "Kopi putih lembut nikmat bebas kembung proses pembekuan mutakhir aman diminum setiap hari."],
+    ["ATK-081", "Teh Celup SariWangi Teh Asli Nusantara (Kotak Isi 30 Kantong Celup)", "Minuman", 8500, 90, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Teh hitam pilihan aroma wangi menyegarkan cocok untuk minum teh hangat bersama keluarga."],
+    ["ATK-082", "Susu UHT Ultra Milk Cokelat / Full Cream Botol Karton 250ml", "Minuman", 7000, 110, "Kotak", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi segar alami kaya kalsium dan vitamin D membantu pertumbuhan tulang dan energi aktif."],
+    ["ATK-083", "Susu Beruang Bear Brand Steril 189ml Murni Kemurnian Terjaga", "Minuman", 10500, 85, "Klg", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Susu sapi steril 100% murni tanpa pengawet baik diminum saat pemulihan tubuh dan jaga imun."],
+    ["ATK-084", "Air Mineral Aqua Botol Sedang 600ml Segar Dari Sumber Pegunungan", "Minuman", 3500, 180, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral murni terlindungi alami dari mata air pegunungan vulkanik sejuk menyegarkan."],
+    ["ATK-085", "Le Minerale Air Mineral Botol 600ml Ada Manis-Manisnya", "Minuman", 3500, 160, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Air mineral kaya mineral alami bikarbonat dan kalsium kesegaran murni terlindungi tutup bersegel."],
+    ["ATK-086", "Teh Botol Sosro Kotak Tetra Pak 250ml Segar Manis Alami Melati", "Minuman", 4000, 120, "Kotak", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80", "Minuman teh melati asli siap minum pelepas dahaga nomor 1 dinikmati dingin lebih nikmat."],
+    ["ATK-087", "Pocari Sweat Botol Pet 500ml Pengganti Ion Tubuh Cepat", "Minuman", 8000, 70, "Btl", "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80", "Minuman isotonik kemposisi mirip cairan tubuh kembalikan kesegaran setelah lelah beraktivitas."],
+    ["ATK-088", "Floridina Pulpy Orange Jus Jeruk Segar Bulir Asli 350ml", "Minuman", 3500, 130, "Btl", "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80", "Jus jeruk Florida segar dengan bulir jeruk asli kaya vitamin C diminum dingin sangat segar."],
+    ["ATK-089", "Biskuit Roma Kelapa Biskuit Renyah Gurih Kemasan Besar 300g", "Kelontongan", 12500, 65, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit kelapa asli gurih renyah diperkaya vitamin B1, B2, B6 dan kalsium pas dicelup teh hangat."],
+    ["ATK-090", "Wafer Nabati Richeese Keju Kaleng / Pouch Kemasan 130g", "Kelontongan", 8500, 85, "Pack", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Wafer renyah krim keju asli kaya vitamin A, B1, B2, B6, B12 rasa gurih manis lumer di mulut."],
+    ["ATK-091", "Biskuit Oreo Krim Vanilla Kemasan Roll 119.6g Diputar Dijilat Dicelupin", "Kelontongan", 9500, 90, "Roll", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Biskuit sandwich cokelat renyah dengan krim vanila tebal manis kesukaan semua generasi."],
+    ["ATK-092", "Cokelat SilverQueen Cashew Susu Cokelat Mede Gurih 58g", "Kelontongan", 16500, 60, "Batang", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Cokelat susu nikmat berpadu dengan kacang mete renyah gurih pelepas stres dan cemilan manis."],
+    ["ATK-093", "Beng-Beng Cokelat Wafer Karamel Crispy 4 Kelezatan (Pack Isi 20 Pcs)", "Kelontongan", 35000, 45, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Kombinasi 4 kelezatan wafer renyah, krim susu, karamel legit, dan crispy balut cokelat tebal."],
+    ["ATK-094", "Chitato Keripik Kentang Sapi Panggang Beef Barbeque 68g Bergelombang", "Kelontongan", 11500, 70, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik kentang asli potongan bergelombang bumbu rasa sapi panggang barbeque renyah mantap."],
+    ["ATK-095", "Qtela Keripik Singkong Barbeque / Balado 60g Gurih Renyah Khas", "Kelontongan", 7500, 80, "Bks", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80", "Keripik singkong tradisional renyah dengan bumbu khas rempah balado gurih nagih."],
+    ["ATK-096", "Kacang Garuda Rosta Bawang Panggang Renyah 95g Tanpa Kolesterol", "Kelontongan", 11000, 65, "Pack", "https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=600&auto=format&fit=crop&q=80", "Kacang bersalut rasa bawang gurih dipanggang oven bukan digoreng renyah garing sehat."],
+    ["ATK-097", "Permen Kopiko Coffee Candy Ekstrak Kopi Asli (Bag Isi 50 Butir)", "Kelontongan", 9500, 95, "Bag", "https://images.unsplash.com/photo-1582293041079-7814c2f12063?w=600&auto=format&fit=crop&q=80", "Permen kopi nomor satu dari ekstrak biji kopi asli ampuh hilangkan kantuk saat bekerja."],
+    ["ATK-098", "Choki Choki Pasta Cokelat Cashew Stik (Pack Isi 20 Stik)", "Kelontongan", 18000, 70, "Pack", "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80", "Pasta cokelat lembut manis dengan kacang mede cemilan stik manis favorit anak-anak."],
+    ["ATK-099", "Biskuit Khong Guan Red Assorted Biscuit Kaleng Kotak Klasik 650g", "Kelontongan", 58000, 25, "Klg", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80", "Kaleng biskuit aneka rasa legendaris cocok untuk suguhan tamu dan oleh-oleh keluarga."],
+    ["ATK-100", "Energen Sereal dan Susu Cokelat / Vanila Bergizi (Renceng Isi 10 Sachet)", "Minuman", 21500, 75, "Renceng", "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80", "Minuman sereal gandum bergizi dengan susu dan telur sarapan sehat penambah tenaga aktif."]
   ];
 
   let addedCount = 0;

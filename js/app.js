@@ -3,30 +3,31 @@
  * Berjalan murni di sisi browser (Vanilla JavaScript)
  */
 
-// 1. Data Contoh Produk ATK & Layanan Delina
+// 1. Data Contoh Produk Toko Delina (4 Kategori Fokus: ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman)
 const DUMMY_PRODUCTS = [
+  // === 1. ATK & KANTOR ===
   {
     id: "ATK-001",
     name: "Kertas HVS PaperOne A4 75gsm (1 Rim / 500 Lembar)",
-    category: "Kertas & Buku",
+    category: "ATK & Kantor",
     price: 48000,
     originalPrice: 53000,
     rating: 4.9,
     sold: 1420,
-    image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80",
     badge: "Terlaris",
     stock: 85,
     unit: "Rim"
   },
   {
     id: "ATK-002",
-    name: "Buku Tulis Sinar Dunia (SiDu) Kiky 38 Lembar - Pack Isi 10 Buku",
-    category: "Kertas & Buku",
+    name: "Buku Tulis Sinar Dunia (SiDu) 38 Lembar - Pack Isi 10 Buku",
+    category: "ATK & Kantor",
     price: 36500,
     originalPrice: 40000,
     rating: 4.8,
     sold: 890,
-    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
     badge: "Diskon 9%",
     stock: 40,
     unit: "Pack"
@@ -34,12 +35,12 @@ const DUMMY_PRODUCTS = [
   {
     id: "ATK-003",
     name: "Pulpen Gel Zebra Sarasa Clip 0.5mm Hitam / Biru Tinta Pekat",
-    category: "Alat Tulis & Pulpen",
+    category: "ATK & Kantor",
     price: 15500,
     originalPrice: 17500,
     rating: 5.0,
     sold: 3100,
-    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80",
     badge: "Favorit",
     stock: 120,
     unit: "Pcs"
@@ -47,77 +48,291 @@ const DUMMY_PRODUCTS = [
   {
     id: "ATK-004",
     name: "Paket Pulpen Standard AE7 0.5 Hitam (1 Lusin / 12 Batang)",
-    category: "Alat Tulis & Pulpen",
+    category: "ATK & Kantor",
     price: 24000,
     originalPrice: 28000,
     rating: 4.9,
     sold: 2150,
-    image: "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?w=600&auto=format&fit=crop&q=80",
     badge: "Grosir",
     stock: 65,
     unit: "Lusin"
   },
   {
     id: "ATK-005",
-    name: "Map Folder Plastik L Document Bag Clear Holder F4 Folio",
-    category: "Peralatan Kantor & Map",
-    price: 6500,
-    originalPrice: 8000,
-    rating: 4.7,
-    sold: 720,
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60",
-    badge: "Warna Lengkap",
-    stock: 200,
-    unit: "Pcs"
-  },
-  {
-    id: "ATK-006",
     name: "Stapler Joyko HD-10 + Isi Ulang Staples No. 10 (Set Lengkap)",
-    category: "Peralatan Kantor & Map",
+    category: "ATK & Kantor",
     price: 18500,
     originalPrice: 22000,
     rating: 4.9,
     sold: 640,
-    image: "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80",
     badge: "Original",
     stock: 50,
     unit: "Set"
   },
   {
-    id: "ATK-007",
-    name: "Kertas Double Folio Bergaris Merk Sinar Dunia (1 Pack / 100 Lembar)",
-    category: "Kertas & Buku",
-    price: 19500,
-    originalPrice: 22500,
-    rating: 4.8,
-    sold: 520,
-    image: "https://images.unsplash.com/photo-1517842645767-c639042777db?w=500&auto=format&fit=crop&q=60",
-    badge: "Sekolah",
-    stock: 75,
-    unit: "Pack"
-  },
-  {
-    id: "ATK-008",
+    id: "ATK-006",
     name: "Tipe-X Kertas Kering Joyko Correction Tape CT-522 (Panjang 12m)",
-    category: "Alat Tulis & Pulpen",
+    category: "ATK & Kantor",
     price: 9000,
     originalPrice: 11000,
     rating: 4.9,
     sold: 1840,
-    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
+    image: "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&auto=format&fit=crop&q=80",
     badge: "Awet",
     stock: 90,
     unit: "Pcs"
+  },
+
+  // === 2. KOSMETIK & CANTIK ===
+  {
+    id: "KOS-001",
+    name: "Deodorant Dove Ultimate Repair Roll On 40ml Mencerahkan",
+    category: "Kosmetik & Cantik",
+    price: 23500,
+    originalPrice: 27000,
+    rating: 4.9,
+    sold: 980,
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&auto=format&fit=crop&q=80",
+    badge: "Wangi Segar",
+    stock: 45,
+    unit: "Btl"
+  },
+  {
+    id: "KOS-002",
+    name: "Deodorant Nivea Extra Brightening 8 Super Food Roll On 50ml",
+    category: "Kosmetik & Cantik",
+    price: 22000,
+    originalPrice: 25500,
+    rating: 4.9,
+    sold: 1150,
+    image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&auto=format&fit=crop&q=80",
+    badge: "Terlaris",
+    stock: 55,
+    unit: "Btl"
+  },
+  {
+    id: "KOS-003",
+    name: "Wardah Lightening Micellar Gentle Wash 100ml Non-SLS",
+    category: "Kosmetik & Cantik",
+    price: 29500,
+    originalPrice: 33000,
+    rating: 4.9,
+    sold: 760,
+    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80",
+    badge: "Halal MUI",
+    stock: 35,
+    unit: "Tub"
+  },
+  {
+    id: "KOS-004",
+    name: "Garnier Micellar Cleansing Water Pink 125ml Kulit Sensitif",
+    category: "Kosmetik & Cantik",
+    price: 34500,
+    originalPrice: 39000,
+    rating: 5.0,
+    sold: 1340,
+    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600&auto=format&fit=crop&q=80",
+    badge: "Favorit",
+    stock: 40,
+    unit: "Btl"
+  },
+  {
+    id: "KOS-005",
+    name: "Emina Bright Stuff Moisturizing Cream 20ml Pencerah Wajah",
+    category: "Kosmetik & Cantik",
+    price: 24500,
+    originalPrice: 28000,
+    rating: 4.8,
+    sold: 620,
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80",
+    badge: "Glowing",
+    stock: 48,
+    unit: "Tub"
+  },
+  {
+    id: "KOS-006",
+    name: "Kahf Triple Protection Sunscreen Moisturizer SPF 30 PA+++ 30ml",
+    category: "Kosmetik & Cantik",
+    price: 39000,
+    originalPrice: 44000,
+    rating: 4.9,
+    sold: 540,
+    image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80",
+    badge: "Pria & Wanita",
+    stock: 30,
+    unit: "Tub"
+  },
+
+  // === 3. KELONTONGAN ===
+  {
+    id: "KLT-001",
+    name: "Minyak Goreng Bimoli Klasik Pouch 2 Liter Jernih Berkualitas",
+    category: "Kelontongan",
+    price: 38500,
+    originalPrice: 41000,
+    rating: 4.9,
+    sold: 1920,
+    image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80",
+    badge: "Sembako Utama",
+    stock: 60,
+    unit: "Pouch"
+  },
+  {
+    id: "KLT-002",
+    name: "Beras Kepala Super Ramos / Setra Ramos Pulen Wangi 5kg",
+    category: "Kelontongan",
+    price: 74500,
+    originalPrice: 78000,
+    rating: 5.0,
+    sold: 840,
+    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+    badge: "Beras Pulen",
+    stock: 35,
+    unit: "Sak"
+  },
+  {
+    id: "KLT-003",
+    name: "Gula Pasir Putih Gulaku Tebu Murni Premium Kemasan 1kg",
+    category: "Kelontongan",
+    price: 18500,
+    originalPrice: 20000,
+    rating: 4.9,
+    sold: 1560,
+    image: "https://images.unsplash.com/photo-1581441363689-1f3c3c414635?w=600&auto=format&fit=crop&q=80",
+    badge: "Manis Alami",
+    stock: 95,
+    unit: "Bks"
+  },
+  {
+    id: "KLT-004",
+    name: "Indomie Mi Instan Goreng Spesial 85g Bumbu Gurih (Pack 5 Bks)",
+    category: "Kelontongan",
+    price: 17000,
+    originalPrice: 18500,
+    rating: 5.0,
+    sold: 2890,
+    image: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80",
+    badge: "Paling Laris",
+    stock: 120,
+    unit: "Pack"
+  },
+  {
+    id: "KLT-005",
+    name: "Deterjen Bubuk Rinso Anti Noda + Molto Rose Fresh 770g",
+    category: "Kelontongan",
+    price: 26500,
+    originalPrice: 29500,
+    rating: 4.9,
+    sold: 710,
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80",
+    badge: "Harum Semerbak",
+    stock: 50,
+    unit: "Bks"
+  },
+  {
+    id: "KLT-006",
+    name: "Sabun Cuci Piring Sunlight Jeruk Nipis 100 Pouch 650ml",
+    category: "Kelontongan",
+    price: 15500,
+    originalPrice: 17500,
+    rating: 4.9,
+    sold: 1120,
+    image: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80",
+    badge: "Hemat",
+    stock: 75,
+    unit: "Pouch"
+  },
+
+  // === 4. MINUMAN ===
+  {
+    id: "MNM-001",
+    name: "Le Minerale Air Mineral Botol Sedang 600ml Segar Dingin",
+    category: "Minuman",
+    price: 3500,
+    originalPrice: 4000,
+    rating: 4.9,
+    sold: 3400,
+    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80",
+    badge: "Dingin Segar",
+    stock: 160,
+    unit: "Btl"
+  },
+  {
+    id: "MNM-002",
+    name: "Pocari Sweat Minuman Isotonik Botol 500ml Pengganti Ion Tubuh",
+    category: "Minuman",
+    price: 8000,
+    originalPrice: 9000,
+    rating: 4.9,
+    sold: 1450,
+    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80",
+    badge: "Segar Bugar",
+    stock: 70,
+    unit: "Btl"
+  },
+  {
+    id: "MNM-003",
+    name: "Floridina Pulpy Orange Jus Jeruk Segar Bulir Asli 350ml",
+    category: "Minuman",
+    price: 3500,
+    originalPrice: 4500,
+    rating: 4.8,
+    sold: 1890,
+    image: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80",
+    badge: "Bulir Asli",
+    stock: 130,
+    unit: "Btl"
+  },
+  {
+    id: "MNM-004",
+    name: "Susu UHT Ultra Milk Cokelat / Full Cream Kotak 250ml",
+    category: "Minuman",
+    price: 7000,
+    originalPrice: 8000,
+    rating: 5.0,
+    sold: 2100,
+    image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80",
+    badge: "Kaya Kalsium",
+    stock: 110,
+    unit: "Kotak"
+  },
+  {
+    id: "MNM-005",
+    name: "Teh Botol Sosro / Teh Pucuk Harum Melati Segar 350ml",
+    category: "Minuman",
+    price: 4000,
+    originalPrice: 5000,
+    rating: 4.9,
+    sold: 2350,
+    image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80",
+    badge: "Pelepas Dahaga",
+    stock: 125,
+    unit: "Btl"
+  },
+  {
+    id: "MNM-006",
+    name: "Kopi Kapal Api Special Mix Plus Gula (1 Renceng Isi 10 Sachet)",
+    category: "Minuman",
+    price: 16500,
+    originalPrice: 18500,
+    rating: 4.9,
+    sold: 1280,
+    image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80",
+    badge: "Aroma Mantap",
+    stock: 80,
+    unit: "Pack"
   }
 ];
 
-// 2. Data Kategori
+// 2. Data Kategori Resmi Toko Delina (4 Kategori Fokus)
 const CATEGORIES = [
   { id: "all", name: "Semua Produk", icon: "bi-grid-fill" },
-  { id: "atk", name: "ATK & Perlengkapan Kantor", icon: "bi-pencil-square" },
-  { id: "kosmetik", name: "Kosmetik & Perawatan Diri", icon: "bi-heart-pulse" },
-  { id: "sembako", name: "Sembako & Kelontongan", icon: "bi-shop" },
-  { id: "fnb", name: "Makanan & Minuman", icon: "bi-cup-straw" }
+  { id: "atk", name: "ATK & Kantor", icon: "bi-pencil-square" },
+  { id: "kosmetik", name: "Kosmetik & Cantik", icon: "bi-stars" },
+  { id: "kelontongan", name: "Kelontongan", icon: "bi-shop" },
+  { id: "minuman", name: "Minuman", icon: "bi-cup-straw" }
 ];
 
 // 3. State Aplikasi
@@ -155,33 +370,75 @@ function fileToBase64(file) {
   });
 }
 
-// Helper Deteksi Kategori Fleksibel
+// Helper Normalisasi Kategori ke 4 Kategori Resmi (ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman)
+function normalizeStoreCategory(rawCategory, productName = "") {
+  const cat = String(rawCategory || "").toLowerCase();
+  const name = String(productName || "").toLowerCase();
+  const combined = `${cat} ${name}`;
+
+  // 1. Cek Minuman terlebih dahulu (karena dulu ada "Makanan & Minuman")
+  const drinkKeywords = [
+    "minuman", "kopi", "coffee", "koffie", "kapal api", "luwak", "good day", "nescafe",
+    "teh", "sariwangi", "sosro", "pucuk", "susu", "ultra milk", "bear brand", "frisian",
+    "dancow", "indomilk", "air mineral", "aqua", "le minerale", "pocari", "floridina",
+    "jus", "juice", "sirup", "marjan", "abc squash", "energen", "nutrisari", "adem sari",
+    "larutan", "coca", "sprite", "fanta", "pepsi", "mizone", "you c1000", "hydro coco"
+  ];
+  if (cat === "minuman" || drinkKeywords.some(k => name.includes(k))) {
+    return "Minuman";
+  }
+
+  // 2. Cek Kosmetik & Cantik
+  const kosmetikKeywords = [
+    "kosmetik", "cantik", "perawatan", "skincare", "kecantikan", "wardah", "garnier",
+    "emina", "kahf", "dove", "nivea", "rexona", "posh", "maybelline", "somethinc",
+    "azarine", "scarlett", "vaseline", "citra", "marina", "biore", "ponds", "lifebuoy",
+    "lux", "pantene", "sunsilk", "clear", "shoulders", "pepsodent", "ciptadent",
+    "close up", "listerine", "charm", "laurier", "kodomo", "my baby", "kayu putih",
+    "freshcare", "tolak angin", "salonpas", "hansaplast", "betadine", "deodorant",
+    "roll on", "serum", "micellar", "sunscreen", "lip", "bedak", "parfum", "shampo",
+    "sabun mandi", "body wash", "pasta gigi"
+  ];
+  if (cat.includes("kosmetik") || cat.includes("cantik") || cat.includes("perawatan") || kosmetikKeywords.some(k => combined.includes(k))) {
+    return "Kosmetik & Cantik";
+  }
+
+  // 3. Cek Kelontongan (mencakup sembako, dapur, mie, biskuit/snack warung, deterjen, alat rumah tangga)
+  const kelontongKeywords = [
+    "kelontong", "sembako", "dapur", "minyak", "bimoli", "sania", "beras", "ramos",
+    "gula", "gulaku", "tepung", "segitiga biru", "garam", "kecap", "bango", "saus",
+    "bumbu", "royco", "masako", "sasa", "santan", "kara", "telur", "sarden", "kornet",
+    "indomie", "mie", "sedaap", "biskuit", "roma", "wafer", "nabati", "oreo",
+    "silverqueen", "beng-beng", "chitato", "qtela", "kacang", "garuda", "kopiko",
+    "choki", "khong guan", "deterjen", "rinso", "sunlight", "mama lemon", "downy",
+    "soklin", "baygon", "tissue", "paseo", "lampu", "hannochs", "baterai", "alkaline",
+    "korek", "tokai", "plastik", "sapu", "pel lantai", "makanan", "snack"
+  ];
+  if (cat.includes("kelontong") || cat.includes("sembako") || cat.includes("dapur") || kelontongKeywords.some(k => combined.includes(k))) {
+    return "Kelontongan";
+  }
+
+  if (cat.includes("minum")) {
+    return "Minuman";
+  }
+
+  // 4. Default / ATK & Kantor
+  return "ATK & Kantor";
+}
+
+// Helper Deteksi Kategori Fleksibel (Terkoneksi Penuh dengan Google Sheets & 4 Kategori Resmi)
 function isProductInCategory(product, targetCategory) {
   if (!product || !targetCategory) return false;
-  if (targetCategory === "Semua Produk") return true;
+  if (targetCategory === "Semua Produk" || targetCategory === "Semua" || targetCategory === "all") return true;
+
+  const normalizedProdCat = normalizeStoreCategory(product.category, product.name).toLowerCase();
+  const normalizedTargetCat = normalizeStoreCategory(targetCategory, "").toLowerCase();
+
+  if (normalizedProdCat === normalizedTargetCat) return true;
 
   const pCat = String(product.category || "").toLowerCase();
   const tCat = String(targetCategory).toLowerCase();
-
-  if (pCat === tCat) return true;
-
-  if (tCat.includes("atk") || tCat.includes("kantor")) {
-    return pCat.includes("atk") || pCat.includes("kantor") || pCat.includes("kertas") || pCat.includes("buku") || pCat.includes("tulis") || pCat.includes("sekolah");
-  }
-
-  if (tCat.includes("kosmetik") || tCat.includes("cantik") || tCat.includes("perawatan")) {
-    return pCat.includes("kosmetik") || pCat.includes("perawatan") || pCat.includes("cantik") || pCat.includes("skincare") || pCat.includes("kecantikan");
-  }
-
-  if (tCat.includes("sembako") || tCat.includes("kelontong") || tCat.includes("dapur")) {
-    return pCat.includes("sembako") || pCat.includes("kelontong") || pCat.includes("dapur") || pCat.includes("minyak") || pCat.includes("beras");
-  }
-
-  if (tCat.includes("makan") || tCat.includes("minum") || tCat.includes("snack")) {
-    return pCat.includes("makan") || pCat.includes("minum") || pCat.includes("snack") || pCat.includes("fnb") || pCat.includes("kuliner");
-  }
-
-  return false;
+  return pCat === tCat;
 }
 
 // Helper Badge Strip Merah Ala Alfagift (Pita Merah Sub-Kategori)
@@ -427,36 +684,36 @@ function renderProducts() {
     htmlRails += renderHorizontalRail("Rekomendasi Untuk Kamu", "Semua Produk", rekomendasiList);
   }
 
-  // Deret 2: "ATK & Alat Kantor"
-  const atkList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "ATK & Perlengkapan Kantor"));
+  // Deret 2: "ATK & Kantor"
+  const atkList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "ATK & Kantor"));
   if (atkList.length > 0) {
-    htmlRails += renderHorizontalRail("ATK & Alat Kantor", "ATK & Perlengkapan Kantor", atkList);
+    htmlRails += renderHorizontalRail("ATK & Kantor", "ATK & Kantor", atkList);
   }
 
   // Deret 3: "Kosmetik & Cantik"
-  const kosmetikList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Kosmetik & Perawatan Diri"));
+  const kosmetikList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Kosmetik & Cantik"));
   if (kosmetikList.length > 0) {
-    htmlRails += renderHorizontalRail("Kosmetik & Cantik", "Kosmetik & Perawatan Diri", kosmetikList);
+    htmlRails += renderHorizontalRail("Kosmetik & Cantik", "Kosmetik & Cantik", kosmetikList);
   }
 
-  // Deret 4: "Sembako & Kelontongan"
-  const sembakoList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Sembako & Kelontongan"));
-  if (sembakoList.length > 0) {
-    htmlRails += renderHorizontalRail("Sembako & Kelontongan", "Sembako & Kelontongan", sembakoList);
+  // Deret 4: "Kelontongan"
+  const kelontongList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Kelontongan"));
+  if (kelontongList.length > 0) {
+    htmlRails += renderHorizontalRail("Kelontongan", "Kelontongan", kelontongList);
   }
 
-  // Deret 5: "Makanan & Minuman Segar"
-  const fnbList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Makanan & Minuman"));
-  if (fnbList.length > 0) {
-    htmlRails += renderHorizontalRail("Makanan & Minuman Segar", "Makanan & Minuman", fnbList);
+  // Deret 5: "Minuman"
+  const minumanList = DUMMY_PRODUCTS.filter(p => isProductInCategory(p, "Minuman"));
+  if (minumanList.length > 0) {
+    htmlRails += renderHorizontalRail("Minuman", "Minuman", minumanList);
   }
 
   // Deret Kategori Lainnya (Dinamis jika admin menambahkan kategori baru di Google Sheets)
   const standardCats = [
-    "ATK & Perlengkapan Kantor",
-    "Kosmetik & Perawatan Diri",
-    "Sembako & Kelontongan",
-    "Makanan & Minuman"
+    "ATK & Kantor",
+    "Kosmetik & Cantik",
+    "Kelontongan",
+    "Minuman"
   ];
 
   const uniqueCustomCats = [...new Set(DUMMY_PRODUCTS.map(p => p.category).filter(Boolean))]
@@ -884,14 +1141,19 @@ function renderCategoryPills(categoriesList) {
   const container = document.getElementById("categoryPillsContainer");
   if (!container) return;
 
+  const defaultCats = [
+    { nama: "ATK & Kantor", icon: "bi-pencil-square" },
+    { nama: "Kosmetik & Cantik", icon: "bi-stars" },
+    { nama: "Kelontongan", icon: "bi-shop" },
+    { nama: "Minuman", icon: "bi-cup-straw" }
+  ];
+
   const cats = categoriesList && categoriesList.length > 0 
-    ? categoriesList 
-    : [
-        { nama: "ATK & Perlengkapan Kantor", icon: "bi-pencil-square" },
-        { nama: "Kosmetik & Perawatan Diri", icon: "bi-heart-pulse" },
-        { nama: "Sembako & Kelontongan", icon: "bi-shop" },
-        { nama: "Makanan & Minuman", icon: "bi-cup-straw" }
-      ];
+    ? categoriesList.map(c => ({
+        nama: normalizeStoreCategory(c.nama || c, ""),
+        icon: c.icon || "bi-tag-fill"
+      })).filter((c, idx, arr) => arr.findIndex(x => x.nama === c.nama) === idx)
+    : defaultCats;
 
   let html = `
     <button 
@@ -920,11 +1182,11 @@ function renderCategoryPills(categoriesList) {
 }
 
 function selectCategory(categoryName) {
-  currentCategory = categoryName;
+  currentCategory = categoryName === "Semua Produk" ? "Semua Produk" : normalizeStoreCategory(categoryName, "");
 
   // 1. Highlight Kartu Kategori Kotak Bergambar 3D
   document.querySelectorAll(".category-box-card").forEach(card => {
-    const isCurrent = card.dataset.category === categoryName;
+    const isCurrent = card.dataset.category === currentCategory;
     if (isCurrent) {
       card.classList.add("active-card", "ring-2", "ring-emerald-600");
     } else {
@@ -934,7 +1196,7 @@ function selectCategory(categoryName) {
 
   // 2. Highlight Pills Kategori jika ada
   document.querySelectorAll(".category-pill").forEach(btn => {
-    const isCurrent = btn.dataset.category === categoryName;
+    const isCurrent = btn.dataset.category === currentCategory;
     if (isCurrent) {
       btn.className =
         "category-pill flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-emerald-800 text-white shadow-sm transition-all";
@@ -948,7 +1210,7 @@ function selectCategory(categoryName) {
 
   // Scroll halus ke katalog produk
   const katalogEl = document.getElementById("katalogProduk");
-  if (katalogEl && (categoryName !== "Semua Produk" || window.scrollY > 150)) {
+  if (katalogEl && (currentCategory !== "Semua Produk" || window.scrollY > 150)) {
     katalogEl.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
@@ -1402,7 +1664,7 @@ function handleSlideBelanja() {
 }
 
 function handleSlideAtk() {
-  selectCategory("ATK & Perlengkapan Kantor");
+  selectCategory("ATK & Kantor");
   const categorySection = document.getElementById("categorySection");
   if (categorySection) {
     categorySection.scrollIntoView({ behavior: "smooth" });
@@ -2982,11 +3244,12 @@ async function fetchProductsFromGAS() {
       renderCategoryPills(json.categories);
     }
 
-    // 1. Sinkron Katalog Produk
+    // 1. Sinkron Katalog Produk (Otomatis normalisasi ke 4 Kategori Fokus & perbaiki foto)
     if (Array.isArray(json.products) && json.products.length > 0) {
       console.log("Alhamdulillah, produk berhasil dimuat dari Google Sheets:", json.products.length, "barang");
       DUMMY_PRODUCTS.length = 0;
       json.products.forEach(p => {
+        p.category = normalizeStoreCategory(p.category, p.name);
         p.image = formatImageUrl(p.image);
         DUMMY_PRODUCTS.push(p);
       });
@@ -3697,23 +3960,38 @@ document.addEventListener("DOMContentLoaded", () => {
   initAlfagiftHeaderScroll();
 
   // Live listener jika admin menambah/mengedit produk di tab admin (Sync Real-time tanpa refresh)
+  const syncLiveProduct = (newProd) => {
+    if (!newProd || !newProd.id) return;
+    newProd.category = normalizeStoreCategory(newProd.category, newProd.name);
+    newProd.image = formatImageUrl(newProd.image);
+    const idx = DUMMY_PRODUCTS.findIndex(p => String(p.id).toUpperCase() === String(newProd.id).toUpperCase());
+    if (idx > -1) {
+      DUMMY_PRODUCTS[idx] = { ...DUMMY_PRODUCTS[idx], ...newProd };
+    } else {
+      DUMMY_PRODUCTS.unshift(newProd);
+    }
+    renderProducts();
+    showToast(`⚡ Produk "${newProd.name}" diperbarui di katalog!`);
+  };
+
   window.addEventListener("storage", (e) => {
     if (e.key === "delina_last_saved_product" && e.newValue) {
       try {
-        const newProd = JSON.parse(e.newValue);
-        if (newProd && newProd.id) {
-          const idx = productsData.findIndex(p => String(p.id).toUpperCase() === String(newProd.id).toUpperCase());
-          if (idx > -1) {
-            productsData[idx] = { ...productsData[idx], ...newProd };
-          } else {
-            productsData.unshift(newProd);
-          }
-          renderProducts();
-          showToast(`⚡ Produk "${newProd.name}" diperbarui di katalog!`);
-        }
+        syncLiveProduct(JSON.parse(e.newValue));
       } catch (err) {}
     }
   });
+
+  if (typeof BroadcastChannel !== "undefined") {
+    try {
+      const bc = new BroadcastChannel("delina_catalog_sync");
+      bc.onmessage = (ev) => {
+        if (ev.data && ev.data.type === "PRODUCT_SAVED" && ev.data.product) {
+          syncLiveProduct(ev.data.product);
+        }
+      };
+    } catch (err) {}
+  }
 
   // Pasang listener pencarian
   const searchInput = document.getElementById("searchInput");
@@ -3810,8 +4088,8 @@ function formatImageUrl(url) {
   if (clean.startsWith("data:image/")) {
     return clean;
   }
-  // Intercept 3 URL Unsplash lama yang 404 agar bebas error di console
-  if (clean.includes("1608248597359")) {
+  // Intercept URL Unsplash lama yang 404 agar bebas error di console
+  if (clean.includes("1608248597359") || clean.includes("1607006314330")) {
     return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
   }
   if (clean.includes("1556228722")) {
@@ -3819,6 +4097,9 @@ function formatImageUrl(url) {
   }
   if (clean.includes("1585336261026")) {
     return "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80";
+  }
+  if (clean.includes("1550524514")) {
+    return "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80";
   }
   if (clean.includes("lh3.googleusercontent.com/d/")) {
     return clean;
