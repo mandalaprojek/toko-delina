@@ -762,6 +762,7 @@ function addToCart(productId) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
 }
 
 function updateCartQty(productId, change) {
@@ -776,6 +777,7 @@ function updateCartQty(productId, change) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
 }
 
 function saveCart() {
@@ -3043,6 +3045,7 @@ function openKikoChat() {
   const modal = document.getElementById("kikoChatModal");
   if (modal) {
     initKikoChat();
+    if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
     modal.classList.remove("hidden");
     if (typeof pushModalState === "function") pushModalState("kikoChatModal");
     const kikoMsgs = document.getElementById("kikoChatMessages");
@@ -3050,7 +3053,7 @@ function openKikoChat() {
   }
 }
 
-function closeKikoChat() {
+function closeKikoChat(notifyHistory = true) {
   const modal = document.getElementById("kikoChatModal");
   if (modal) {
     const wasOpen = !modal.classList.contains("hidden");
@@ -3058,7 +3061,7 @@ function closeKikoChat() {
     if (activeBottomNav === "kiko") {
       setActiveBottomNav("home");
     }
-    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+    if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
   }
 }
 
@@ -3264,6 +3267,7 @@ function kikoRenderWelcome() {
     categories: true,
     actions: [
       { label: "🧭 Saya Pelanggan Baru", cmd: "ask:Saya pelanggan baru, bagaimana cara belanja?" },
+      { label: "👑 Daftar Member VIP", cmd: "member" },
       { label: "📦 Lacak Pesanan Saya", cmd: "ask:Lacak pesanan saya" }
     ]
   }, false);
@@ -3275,20 +3279,31 @@ function kikoProductCardHtml(p) {
   const stok = Number(p.stock) || 0;
   const stokLabel = stok <= 0
     ? `<span class="text-red-500 font-bold">Stok habis</span>`
-    : (stok <= 5 ? `<span class="text-amber-600 font-bold">Sisa ${stok} ${escapeHtml(p.unit || "")}</span>` : `<span class="text-emerald-600">Stok ${stok} ${escapeHtml(p.unit || "")}</span>`);
+    : (stok <= 5 ? `<span class="text-amber-600 font-bold">Sisa ${stok} ${escapeHtml(p.unit || "")}</span>` : `<span class="text-emerald-600 font-medium">Stok ${stok} ${escapeHtml(p.unit || "")}</span>`);
   return `
-    <div class="kiko-product-card flex-shrink-0 w-[132px] bg-white border border-gray-100 rounded-xl overflow-hidden shadow-xs">
-      <button type="button" data-kiko-cmd="detail:${escapeHtml(p.id)}" class="block w-full aspect-square bg-gray-50 overflow-hidden">
-        <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="w-full h-full object-cover"
-          onerror="this.onerror=null;this.src='https://placehold.co/300x300/ecfdf5/047857?text=Delina';" />
-      </button>
-      <div class="p-2 space-y-1">
-        <div class="text-[10px] font-semibold text-gray-700 leading-tight line-clamp-2 min-h-[26px]">${escapeHtml(p.name)}</div>
-        <div class="text-[11px] font-extrabold text-emerald-700">${formatRupiah(p.price)}</div>
-        <div class="text-[9px]">${stokLabel}</div>
+    <div class="kiko-product-card flex-shrink-0 w-[140px] bg-white border border-gray-100 rounded-xl overflow-hidden shadow-xs hover:shadow-sm transition-all flex flex-col justify-between">
+      <div>
+        <button type="button" data-kiko-cmd="detail:${escapeHtml(p.id)}" class="block w-full aspect-square bg-gray-50 overflow-hidden relative group" title="Lihat detail barang">
+          <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            onerror="this.onerror=null;this.src='https://placehold.co/300x300/ecfdf5/047857?text=Delina';" />
+          <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-medium backdrop-blur-xs">Detail</span>
+        </button>
+        <div class="p-2 space-y-1">
+          <div class="text-[10px] font-semibold text-gray-700 leading-tight line-clamp-2 min-h-[26px]">${escapeHtml(p.name)}</div>
+          <div class="text-[11px] font-extrabold text-emerald-700">${formatRupiah(p.price)}</div>
+          <div class="text-[9px]">${stokLabel}</div>
+        </div>
+      </div>
+      <div class="p-2 pt-0 grid grid-cols-2 gap-1">
         <button type="button" data-kiko-cmd="add:${escapeHtml(p.id)}" ${stok <= 0 ? "disabled" : ""}
-          class="w-full mt-1 text-[10px] font-bold py-1.5 rounded-lg ${stok <= 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-tokopedia-green hover:bg-emerald-600 text-white active:scale-95"} transition-all">
-          <i class="bi bi-cart-plus"></i> Keranjang
+          class="text-[9px] font-bold py-1.5 rounded-lg ${stok <= 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 active:scale-95"} transition-all"
+          title="Tambah ke Keranjang">
+          + Troli
+        </button>
+        <button type="button" data-kiko-cmd="buynow:${escapeHtml(p.id)}" ${stok <= 0 ? "disabled" : ""}
+          class="text-[9px] font-bold py-1.5 rounded-lg ${stok <= 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-tokopedia-green hover:bg-emerald-600 text-white shadow-xs active:scale-95"} transition-all"
+          title="Beli Langsung dan Bayar">
+          ⚡ Beli
         </button>
       </div>
     </div>`;
@@ -3386,11 +3401,20 @@ function kikoRunAction(cmd, btn) {
       break;
     case "add":
       kikoAddToCart(arg);
+      updateKikoMiniCartBar();
+      break;
+    case "buynow":
+      if (kikoAddToCart(arg, true)) {
+        updateKikoMiniCartBar();
+        closeKikoChat(false);
+        if (typeof openCheckoutModal === "function") openCheckoutModal();
+      }
       break;
     case "addall": {
       const ids = arg.split(",").filter(Boolean);
       let ok = 0;
       ids.forEach(id => { if (kikoAddToCart(id, true)) ok++; });
+      updateKikoMiniCartBar();
       showToast(`Alhamdulillah, ${ok} barang paket masuk ke keranjang.`);
       kikoPush({
         role: "kiko",
@@ -3400,28 +3424,28 @@ function kikoRunAction(cmd, btn) {
       break;
     }
     case "detail":
-      closeKikoChat();
+      closeKikoChat(false);
       if (typeof openProductDetailModal === "function") openProductDetailModal(arg);
       break;
     case "cat":
-      closeKikoChat();
+      closeKikoChat(false);
       selectCategory(arg);
       break;
     case "cart":
-      closeKikoChat();
+      closeKikoChat(false);
       if (typeof setActiveBottomNav === "function") setActiveBottomNav("cart");
       toggleCartDrawer(true);
       break;
     case "checkout":
       if (!cart || cart.length === 0) {
-        showToast("Keranjang masih kosong kak.", "warning");
+        showToast("Keranjang masih kosong kak. Yuk pilih produk dulu nggih!", "warning");
         return;
       }
-      closeKikoChat();
+      closeKikoChat(false);
       if (typeof openCheckoutModal === "function") openCheckoutModal();
       break;
     case "track":
-      closeKikoChat();
+      closeKikoChat(false);
       if (typeof openLacakPesananModal === "function") openLacakPesananModal(arg || undefined);
       break;
     case "copy":
@@ -3429,13 +3453,79 @@ function kikoRunAction(cmd, btn) {
       showToast(`Kode ${arg} tersalin. Tempel saat checkout nggih kak.`);
       break;
     case "member":
-      closeKikoChat();
-      if (typeof openMemberModal === "function") openMemberModal();
+      closeKikoChat(false);
+      if (typeof openMemberModal === "function") openMemberModal("register");
       break;
     case "clear":
       clearKikoChat();
       break;
   }
+}
+
+// Bilah Ringkas Keranjang Belanja Mengambang di Chat Kiko (Sticky Mini-Cart)
+function updateKikoMiniCartBar() {
+  const bar = document.getElementById("kikoMiniCartBar");
+  const countEl = document.getElementById("kikoMiniCartCount");
+  const totalEl = document.getElementById("kikoMiniCartTotal");
+  if (!bar || !countEl || !totalEl) return;
+
+  const totalQty = Array.isArray(cart) ? cart.reduce((s, it) => s + (Number(it.qty) || 0), 0) : 0;
+  const totalPrice = Array.isArray(cart) ? cart.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 0), 0) : 0;
+
+  if (totalQty > 0) {
+    countEl.textContent = `${totalQty} Barang`;
+    totalEl.textContent = formatRupiah(totalPrice);
+    bar.classList.remove("hidden");
+  } else {
+    bar.classList.add("hidden");
+  }
+}
+
+// Rekomendasi Chip Cepat Dinamis saat Kategori Dipilih
+function kikoSetCategoryQuickChips(categoryName) {
+  const container = document.getElementById("kikoQuickChipsContainer");
+  if (!container) return;
+  const chipPresets = {
+    "ATK & Kantor": [
+      { label: "📄 Kertas HVS A4", q: "Stok Kertas HVS PaperOne A4 ada?" },
+      { label: "✒️ Pulpen Sarasa", q: "Pulpen Gel Zebra Sarasa Clip" },
+      { label: "📚 Buku Tulis SiDu", q: "Buku Tulis Sinar Dunia pack" },
+      { label: "🖨️ Tarif Fotokopi", q: "Berapa tarif fotokopi warna dan jilid?" }
+    ],
+    "Kosmetik & Cantik": [
+      { label: "🧴 Deodorant Dove", q: "Deodorant Dove Ultimate Repair" },
+      { label: "✨ Micellar Water", q: "Wardah Micellar Gentle Wash" },
+      { label: "☀️ Sunscreen Kahf", q: "Kahf Sunscreen Moisturizer" },
+      { label: "💄 Lip Care", q: "Produk kecantikan wajah dan pelembab" }
+    ],
+    "Kelontongan": [
+      { label: "🍳 Minyak Bimoli 2L", q: "Minyak Goreng Bimoli 2 Liter" },
+      { label: "🍚 Beras Super 5kg", q: "Beras Kepala Super Ramos 5kg" },
+      { label: "🍜 Indomie Goreng", q: "Indomie Mi Instan Goreng" },
+      { label: "🧼 Sabun Sunlight", q: "Sabun Cuci Piring Sunlight" }
+    ],
+    "Minuman": [
+      { label: "💧 Le Minerale 600ml", q: "Le Minerale Air Mineral Botol" },
+      { label: "⚡ Pocari Sweat", q: "Pocari Sweat Botol 500ml" },
+      { label: "🍊 Floridina", q: "Floridina Pulpy Orange" },
+      { label: "🥛 Susu Ultra Milk", q: "Susu UHT Ultra Milk" }
+    ]
+  };
+
+  const chips = chipPresets[categoryName];
+  if (!chips) return;
+  container.innerHTML = `
+    <button type="button" onclick="sendQuickKikoQuestion('Saya pelanggan baru, bagaimana cara belanja?')"
+      class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 whitespace-nowrap transition-colors">🧭 Cara Belanja</button>
+    <button type="button" onclick="kikoRunAction('member')"
+      class="px-2 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold hover:bg-emerald-100 whitespace-nowrap transition-colors">👑 Member VIP</button>` +
+    chips.map(c => `
+      <button type="button" onclick="sendQuickKikoQuestion('${escapeHtml(c.q)}')"
+        class="px-2 py-1 rounded-full bg-emerald-50/80 border border-emerald-200 text-emerald-800 font-medium hover:bg-emerald-100 whitespace-nowrap transition-colors">
+        ${escapeHtml(c.label)}
+      </button>`).join("") + `
+    <button type="button" onclick="kikoRunAction('cat:${escapeHtml(categoryName)}')"
+      class="px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-emerald-700 whitespace-nowrap transition-colors">📂 Semua ${escapeHtml(categoryName)}</button>`;
 }
 
 // ---------- Input Suara (Web Speech API) ----------
@@ -3635,6 +3725,7 @@ async function kikoHandleLocalIntent(userText) {
   // H. Kategori (termasuk istilah lama: sembako/dapur -> Kelontongan, makanan & minuman -> Minuman)
   const cat = kikoDetectCategory(q);
   if (cat) {
+    if (typeof kikoSetCategoryQuickChips === "function") kikoSetCategoryQuickChips(cat);
     const list = kikoTopProductsByCategory(cat, 6);
     if (list.length > 0) {
       return {
@@ -6691,6 +6782,8 @@ window.sendKikoMessage = sendKikoMessage;
 window.clearKikoChat = clearKikoChat;
 window.startKikoVoiceInput = startKikoVoiceInput;
 window.kikoRunAction = kikoRunAction;
+window.updateKikoMiniCartBar = updateKikoMiniCartBar;
+window.kikoSetCategoryQuickChips = kikoSetCategoryQuickChips;
   window.addToCart = addToCart;
   window.updateCartQty = updateCartQty;
   window.calculateFotokopi = calculateFotokopi;

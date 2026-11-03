@@ -285,7 +285,8 @@ function setupTabPengaturan(sheet) {
     ["URL_QRIS", "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW01189360099900000123455204541153033605802ID5911DELINA%20SHOP6007JAKARTA6304ABCD", "URL barcode QRIS toko"],
     ["NOMOR_REKENING", "BCA 1234567890 a.n Delina Shop", "Nomor rekening bank untuk transfer"],
     ["PIN_ADMIN", "9999", "PIN Keamanan Super Admin (Akses Penuh)"],
-    ["PIN_KASIR", "1234", "PIN Keamanan Kasir POS (Antrean Pesanan)"]
+    ["PIN_KASIR", "1234", "PIN Keamanan Kasir POS (Antrean Pesanan)"],
+    ["GEMINI_API_KEY", "", "Kunci API Google Gemini untuk Otak AI Kiko & Vision Barcode (gratis dari aistudio.google.com)"]
   ];
   sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
   sheet.autoResizeColumns(1, header[0].length);
@@ -1343,9 +1344,19 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
         EWALLET_GOPAY: payload.EWALLET_GOPAY,
         PIN_ADMIN: payload.PIN_ADMIN,
         PIN_KASIR: payload.PIN_KASIR,
+        GEMINI_API_KEY: payload.GEMINI_API_KEY,
         URL_QRIS: urlQris,
         URL_LOGO: urlLogo
       };
+
+      if (payload.GEMINI_API_KEY !== undefined && payload.GEMINI_API_KEY !== null) {
+        try {
+          const p = PropertiesService.getScriptProperties();
+          if (String(payload.GEMINI_API_KEY).trim()) {
+            p.setProperty("GEMINI_API_KEY", String(payload.GEMINI_API_KEY).trim());
+          }
+        } catch (eProp) {}
+      }
 
       const data = sheetPengaturan.getDataRange().getValues();
       const existingKeys = {};
@@ -2186,9 +2197,17 @@ function generateDataDummyLengkap(ss) {
 function tanyaKikoAI(pesanUser, sumber, riwayatChat) {
   try {
     const props = PropertiesService.getScriptProperties();
-    const geminiApiKey = props.getProperty("GEMINI_API_KEY");
+    // Baca API Key dari ScriptProperties ATAU dari Tab Pengaturan Google Sheets (Row GEMINI_API_KEY)
+    let geminiApiKey = props.getProperty("GEMINI_API_KEY");
+    if (!geminiApiKey) {
+      try {
+        const settings = getPengaturanData(ss);
+        if (settings && settings.GEMINI_API_KEY) {
+          geminiApiKey = String(settings.GEMINI_API_KEY).trim();
+        }
+      } catch (eSet) {}
+    }
 
-    const ss = getDelinaSpreadsheet();
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
     const sheetTarif = ss.getSheetByName(TAB_TARIF);
 
@@ -2279,7 +2298,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+    const models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -3002,7 +3021,13 @@ function prosesLookupBarcode(barcode, ss, imageBase64) {
   if (imageBase64 && typeof imageBase64 === "string" && imageBase64.length > 50) {
     try {
       const props = PropertiesService.getScriptProperties();
-      const geminiApiKey = props.getProperty("GEMINI_API_KEY");
+      let geminiApiKey = props.getProperty("GEMINI_API_KEY");
+      if (!geminiApiKey) {
+        try {
+          const s = getPengaturanData();
+          if (s && s.GEMINI_API_KEY) geminiApiKey = String(s.GEMINI_API_KEY).trim();
+        } catch (eSet) {}
+      }
       if (geminiApiKey) {
         let mimeType = "image/jpeg";
         let pureBase64 = imageBase64;
@@ -3262,7 +3287,13 @@ Wajib kembalikan HANYA format JSON murni tanpa markdown:
   const webSnippet = cariSnippetWebBarcode(cleanBarcode);
   try {
     const props = PropertiesService.getScriptProperties();
-    const geminiApiKey = props.getProperty("GEMINI_API_KEY");
+    let geminiApiKey = props.getProperty("GEMINI_API_KEY");
+    if (!geminiApiKey) {
+      try {
+        const s = getPengaturanData();
+        if (s && s.GEMINI_API_KEY) geminiApiKey = String(s.GEMINI_API_KEY).trim();
+      } catch (eSet) {}
+    }
     if (geminiApiKey) {
       const promptAI = `Identifikasi secara akurat produk dagang ritel di Indonesia dengan kode barcode EAN/UPC: "${cleanBarcode}".
 ${webSnippet ? `Data hasil pencarian web untuk barcode ${cleanBarcode}: "${webSnippet}".` : ""}
