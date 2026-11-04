@@ -572,6 +572,50 @@ function doPost(e) {
     const ss = getDelinaSpreadsheet();
 
     // =========================================================
+    // JALUR 0: AUTO-BIND GRUP TELEGRAM (Otomatis Daftarkan ID Grup ke ADMIN_CHAT_ID)
+    // =========================================================
+    let incomingGroupChatId = null;
+    let incomingGroupTitle = "";
+    let incomingGroupType = "";
+
+    if (payload.my_chat_member && payload.my_chat_member.chat) {
+      incomingGroupChatId = payload.my_chat_member.chat.id;
+      incomingGroupTitle = payload.my_chat_member.chat.title || "";
+      incomingGroupType = payload.my_chat_member.chat.type || "group";
+    } else if (payload.message && payload.message.chat) {
+      const c = payload.message.chat;
+      if (String(c.id).startsWith("-") || c.type === "group" || c.type === "supergroup") {
+        incomingGroupChatId = c.id;
+        incomingGroupTitle = c.title || "";
+        incomingGroupType = c.type || "group";
+      }
+    }
+
+    if (incomingGroupChatId) {
+      const bindRes = autoBindTelegramGroup(incomingGroupChatId, incomingGroupTitle, incomingGroupType);
+      if (bindRes && bindRes.isNewlyAdded) {
+        const welcomeGroupMsg = `🎉 *BISMILLAH, GRUP RESMI TERHUBUNG!* 🏪
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Alhamdulillah! Grup *"${incomingGroupTitle || 'Group Laporan Toko Delina'}"* telah *OTOMATIS TERDAFTAR* sebagai saluran laporan resmi Toko Delina!
+
+🆔 *Grup ID:* \`${incomingGroupChatId}\`
+🤖 *Status Bot:* Aktif & Terhubung ke Toko Delina
+
+📢 *Mulai detik ini, bot Kiko AI akan otomatis melaporkan setiap aktivitas ke grup ini:*
+• 🛍️ *Pesanan Baru* (Pelanggan Belanja di Website)
+• 💻 *Transaksi Kasir (POS)* (Penjualan Langsung di Toko)
+• 👤 *Member Baru* (Pendaftaran Member VIP)
+• 🎁 *Klaim Hadiah* (Tukar Poin Member Royalty)
+• 🔄 *Update Status Nota* (Lunas, Siap Ambil, Selesai)
+• 📦 *Perubahan Stok & Produk* (Restock / Edit Katalog)
+• 🔐 *Sesi Keamanan* (Login Admin & Kasir)
+
+_Semoga Toko Delina semakin berkah, maju, dan laris manis!_ 🤲✨`;
+        kirimPesanTelegram(incomingGroupChatId, welcomeGroupMsg);
+      }
+    }
+
+    // =========================================================
     // JALUR 1: TELEGRAM WEBHOOK (CALLBACK QUERY DARI INLINE KEYBOARD)
     // =========================================================
     if (payload.callback_query) {
@@ -648,23 +692,25 @@ Kakak bisa langsung tanyakan rekomendasi kosmetik yang cocok untuk kebutuhan kak
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // 2c. Menu Member & Hadiah
+      // 2c. Menu Member & Hadiah (Input No HP Langsung)
       if (cbData === "menu_member") {
         answerCallbackQuery(cb.id, "Program Member Royalty");
-        const memberMsg = `🎁 *PROGRAM MEMBER & HADIAH TOKO DELINA*
+        const memberMsg = `👑 *CEK STATUS MEMBER & POIN HADIAH DELINA* 🎁
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✨ *Kumpulkan Poin Setiap Belanja:*
 • Setiap belanja Rp 10.000 = *1 Poin Belanja*
 • Tukar *30 Poin* = *1 Hadiah Gratis* pilihan kakak!
 
-👉 *Cara Cek Poin Anda Langsung:*
-Ketik perintah: \`/poin [Nomor HP]\`
-Contoh: \`/poin 081234567890\`
+👉 *Cek Saldo Poin Anda Sekarang:*
+Silakan ketik **Nomor WhatsApp / HP** kakak langsung di chat ini (contoh: \`081234567890\`).
 
-👇 *Atau klik tombol di bawah untuk melihat pilihan hadiah:*`;
+Kiko akan langsung memeriksa kartu member, saldo poin, dan hadiah yang bisa kakak klaim! 🎁
+
+👇 *Atau klik tombol di bawah untuk melihat pilihan hadiah di web:*`;
         kirimPesanTelegram(fromChatId, memberMsg, {
           inline_keyboard: [
-            [{ text: "🎁 Lihat Poin & Hadiah di Web", url: webAppStoreUrl }]
+            [{ text: "👑 Buka Kartu Member di Web", url: webAppStoreUrl }],
+            [{ text: "🎁 Lihat Pilihan Hadiah", url: webAppStoreUrl }]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
@@ -677,6 +723,7 @@ Contoh: \`/poin 081234567890\`
         if (updated) {
           answerCallbackQuery(cb.id, `Nota ${orderId} diverifikasi Lunas!`);
           kirimPesanTelegram(fromChatId, `✅ *Alhamdulillah!* Nota \`${orderId}\` telah diverifikasi *Lunas & Sedang Diproses* oleh Admin Toko.`);
+          broadcastPesanTelegram(`🔄 *VERIFIKASI NOTA BERHASIL*\nNota \`${orderId}\` telah diverifikasi *Lunas & Sedang Diproses* oleh Admin via Telegram.`);
         } else {
           answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
         }
@@ -690,6 +737,7 @@ Contoh: \`/poin 081234567890\`
         if (updated) {
           answerCallbackQuery(cb.id, `Nota ${orderId} diubah ke Siap Diambil!`);
           kirimPesanTelegram(fromChatId, `📦 *Alhamdulillah!* Nota \`${orderId}\` telah diubah statusnya menjadi *Siap Diambil di Toko*.`);
+          broadcastPesanTelegram(`📦 *UPDATE STATUS NOTA*\nNota \`${orderId}\` telah diubah statusnya menjadi *Siap Diambil di Toko* oleh Admin via Telegram.`);
         } else {
           answerCallbackQuery(cb.id, `Nota ${orderId} tidak ditemukan.`);
         }
@@ -716,6 +764,8 @@ Contoh: \`/poin 081234567890\`
       }
 
       const chatId = payload.message.chat.id;
+      const chatType = payload.message.chat.type || "private";
+      const isGroup = String(chatId).startsWith("-") || chatType === "group" || chatType === "supergroup";
       const rawText = String(payload.message.text || "").trim();
       // Bersihkan mention bot pada grup Telegram (contoh: /start@KikoDelinaBot -> /start)
       const userText = rawText.replace(/@[a-zA-Z0-9_]+bot/gi, "").trim();
@@ -727,54 +777,65 @@ Contoh: \`/poin 081234567890\`
 
       const lower = userText.toLowerCase().trim();
 
-      // Perintah Cek Chat ID & Info Obrolan (Pribadi / Grup)
-      if (lower === "/id" || lower === "id" || lower === "cek id" || lower === "/status") {
-        const props = PropertiesService.getScriptProperties();
-        const geminiKey = props.getProperty("GEMINI_API_KEY");
-        const statusAI = geminiKey ? "✅ Terpasang (Google Gemini 3.5 Flash)" : "ℹ️ Mode Database Google Sheets";
-        const chatType = payload.message.chat.type || "private";
-        const chatTitle = payload.message.chat.title || payload.message.chat.first_name || "Admin";
-
-        const idInfoMsg = `📊 *INFORMASI CHAT ID TELEGRAM*
+      // =========================================================
+      // KHUSUS PERINTAH GRUP TELEGRAM (LAPORAN & OPERASIONAL TOKO)
+      // =========================================================
+      if (isGroup) {
+        // Perintah Sambungkan Grup
+        if (lower === "/sambungkan" || lower === "/hubungkan" || lower === "/connect") {
+          const connectMsg = `✅ *GRUP SUDAH TERHUBUNG & AKTIF!* 🏪
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-• 🆔 *Chat ID:* \`${chatId}\`
+• 🆔 *Grup ID:* \`${chatId}\`
+• 👥 *Nama Grup:* *${payload.message.chat.title || "Group Laporan Toko Delina"}*
+• 🟢 *Status Laporan:* Aktif & Terdaftar Resmi
+
+📢 Seluruh aktivitas transaksi website, kasir POS, pendaftaran member, klaim hadiah, update status nota, dan keamanan otomatis dikirimkan ke grup ini! 🚀`;
+          kirimPesanTelegram(chatId, connectMsg);
+          return HtmlService.createHtmlOutput("OK");
+        }
+
+        // Perintah Info Chat ID Grup
+        if (lower === "/id" || lower === "id" || lower === "cek id" || lower === "/status") {
+          const props = PropertiesService.getScriptProperties();
+          const geminiKey = props.getProperty("GEMINI_API_KEY");
+          const statusAI = geminiKey ? "✅ Terpasang (Google Gemini)" : "ℹ️ Mode Database Google Sheets";
+
+          const idInfoMsg = `📊 *INFORMASI GRUP LAPORAN DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🆔 *Grup ID:* \`${chatId}\`
 • 👥 *Tipe Chat:* *${chatType.toUpperCase()}*
-• 🏷️ *Nama/Grup:* *${chatTitle}*
+• 🏷️ *Nama Grup:* *${payload.message.chat.title || "Group Delina"}*
 • 🧠 *Otak AI Kiko:* ${statusAI}
+• 🟢 *Status Laporan:* Terhubung & Aktif
 
-💡 *Petunjuk Pengaturan Toko Delina:*
-Salin kode Chat ID di atas: \`${chatId}\` ke kolom *Chat ID / Grup ID Telegram* di panel Admin Toko Delina agar semua laporan pesanan, kasir, dan keamanan otomatis dikirimkan ke sini.`;
-        kirimPesanTelegram(chatId, idInfoMsg);
-        return HtmlService.createHtmlOutput("OK");
-      }
+💡 Seluruh laporan pesanan online, kasir POS, member baru, dan stok otomatis dilaporkan ke grup ini. 🤲✨`;
+          kirimPesanTelegram(chatId, idInfoMsg);
+          return HtmlService.createHtmlOutput("OK");
+        }
 
-      // =========================================================
-      // PERINTAH KHUSUS GRUP ADMIN & OPERASIONAL TOKO
-      // =========================================================
+        // Perintah Rekap Penjualan & Omzet Hari Ini (/rekap atau /omzet)
+        if (lower === "/rekap" || lower === "/omzet" || lower === "rekap" || lower === "omzet") {
+          const orders = ambilDaftarPesanan(ss);
+          const todaySlash = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy");
+          let totalOmzet = 0;
+          let countWeb = 0;
+          let countPos = 0;
 
-      // 1. Rekap Penjualan & Omzet Hari Ini (/rekap atau /omzet)
-      if (lower === "/rekap" || lower === "/omzet" || lower === "rekap" || lower === "omzet") {
-        const orders = ambilDaftarPesanan(ss);
-        const todaySlash = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy");
-        let totalOmzet = 0;
-        let countWeb = 0;
-        let countPos = 0;
-
-        orders.forEach(o => {
-          if (o.orderTime && o.orderTime.includes(todaySlash)) {
-            totalOmzet += Number(o.total) || 0;
-            const rincianUpper = String(o.itemsText || "").toUpperCase();
-            const delivUpper = String(o.deliveryMethod || "").toUpperCase();
-            if (delivUpper.includes("POS") || rincianUpper.includes("KASIR POS") || delivUpper.includes("KASIR")) {
-              countPos++;
-            } else {
-              countWeb++;
+          orders.forEach(o => {
+            if (o.orderTime && o.orderTime.includes(todaySlash)) {
+              totalOmzet += Number(o.total) || 0;
+              const rincianUpper = String(o.itemsText || "").toUpperCase();
+              const delivUpper = String(o.deliveryMethod || "").toUpperCase();
+              if (delivUpper.includes("POS") || rincianUpper.includes("KASIR POS") || delivUpper.includes("KASIR")) {
+                countPos++;
+              } else {
+                countWeb++;
+              }
             }
-          }
-        });
+          });
 
-        const totalTrx = countWeb + countPos;
-        const rekapMsg = `📊 *REKAP OMZET & TRANSAKSI HARI INI*
+          const totalTrx = countWeb + countPos;
+          const rekapMsg = `📊 *REKAP OMZET & TRANSAKSI HARI INI*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏪 *Toko:* Delina.store (ATK, Kosmetik & Kelontongan)
 📅 *Tanggal:* ${todaySlash} WIB
@@ -785,30 +846,30 @@ Salin kode Chat ID di atas: \`${chatId}\` ke kolom *Chat ID / Grup ID Telegram* 
 • 💻 *Transaksi Kasir POS:* ${countPos} transaksi
 
 _Laporan otomatis langsung dari Google Sheets Toko Delina._ 🤲✨`;
-        kirimPesanTelegram(chatId, rekapMsg);
-        return HtmlService.createHtmlOutput("OK");
-      }
-
-      // 2. Cek Stok Menipis (/stok atau /stok_menipis)
-      if (lower === "/stok" || lower === "/stok_menipis" || lower === "stok menipis" || lower === "cek stok") {
-        const sheetProduk = ss.getSheetByName(TAB_PRODUK);
-        let lowItems = [];
-        if (sheetProduk && sheetProduk.getLastRow() > 1) {
-          const data = sheetProduk.getDataRange().getValues();
-          for (let i = 1; i < data.length; i++) {
-            const nama = data[i][1];
-            const kat = data[i][2];
-            const stok = Number(data[i][4]) || 0;
-            const unit = data[i][5] || "Pcs";
-            if (stok <= 5 && nama) {
-              lowItems.push(`• *${nama}* (${kat}): sisa *${stok} ${unit}*`);
-            }
-          }
+          kirimPesanTelegram(chatId, rekapMsg);
+          return HtmlService.createHtmlOutput("OK");
         }
 
-        let stokMsg = "";
-        if (lowItems.length > 0) {
-          stokMsg = `⚠️ *PERINGATAN STOK MENIPIS (<= 5 PCS)*
+        // Perintah Cek Stok Menipis (/stok atau /stok_menipis)
+        if (lower === "/stok" || lower === "/stok_menipis" || lower === "stok menipis" || lower === "cek stok") {
+          const sheetProduk = ss.getSheetByName(TAB_PRODUK);
+          let lowItems = [];
+          if (sheetProduk && sheetProduk.getLastRow() > 1) {
+            const data = sheetProduk.getDataRange().getValues();
+            for (let i = 1; i < data.length; i++) {
+              const nama = data[i][1];
+              const kat = data[i][2];
+              const stok = Number(data[i][4]) || 0;
+              const unit = data[i][5] || "Pcs";
+              if (stok <= 5 && nama) {
+                lowItems.push(`• *${nama}* (${kat}): sisa *${stok} ${unit}*`);
+              }
+            }
+          }
+
+          let stokMsg = "";
+          if (lowItems.length > 0) {
+            stokMsg = `⚠️ *PERINGATAN STOK MENIPIS (<= 5 PCS)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ditemukan *${lowItems.length} produk* yang perlu segera restock:
 
@@ -816,45 +877,184 @@ ${lowItems.slice(0, 25).join("\n")}
 ${lowItems.length > 25 ? `\n_...dan ${lowItems.length - 25} produk lainnya._` : ""}
 
 💡 *Segera restock melalui Panel Admin Toko Delina.*`;
-        } else {
-          stokMsg = `✅ *STATUS STOK TOKO DELINA AMAN*
+          } else {
+            stokMsg = `✅ *STATUS STOK TOKO DELINA AMAN*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Alhamdulillah, seluruh stok produk ATK, Kosmetik & Kelontongan saat ini dalam kondisi aman (tersedia di atas 5 pcs). 🤲`;
+          }
+          kirimPesanTelegram(chatId, stokMsg);
+          return HtmlService.createHtmlOutput("OK");
         }
-        kirimPesanTelegram(chatId, stokMsg);
+
+        // Di dalam grup, abaikan chat biasa agar tidak spam percakapan anggota
         return HtmlService.createHtmlOutput("OK");
       }
 
       // =========================================================
-      // AKSI MENU & PERINTAH PELANGGAN (CHAT PRIBADI)
+      // KHUSUS CHAT PRIBADI (PELANGGAN & ADMIN)
       // =========================================================
 
-      // A. Aksi Menu: Buka Toko Delina
-      if (lower.includes("buka toko") || lower === "toko" || lower === "/toko" || lower === "belanja" || lower === "katalog") {
-        const pesanToko = `🏪 *DELINA.STORE - ATK, KOSMETIK & KELONTONGAN*
+      // 1. Info Chat ID Pribadi (/id atau /status)
+      if (lower === "/id" || lower === "id" || lower === "cek id" || lower === "/status") {
+        const props = PropertiesService.getScriptProperties();
+        const geminiKey = props.getProperty("GEMINI_API_KEY");
+        const statusAI = geminiKey ? "✅ Terpasang (Google Gemini)" : "ℹ️ Mode Database Google Sheets";
+
+        const idInfoMsg = `📊 *INFORMASI CHAT ID TELEGRAM*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-✨ *Bismillah!* Selamat datang di etalase digital resmi Toko Delina.
+• 🆔 *Chat ID:* \`${chatId}\`
+• 👥 *Tipe Chat:* Pribadi
+• 🏷️ *Nama Pengguna:* *${payload.message.chat.first_name || "Pelanggan Delina"}*
+• 🧠 *Otak AI Kiko:* ${statusAI}
 
-🛍️ *Pilihan Belanja Praktis & Lengkap:*
-• ✏️ *Alat Tulis Kantor & Sekolah:* Kertas HVS, buku tulis, pulpen, map arsip & binder.
-• 💄 *Kosmetik & Skincare:* Perawatan wajah harian, sunscreen, lotion & parfum original.
-• 🛒 *Kelontongan & Sembako:* Minyak goreng, beras, gula, mie instan, kopi & detergen.
-• 🎁 *Member Royalty:* Dapatkan poin belanja & klaim 10 pilihan hadiah gratis!
+💡 *Petunjuk Pengaturan Toko Delina:*
+Jika Anda adalah Admin Toko, simpan Chat ID di atas: \`${chatId}\` pada menu Pengaturan panel Admin Toko Delina agar notifikasi pesanan terkirim ke Telegram Anda.`;
+        kirimPesanTelegram(chatId, idInfoMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
 
-💳 *Pembayaran Fleksibel:* QRIS Bebas Biaya, Transfer Bank, atau Bayar Tunai di Toko.
+      // 2. Deteksi Cek Poin & Hadiah (Tombol Persistent Keyboard atau teks)
+      if (lower === "🎁 cek poin & hadiah" || lower === "/poin" || lower === "poin" || lower === "cek poin" || lower === "member" || lower === "kartu member" || lower === "hadiah") {
+        const poinGuideMsg = `👑 *CEK STATUS MEMBER & POIN HADIAH DELINA* 🎁
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Silakan ketik **Nomor WhatsApp / HP** kakak langsung di chat ini:
 
-👇 *Klik tombol di bawah untuk masuk ke website toko:*`;
-        kirimPesanTelegram(chatId, pesanToko, {
+Contoh format:
+👉 \`081234567890\`
+👉 \`082185355316\`
+
+Kiko akan langsung menampilkan:
+✨ Status Keanggotaan Member VIP
+💎 Saldo Poin / Stempel Belanja
+🎁 Pilihan Hadiah Gratis yang bisa kakak klaim!`;
+
+        kirimPesanTelegram(chatId, poinGuideMsg, {
           inline_keyboard: [
             [
-              { text: "🚀 Masuk ke Web Delina.store", url: webAppStoreUrl }
+              { text: "👑 Buka Kartu Member di Web", url: webAppStoreUrl }
+            ],
+            [
+              { text: "🎁 Lihat Pilihan Hadiah", url: webAppStoreUrl }
             ]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // B. Aksi Menu: Lacak Status Pesanan
+      // 3. Deteksi Cerdas Input Nomor HP (Cek Member & Poin Otomatis)
+      const cleanDigits = userText.replace(/[\s\-\+\(\)\.]/g, "");
+      const isPhoneInput = (
+        (/^(?:08|\+?628|628)\d{8,12}$/.test(userText.replace(/[\s\-]/g, ""))) ||
+        (cleanDigits.length >= 10 && cleanDigits.length <= 14 && (cleanDigits.startsWith("08") || cleanDigits.startsWith("628")))
+      );
+
+      if (isPhoneInput) {
+        const memberRes = prosesGetMemberData(cleanDigits, ss);
+        if (memberRes && memberRes.status === "success" && memberRes.member) {
+          const m = memberRes.member;
+          const sisaPoin = Math.max(0, 30 - (m.belanjaCount || 0));
+          const statusHadiah = (m.belanjaCount || 0) >= 30 
+            ? "🎉 *Alhamdulillah! Poin kakak sudah cukup untuk KLAIM HADIAH GRATIS!*"
+            : `🎁 Kumpulkan *${sisaPoin} stempel lagi* untuk klaim 1 Hadiah Gratis pilihan kakak!`;
+
+          const memberCardMsg = `👑 *KARTU MEMBER VIP TOKO DELINA* 👑
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 *Nama Member:* *${m.name}*
+📱 *No. WhatsApp:* \`${m.phone}\`
+⭐ *Saldo Stempel / Poin:* *${m.belanjaCount || 0} / 30*
+🏆 *Total Hadiah Pernah Diklaim:* *${m.totalClaimed || 0} Hadiah*
+📅 *Tanggal Bergabung:* ${m.registeredAt || "-"}
+
+${statusHadiah}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 *Keuntungan Belanja Member:*
+• Setiap belanja dapat stempel poin
+• Tukar 30 stempel = 1 Hadiah Pilihan
+• Promo & diskon eksklusif pelanggan setia`;
+
+          kirimPesanTelegram(chatId, memberCardMsg, {
+            inline_keyboard: [
+              [
+                { text: "👑 Buka Kartu Member di Web", url: webAppStoreUrl },
+                { text: "🎁 Lihat Hadiah Gratis", url: webAppStoreUrl }
+              ],
+              [
+                { text: "🛍️ Belanja Sekarang", url: webAppStoreUrl }
+              ]
+            ]
+          });
+          return HtmlService.createHtmlOutput("OK");
+        } else {
+          const notFoundMsg = `ℹ️ *NOMOR BELUM TERDAFTAR SEBAGAI MEMBER*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nomor WhatsApp \`${cleanDigits}\` belum terdaftar dalam Program Member Royalty Toko Delina.
+
+Yuk daftar sekarang! Gratis dan langsung bisa mengumpulkan poin setiap kali belanja:
+✨ Setiap belanja dapat stempel poin
+🎁 Kumpulkan 30 poin = Hadiah Gratis!
+
+👇 *Klik tombol di bawah untuk mendaftar gratis di website:*`;
+
+          kirimPesanTelegram(chatId, notFoundMsg, {
+            inline_keyboard: [
+              [
+                { text: "✨ Daftar Member VIP Gratis", url: webAppStoreUrl }
+              ],
+              [
+                { text: "🛍️ Mulai Belanja", url: webAppStoreUrl }
+              ]
+            ]
+          });
+          return HtmlService.createHtmlOutput("OK");
+        }
+      }
+
+      // 4. Deteksi Niat Belanja (Shopping Intent & Buka Toko)
+      const isShoppingIntent = lower.includes("buka toko") || 
+        lower === "toko" || lower === "/toko" || lower === "belanja" || 
+        lower === "katalog" || lower.includes("mau belanja") || 
+        lower.includes("mau beli") || lower.includes("cara belanja") || 
+        lower.includes("cara beli") || lower.includes("pesan barang") || 
+        lower.includes("order barang") || lower.includes("ingin belanja") ||
+        lower.includes("pengen belanja") || lower === "🏪 buka toko delina" ||
+        lower.includes("katalog barang") || lower.includes("beli barang") ||
+        lower.includes("cara pesan");
+
+      if (isShoppingIntent) {
+        const pesanToko = `🏪 *DELINA.STORE - PUSAT BELANJA RESMI* 🛍️
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assalamu'alaikum Warahmatullahi Wabarakatuh kak! Senang sekali bisa melayani kakak. 😊
+
+Toko Delina menyediakan berbagai kebutuhan lengkap:
+• ✏️ *Alat Tulis Kantor & Sekolah:* Kertas HVS, buku tulis SiDu/Kiky, pulpen, map, dll.
+• 💄 *Kosmetik & Skincare:* Sunscreen, micellar water, toner, pelembab & parfum original.
+• 🛒 *Kelontongan & Sembako:* Minyak goreng, beras, gula pasir, mie instan, susu, kopi, dll.
+
+✨ *Cara Belanja Sangat Praktis:*
+1️⃣ Tekan tombol **🛍️ Buka Toko Delina** di bawah ini untuk melihat etalase lengkap dan langsung memesan.
+2️⃣ Atau ketik nama barang yang kakak cari di chat ini (misal: *buku tulis*, *sunscreen*, *minyak goreng*), Kiko siap bantu cek ketersediaan dan harganya!
+
+🎁 *Tips Member:* Dapatkan poin belanja setiap transaksi & tukarkan dengan hadiah gratis!`;
+
+        kirimPesanTelegram(chatId, pesanToko, {
+          inline_keyboard: [
+            [
+              { text: "🛍️ Buka Toko & Belanja Sekarang", url: webAppStoreUrl }
+            ],
+            [
+              { text: "✏️ Katalog ATK", callback_data: "menu_atk_kelontong" },
+              { text: "💄 Katalog Kosmetik", callback_data: "menu_kosmetik" }
+            ],
+            [
+              { text: "🎁 Cek Poin & Hadiah", callback_data: "menu_member" },
+              { text: "📍 Lokasi Toko", url: mapsUrl }
+            ]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 5. Aksi Menu: Lacak Status Pesanan
       if (lower.includes("lacak status pesanan") || lower === "📦 lacak status pesanan" || lower === "cek nota" || lower === "lacak nota" || lower === "cek status" || lower === "lacak pesanan") {
         const pesanCek = `📦 *LACAK STATUS PESANAN DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -870,7 +1070,7 @@ Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau pe
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // C. Aksi Menu: Kosmetik & Skincare
+      // 6. Aksi Menu: Kosmetik & Skincare
       if (lower.includes("kosmetik") || lower.includes("skincare") || lower.includes("cantik") || lower.includes("perawatan") || lower === "💄 kosmetik & skincare") {
         const kosmetikMsg = `💄 *KOLEKSI KOSMETIK & SKINCARE DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -894,7 +1094,7 @@ Kakak bisa langsung tanyakan rekomendasi kosmetik di sini, contoh:
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // D. Aksi Menu: ATK & Kelontongan
+      // 7. Aksi Menu: ATK & Kelontongan
       if (lower.includes("kelontong") || lower.includes("sembako") || lower.includes("dapur") || lower.includes("alat tulis") || lower === "🛒 atk & kelontongan" || (lower.includes("atk") && !lower.includes("toko"))) {
         const atkKelontongMsg = `🛒 *KATALOG ATK & KELONTONGAN DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -919,54 +1119,7 @@ Kakak bisa langsung tanyakan rekomendasi kosmetik di sini, contoh:
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // E. Aksi Menu: Cek Poin & Hadiah (/poin atau /poin [nomor_hp])
-      const matchPoin = userText.match(/\/poin\s*([0-9\+]+)?/i) || (lower.startsWith("poin") ? userText.match(/poin\s*([0-9\+]+)?/i) : null);
-      if (matchPoin || lower.includes("cek poin") || lower.includes("poin member") || lower.includes("hadiah") || lower.includes("royalty") || lower === "🎁 cek poin & hadiah") {
-        const rawPhone = matchPoin && matchPoin[1] ? matchPoin[1].trim() : "";
-        if (rawPhone) {
-          const memberRes = prosesGetMemberData(rawPhone, ss);
-          if (memberRes && memberRes.status === "success" && memberRes.member) {
-            const m = memberRes.member;
-            const poinMsg = `🎁 *INFORMASI POIN MEMBER DELINA*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 *Nama Member:* *${m.nama}*
-📱 *No. Handphone:* \`${m.phone}\`
-⭐ *Saldo Poin Belanja:* *${m.poin || 0} Poin*
-🏷️ *Status Member:* *${m.status || "Aktif"}*
-
-💡 *Hadiah Royalty:*
-Tiap 30 Poin dapat ditukarkan dengan 1 Hadiah Gratis pilihan kakak di Toko Delina!
-${(m.poin || 0) >= 30 ? "🎉 *Alhamdulillah! Poin kakak sudah cukup untuk klaim hadiah gratis!*" : `_Kumpulkan ${(30 - (m.poin || 0))} poin lagi untuk klaim hadiah berikutnya._`}
-
-_Terima kasih telah setia berbelanja di Toko Delina._ 🤲✨`;
-            kirimPesanTelegram(chatId, poinMsg, getTelegramPersistentKeyboard());
-            return HtmlService.createHtmlOutput("OK");
-          } else {
-            kirimPesanTelegram(chatId, `Afwan kak, nomor HP \`${rawPhone}\` belum terdaftar sebagai Member Delina.\n\nSilakan daftar gratis di website Toko Delina (menu Member) untuk mengumpulkan poin belanja setiap transaksi! 🎁`, getTelegramPersistentKeyboard());
-            return HtmlService.createHtmlOutput("OK");
-          }
-        } else {
-          const poinGuideMsg = `🎁 *PROGRAM POIN & MEMBER ROYALTY DELINA*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-✨ *Dapatkan Keuntungan Belanja:*
-• Setiap belanja Rp 10.000 = *1 Poin Belanja*
-• Kumpulkan *30 Poin* = *1 Hadiah Gratis* pilihan kakak!
-
-👉 *Cara Cek Saldo Poin Anda:*
-Ketik perintah: \`/poin [Nomor HP]\`
-Contoh: \`/poin 081234567890\`
-
-👇 *Atau klik tombol di bawah untuk melihat pilihan hadiah di web:*`;
-          kirimPesanTelegram(chatId, poinGuideMsg, {
-            inline_keyboard: [
-              [{ text: "🎁 Lihat Poin & Hadiah di Web", url: webAppStoreUrl }]
-            ]
-          });
-          return HtmlService.createHtmlOutput("OK");
-        }
-      }
-
-      // F. Aksi Menu: Lokasi Toko & Kontak
+      // 8. Aksi Menu: Lokasi Toko & Kontak
       if (lower.includes("lokasi") || lower.includes("alamat") || lower.includes("maps") || lower.includes("kontak") || lower.includes("whatsapp") || lower.includes("wa") || lower === "📍 lokasi toko & kontak") {
         const pesanLokasi = `📍 *LOKASI & KONTAK RESMI TOKO DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -989,7 +1142,7 @@ Tepat berada di samping masjid dengan area parkir yang luas dan nyaman untuk mot
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // G. Aksi Menu: Tanya Kiko AI
+      // 9. Aksi Menu: Tanya Kiko AI
       if (lower.includes("tanya kiko") || lower.includes("konsultasi") || lower === "bantuan" || lower === "help") {
         const pesanTanya = `🤖 *ASISTEN BELANJA KIKO AI DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1006,7 +1159,7 @@ Silakan ketik pertanyaan kakak langsung di sini, InsyaAllah Kiko jawab dengan ra
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // H. Pola Nota / Cek Resi (/cek [Nota] atau format #DLN-...)
+      // 10. Pola Nota / Cek Resi (/cek [Nota] atau format #DLN-...)
       const matchNota = userText.match(/#?DLN-[\w-]+/i);
       const isCekCommand = lower.startsWith("/cek");
 
@@ -1065,7 +1218,7 @@ _Jazakumullah Khairan Katsiran atas kepercayaannya di Toko Delina._ 🤲✨`;
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // I. Salam Pembuka, Sapaan Awal, atau Kata Singkat (Assalamu, Halo, Hai, P, Menu, Start)
+      // 11. Salam Pembuka, Sapaan Awal, atau Kata Singkat (Assalamu, Halo, Hai, P, Menu, Start)
       const isStart = lower === "/start" || lower === "start";
       const isGreeting = (lower.startsWith("assalamu") && lower.length < 35);
       const isShortIntro = ["p", "halo", "hai", "hay", "hei", "menu", "info", "tes", "test", "ping", "pagi", "siang", "sore", "malam"].includes(lower) || lower.startsWith("selamat");
@@ -1093,7 +1246,7 @@ _InsyaAllah belanja lengkap, hemat, dan penuh berkah._ 🤲✨`;
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // J. Pertanyaan Produk / Konsultasi ke AI Kiko
+      // 12. Pertanyaan Produk / Konsultasi ke AI Kiko
       const jawabanAI = tanyaKikoAI(userText, "Telegram");
       kirimPesanTelegram(chatId, jawabanAI, getTelegramPersistentKeyboard());
       return HtmlService.createHtmlOutput("OK");
@@ -1245,8 +1398,17 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
       props.setProperty("TELEGRAM_BOT_TOKEN", botToken);
 
       const webAppUrl = getActiveWebAppUrl();
-      const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
-      const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook`;
+      const res = UrlFetchApp.fetch(setUrl, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify({
+          url: webAppUrl,
+          drop_pending_updates: true,
+          allowed_updates: ["message", "callback_query", "my_chat_member"]
+        }),
+        muteHttpExceptions: true
+      });
       const resJson = JSON.parse(res.getContentText());
 
       setTelegramMenuButton();
@@ -1394,6 +1556,18 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
         return createJsonResponse({ status: "error", message: `Nota ${orderId} tidak ditemukan.` });
       }
 
+      try {
+        const statusNotif = `🔄 *STATUS PESANAN DIUPDATE*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 *No. Nota:* \`${orderId}\`
+📊 *Status Baru:* *${newStatus}*
+⏰ *Waktu Update:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm")} WIB
+👤 *Diperbarui Oleh:* ${auth.role === "admin" ? "Super Admin" : "Kasir"} Toko Delina`;
+        broadcastPesanTelegram(statusNotif);
+      } catch (eNotif) {
+        Logger.log("Notice status notif: " + eNotif.toString());
+      }
+
       return createJsonResponse({
         status: "success",
         message: `Status nota ${orderId} berhasil diubah menjadi "${newStatus}".`,
@@ -1436,6 +1610,18 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
 
       if (!found) {
         return createJsonResponse({ status: "error", message: `Produk ${prodId} tidak ditemukan.` });
+      }
+
+      try {
+        const stokNotif = `📊 *PENYESUAIAN STOK PRODUK*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🆔 *ID Produk:* \`${prodId}\`
+🔢 *Stok Sekarang:* *${newStock}*
+⏰ *Waktu Update:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm")} WIB
+👤 *Oleh:* ${auth.role === "admin" ? "Super Admin" : "Kasir"} Toko Delina`;
+        broadcastPesanTelegram(stokNotif);
+      } catch (eNotif) {
+        Logger.log("Notice stock notif: " + eNotif.toString());
       }
 
       return createJsonResponse({
@@ -1510,6 +1696,20 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
         sheetProduk.getRange(rowIndex, cols.colDeskripsi).setValue(description);
         if (cols.colStatus > 0) sheetProduk.getRange(rowIndex, cols.colStatus).setValue(status);
 
+        try {
+          const prodNotif = `📦 *PRODUK DIUPDATE*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷️ *Nama Produk:* *${name}*
+🆔 *ID/Barcode:* \`${prodId}\`
+📂 *Kategori:* ${category}
+💵 *Harga Jual:* *Rp ${hargaJual.toLocaleString("id-ID")}*
+💰 *Harga Modal:* Rp ${hargaBeli.toLocaleString("id-ID")}
+🔢 *Stok:* ${stock} ${unit}
+⏰ *Waktu:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm")} WIB
+👤 *Oleh:* Super Admin Toko Delina`;
+          broadcastPesanTelegram(prodNotif);
+        } catch (eNotif) {}
+
         return createJsonResponse({
           status: "success",
           message: `Produk "${name}" berhasil diperbarui.`,
@@ -1549,6 +1749,20 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
           status
         ];
         sheetProduk.appendRow(newRow);
+
+        try {
+          const prodNotif = `📦 *PRODUK BARU DITAMBAHKAN*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷️ *Nama Produk:* *${name}*
+🆔 *ID/Barcode:* \`${prodId}\`
+📂 *Kategori:* ${category}
+💵 *Harga Jual:* *Rp ${hargaJual.toLocaleString("id-ID")}*
+💰 *Harga Modal:* Rp ${hargaBeli.toLocaleString("id-ID")}
+🔢 *Stok:* ${stock} ${unit}
+⏰ *Waktu:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm")} WIB
+👤 *Oleh:* Super Admin Toko Delina`;
+          broadcastPesanTelegram(prodNotif);
+        } catch (eNotif) {}
 
         return createJsonResponse({
           status: "success",
@@ -1708,6 +1922,9 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
       if (payload.isDelete) {
         if (rowIndex > 0) {
           sheetKupon.deleteRow(rowIndex);
+          try {
+            broadcastPesanTelegram(`🎟️ *KUPON PROMO DIHAPUS*\nKode: \`${code}\` telah dinonaktifkan/dihapus oleh Admin Toko.`);
+          } catch (eC) {}
           return createJsonResponse({ status: "success", message: `Kupon "${code}" berhasil dihapus.` });
         }
         return createJsonResponse({ status: "error", message: `Kupon "${code}" tidak ditemukan.` });
@@ -1719,6 +1936,9 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
         sheetKupon.getRange(rowIndex, 4).setValue(Number(payload.minSpend) || 0);
         sheetKupon.getRange(rowIndex, 5).setValue(String(payload.status || "AKTIF").toUpperCase());
         sheetKupon.getRange(rowIndex, 6).setValue(String(payload.description || ""));
+        try {
+          broadcastPesanTelegram(`🎟️ *KUPON PROMO DIUPDATE*\nKode: \`${code}\`\nDiskon: ${payload.type === "PERSEN" ? payload.value + "%" : "Rp " + Number(payload.value).toLocaleString("id-ID")}\nMin. Belanja: Rp ${Number(payload.minSpend || 0).toLocaleString("id-ID")}\nStatus: ${payload.status}`);
+        } catch (eC) {}
         return createJsonResponse({ status: "success", message: `Kupon "${code}" berhasil diperbarui.` });
       }
 
@@ -1730,6 +1950,10 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
         String(payload.status || "AKTIF").toUpperCase(),
         String(payload.description || "")
       ]);
+
+      try {
+        broadcastPesanTelegram(`🎟️ *KUPON PROMO BARU DIBUAT*\nKode: \`${code}\`\nDiskon: ${payload.type === "PERSEN" ? payload.value + "%" : "Rp " + Number(payload.value).toLocaleString("id-ID")}\nMin. Belanja: Rp ${Number(payload.minSpend || 0).toLocaleString("id-ID")}`);
+      } catch (eC) {}
 
       return createJsonResponse({ status: "success", message: `Kupon baru "${code}" berhasil ditambahkan.` });
     }
@@ -2550,7 +2774,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
       return fallbackKikoLocal(pesanUser, daftarStok);
     }
 
-    const models = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+    const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
     for (let m = 0; m < models.length; m++) {
       const modelName = models[m];
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
@@ -2590,7 +2814,34 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
 
 function fallbackKikoLocal(pesanUser, daftarStok) {
   const q = (pesanUser || "").toLowerCase().trim();
-  const stopWords = ["ada", "apakah", "punya", "jual", "mau", "beli", "tanya", "kak", "kiko", "bisa", "berapa", "harga", "stok", "delina", "toko", "assalamu", "alaikum", "halo", "hai", "selamat", "pagi", "siang", "sore", "malam"];
+
+  // Deteksi Maksud Belanja (Shopping Intent) secara cerdas
+  const isShoppingIntent = /^(saya\s+)?(mau|ingin|pengen|bisa|tolong|cara)?\s*(belanja|beli|order|pesan|katalog|toko|borong)(\s+di\s+sini|\s+dong|\s+kak|\s+apa\s+saja)?$/i.test(q)
+    || q === "mau belanja" || q === "saya mau belanja" || q === "cara belanja" || q === "cara beli" || q === "mau beli" || q === "buka toko" || q === "katalog";
+
+  if (isShoppingIntent) {
+    return `🏪 *SELAMAT DATANG DI DELINA.STORE!* 🛍️
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assalamu'alaikum Warahmatullahi Wabarakatuh kak! Senang sekali kakak ingin berbelanja di Toko Delina. 😊
+
+Toko Delina menyediakan berbagai kebutuhan lengkap:
+• ✏️ *Alat Tulis Kantor & Sekolah:* Kertas HVS (A4, F4), buku tulis SiDu/Kiky, pulpen, map, dll.
+• 💄 *Kosmetik & Skincare:* Sunscreen, micellar water, toner, pelembab & parfum original.
+• 🛒 *Kelontongan & Sembako:* Minyak goreng, beras, gula pasir, mie instan, susu, kopi, dll.
+
+✨ *Cara Belanja Sangat Praktis:*
+1️⃣ Kakak bisa langsung melihat katalog lengkap dan memesan melalui website resmi Toko Delina.
+2️⃣ Atau sebutkan nama barang yang kakak cari di chat ini (misal: *buku tulis*, *sunscreen*, *minyak goreng*), Kiko siap bantu cek ketersediaan dan harganya!
+
+🎁 *Tips Member:* Dapatkan poin belanja setiap transaksi dan kumpulkan untuk klaim hadiah gratis!`;
+  }
+
+  const stopWords = [
+    "ada", "apakah", "punya", "jual", "mau", "beli", "belanja", "tanya", "kak", "kiko", 
+    "bisa", "berapa", "harga", "stok", "delina", "toko", "assalamu", "alaikum", "halo", 
+    "hai", "selamat", "pagi", "siang", "sore", "malam", "saya", "aku", "ingin", "pengen", 
+    "mohon", "tolong", "minta", "cari", "order", "pesan", "dong"
+  ];
 
   const cleanWords = q
     .replace(/[^a-zA-Z0-9\s]/g, " ")
@@ -2723,6 +2974,38 @@ function getActiveWebAppUrl() {
   return "https://script.google.com/macros/s/AKfycbyT06sft4rQBNQcQtoPDV7kNKk4ywk7_5bsMS1H3Dj2PozE2CYh4YpHgWKjPslfJBVA2w/exec";
 }
 
+/**
+ * Otomatis Tambahkan Chat ID Grup ke Script Properties ADMIN_CHAT_ID
+ * Tanpa perlu salin-tempel manual di panel admin!
+ */
+function autoBindTelegramGroup(chatId, chatTitle, chatType) {
+  if (!chatId) return { isNewlyAdded: false };
+  const isGroup = String(chatId).startsWith("-") || chatType === "group" || chatType === "supergroup";
+  if (!isGroup) return { isNewlyAdded: false };
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const currentAdminIds = props.getProperty("ADMIN_CHAT_ID") || props.getProperty("TELEGRAM_ADMIN_CHAT_ID") || "";
+    const idList = currentAdminIds.split(",").map(s => s.trim()).filter(Boolean);
+    const targetIdStr = String(chatId).trim();
+
+    let isNewlyAdded = false;
+    if (!idList.includes(targetIdStr)) {
+      idList.push(targetIdStr);
+      const updatedIds = idList.join(", ");
+      props.setProperty("ADMIN_CHAT_ID", updatedIds);
+      props.setProperty("TELEGRAM_ADMIN_CHAT_ID", updatedIds);
+      isNewlyAdded = true;
+      Logger.log("Berhasil auto-bind grup Telegram: " + targetIdStr + " -> " + updatedIds);
+    }
+
+    return { isNewlyAdded: isNewlyAdded, totalAdmins: idList.length, allIds: idList };
+  } catch (errBind) {
+    Logger.log("Notice autoBindTelegramGroup: " + errBind.toString());
+    return { isNewlyAdded: false };
+  }
+}
+
 function broadcastPesanTelegram(pesan, replyMarkup) {
   try {
     const props = PropertiesService.getScriptProperties();
@@ -2738,7 +3021,10 @@ function broadcastPesanTelegram(pesan, replyMarkup) {
       .map(s => s.trim())
       .filter(Boolean);
 
-    idList.forEach(cId => {
+    // Filter duplikat agar tidak ada notifikasi ganda
+    const uniqueIds = Array.from(new Set(idList));
+
+    uniqueIds.forEach(cId => {
       kirimPesanTelegram(cId, pesan, replyMarkup);
     });
   } catch (err) {
@@ -2917,8 +3203,17 @@ function setTelegramWebhook() {
   if (!botToken) throw new Error("TELEGRAM_BOT_TOKEN belum diset.");
 
   const webAppUrl = getActiveWebAppUrl();
-  const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
-  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook`;
+  const res = UrlFetchApp.fetch(setUrl, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      url: webAppUrl,
+      drop_pending_updates: true,
+      allowed_updates: ["message", "callback_query", "my_chat_member"]
+    }),
+    muteHttpExceptions: true
+  });
 
   // Set Menu Button WebApp agar langsung interaktif di chat bar
   setTelegramMenuButton();
@@ -2935,8 +3230,17 @@ function resetDanBersihkanWebhook() {
   const delRes = UrlFetchApp.fetch(delUrl, { muteHttpExceptions: true }).getContentText();
 
   const webAppUrl = getActiveWebAppUrl();
-  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
-  const setRes = UrlFetchApp.fetch(setUrl, { muteHttpExceptions: true }).getContentText();
+  const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook`;
+  const setRes = UrlFetchApp.fetch(setUrl, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      url: webAppUrl,
+      drop_pending_updates: true,
+      allowed_updates: ["message", "callback_query", "my_chat_member"]
+    }),
+    muteHttpExceptions: true
+  }).getContentText();
 
   setTelegramMenuButton();
 
@@ -4330,26 +4634,22 @@ function prosesClaimReward(payload, ss) {
     "Menunggu Pengambilan di Toko"
   ]);
 
-  // 6. Notifikasi Telegram ke Pemilik Toko
+  // 6. Notifikasi Telegram ke Pemilik Toko & Grup Laporan
   try {
-    const props = PropertiesService.getScriptProperties();
-    const adminChatId = props.getProperty("TELEGRAM_ADMIN_CHAT_ID");
-    if (adminChatId) {
-      const notifKlaim = `🎁 *KLAIM HADIAH MEMBER DELINA.STORE!*
+    const notifKlaim = `🎁 *KLAIM HADIAH MEMBER DELINA.STORE!*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎉 *Alhamdulillah! Ada Member Berhasil Mencapai 30x Belanja!*
+🎉 *Alhamdulillah! Ada Member Berhasil Mencapai 30x Belanja:*
 
 👤 *Nama Member:* *${memberName}*
 📱 *WhatsApp/HP:* \`${cleanPhone}\`
 🎁 *Hadiah Dipilih:* *${namaHadiah}*
 📋 *Kode Klaim:* \`${claimCode}\`
-⏰ *Waktu Klaim:* ${nowStr}
+⏰ *Waktu Klaim:* ${nowStr} WIB
 📊 *Sisa Stempel Belanja:* ${newBelanja}/30
 
 💡 *Petunjuk Toko:*
-Tunjukkan nomor nota atau kode klaim di atas saat member mengambil hadiah di meja kasir Delina.store.`;
-      kirimPesanTelegram(adminChatId, notifKlaim);
-    }
+Tunjukkan nomor nota atau kode klaim di atas saat member mengambil hadiah di meja kasir Toko Delina.`;
+    broadcastPesanTelegram(notifKlaim);
   } catch (errNotif) {
     Logger.log("Notice notif klaim: " + errNotif.toString());
   }
@@ -4459,13 +4759,21 @@ function prosesCreatePosOrder(payload, ss) {
   }
 
   try {
-    const posNotif = `💵 *TRANSAKSI KASIR POS SUKSES!*
+    let itemSummaryList = items.slice(0, 5).map((i, idx) => `  ${idx + 1}. ${(i && i.name) || 'Barang'} (${Number(i && i.qty) || 1}x @ Rp ${Number(i && i.price || 0).toLocaleString("id-ID")})`).join("\n");
+    if (items.length > 5) itemSummaryList += `\n  ...dan ${items.length - 5} item lainnya.`;
+
+    const posNotif = `💵 *TRANSAKSI KASIR (POS) SELESAI!*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-• 📋 *No. Struk:* \`${orderId}\`
-• 💰 *Total Belanja:* *Rp ${totalPrice.toLocaleString("id-ID")}*
-• 💳 *Pembayaran:* *${payMethod}*
-• 🕒 *Waktu:* ${orderTimeNow} WIB
-• 📦 *Barang:* ${items.length} Macam Barang${memberPhoneInput ? "\n• 👤 *Member:* " + ((memberResult && memberResult.name) ? memberResult.name : memberPhoneInput) : ""}`;
+📋 *No. Struk:* \`${orderId}\`
+💰 *Total Transaksi:* *Rp ${totalPrice.toLocaleString("id-ID")}*
+💳 *Metode Bayar:* *${payMethod}*
+🕒 *Waktu Transaksi:* ${orderTimeNow} WIB
+👤 *Pelanggan:* ${memberPhoneInput ? ((memberResult && memberResult.name) ? memberResult.name + " (`" + memberPhoneInput + "`)" : memberPhoneInput) : "Pelanggan Langsung di Toko"}
+
+📦 *Daftar Barang Belanja:*
+${itemSummaryList || "-"}
+
+_Tercatat otomatis di Database Google Sheets Toko Delina._ 🤲✨`;
     broadcastPesanTelegram(posNotif);
   } catch (errPosNotif) {
     Logger.log("Notice notif pos: " + errPosNotif.toString());
