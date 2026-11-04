@@ -512,6 +512,10 @@ function doGet(e) {
       if (auth.role !== "admin") {
         delete safeSettings.PIN_ADMIN;
         delete safeSettings.PIN_KASIR;
+      } else {
+        const props = PropertiesService.getScriptProperties();
+        safeSettings.TELEGRAM_BOT_TOKEN = props.getProperty("TELEGRAM_BOT_TOKEN") || "";
+        safeSettings.ADMIN_CHAT_ID = props.getProperty("ADMIN_CHAT_ID") || props.getProperty("TELEGRAM_ADMIN_CHAT_ID") || "";
       }
 
       return createJsonResponse({
@@ -692,7 +696,9 @@ _InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
       }
 
       const chatId = payload.message.chat.id;
-      const userText = String(payload.message.text || "").trim();
+      const rawText = String(payload.message.text || "").trim();
+      // Bersihkan mention bot pada grup Telegram (contoh: /start@KikoDelinaBot -> /start)
+      const userText = rawText.replace(/@[a-zA-Z0-9_]+bot/gi, "").trim();
       const settings = getPengaturanData(ss);
       const webAppStoreUrl = "https://mandalaprojek.github.io/toko-delina/";
       const mapsUrl = settings.URL_GOOGLE_MAPS || "https://maps.google.com/?q=Toko+Delina+ATK";
@@ -700,6 +706,27 @@ _InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
       const waUrl = `https://wa.me/${cleanWa.startsWith("0") ? "62" + cleanWa.slice(1) : cleanWa}`;
 
       const lower = userText.toLowerCase().trim();
+
+      // Perintah Cek Chat ID & Info Obrolan (Pribadi / Grup)
+      if (lower === "/id" || lower === "id" || lower === "cek id" || lower === "/status") {
+        const props = PropertiesService.getScriptProperties();
+        const geminiKey = props.getProperty("GEMINI_API_KEY");
+        const statusAI = geminiKey ? "✅ Terpasang (Google Gemini 3.5 Flash)" : "ℹ️ Mode Database Google Sheets";
+        const chatType = payload.message.chat.type || "private";
+        const chatTitle = payload.message.chat.title || payload.message.chat.first_name || "Admin";
+
+        const idInfoMsg = `📊 *INFORMASI CHAT ID TELEGRAM*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🆔 *Chat ID:* \`${chatId}\`
+• 👥 *Tipe Chat:* *${chatType.toUpperCase()}*
+• 🏷️ *Nama/Grup:* *${chatTitle}*
+• 🧠 *Otak AI Kiko:* ${statusAI}
+
+💡 *Petunjuk Pengaturan Toko Delina:*
+Salin kode Chat ID di atas: \`${chatId}\` ke kolom *Chat ID / Grup ID Telegram* di panel Admin Toko Delina agar semua laporan pesanan, kasir, dan keamanan otomatis dikirimkan ke sini.`;
+        kirimPesanTelegram(chatId, idInfoMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
 
       // A. Aksi Menu: Buka Toko
       if (lower.includes("buka toko") || lower === "toko" || lower === "/toko" || lower === "belanja" || lower === "katalog") {
@@ -1007,6 +1034,113 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
       }
       const res = prosesVerifyClaim(payload, ss);
       return createJsonResponse(res);
+    }
+
+    // G1. Uji Coba Kirim Notifikasi Telegram
+    if (action === "testTelegramNotif") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid) return createJsonResponse({ status: "error", message: "PIN Keamanan tidak valid." });
+
+      const props = PropertiesService.getScriptProperties();
+      const targetToken = String(payload.botToken || props.getProperty("TELEGRAM_BOT_TOKEN") || "").trim();
+      const targetChatId = String(payload.chatId || props.getProperty("ADMIN_CHAT_ID") || props.getProperty("TELEGRAM_ADMIN_CHAT_ID") || "").trim();
+
+      if (!targetToken) {
+        return createJsonResponse({ status: "error", message: "Token Bot Telegram belum diisi." });
+      }
+      if (!targetChatId) {
+        return createJsonResponse({ status: "error", message: "Chat ID / Grup ID Telegram belum diisi." });
+      }
+
+      const idList = targetChatId.split(",").map(s => s.trim()).filter(Boolean);
+      const testMsg = `🔔 *TES KONEKSI BOT TELEGRAM DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ *Alhamdulillah!* Bot Telegram Toko Delina berhasil terhubung dengan sukses!
+
+📌 *Detail Sambungan:*
+• 🏪 *Toko:* Delina.store (ATK, Kosmetik & Kelontongan)
+• 🕒 *Waktu Uji Coba:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm:ss")} WIB
+• 👥 *Penerima:* Grup / Admin Toko Delina
+• ⚡ *Status:* Siap menerima seluruh laporan belanja, kasir, dan keamanan toko secara real-time.
+
+_Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
+
+      let successCount = 0;
+      let lastErr = "";
+      idList.forEach(id => {
+        try {
+          const url = `https://api.telegram.org/bot${targetToken}/sendMessage`;
+          const res = UrlFetchApp.fetch(url, {
+            method: "post",
+            contentType: "application/json",
+            payload: JSON.stringify({ chat_id: id, text: testMsg, parse_mode: "Markdown" }),
+            muteHttpExceptions: true
+          });
+          if (res.getResponseCode() === 200) {
+            successCount++;
+          } else {
+            lastErr = res.getContentText();
+          }
+        } catch (e) {
+          lastErr = e.toString();
+        }
+      });
+
+      if (successCount > 0) {
+        return createJsonResponse({ status: "success", message: `Berhasil mengirim ${successCount} pesan tes ke Telegram!` });
+      } else {
+        return createJsonResponse({ status: "error", message: "Gagal kirim: " + lastErr });
+      }
+    }
+
+    // G2. Setup / Sinkronkan Webhook Bot Telegram Otomatis
+    if (action === "setupTelegramWebhook") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid) return createJsonResponse({ status: "error", message: "PIN Keamanan tidak valid." });
+
+      const props = PropertiesService.getScriptProperties();
+      const botToken = String(payload.botToken || props.getProperty("TELEGRAM_BOT_TOKEN") || "").trim();
+      if (!botToken) return createJsonResponse({ status: "error", message: "Token Bot belum diisi." });
+
+      props.setProperty("TELEGRAM_BOT_TOKEN", botToken);
+
+      const webAppUrl = getActiveWebAppUrl();
+      const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
+      const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      const resJson = JSON.parse(res.getContentText());
+
+      setTelegramMenuButton();
+
+      if (resJson.ok) {
+        return createJsonResponse({ status: "success", message: "Alhamdulillah! Webhook Bot aktif & tersambung ke URL: " + webAppUrl });
+      } else {
+        return createJsonResponse({ status: "error", message: "Telegram error: " + (resJson.description || "Gagal set webhook") });
+      }
+    }
+
+    // G3. Notifikasi Sesi Login Admin / Kasir
+    if (action === "notifyAdminLogin") {
+      const roleStr = String(payload.role || "Admin").toUpperCase();
+      const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+      const msg = `🔐 *SESI PANEL TOKO AKTIF*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 👤 *Pengguna:* *${roleStr}*
+• 🕒 *Waktu Masuk:* ${nowStr} WIB
+• 📱 *Status:* Berhasil masuk ke panel kasir/admin.`;
+      broadcastPesanTelegram(msg);
+      return createJsonResponse({ status: "success" });
+    }
+
+    // G4. Notifikasi Peringatan Salah PIN
+    if (action === "notifyPinError") {
+      const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
+      const msg = `⚠️ *PERINGATAN KEAMANAN TOKO!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🚫 *Insiden:* Percobaan login dengan PIN Salah terdeteksi!
+• 🕒 *Waktu Kejadian:* ${nowStr} WIB
+• 🔒 *Tindakan:* Akses ditolak otomatis oleh sistem.`;
+      broadcastPesanTelegram(msg);
+      return createJsonResponse({ status: "success" });
     }
 
     // H. Trigger Seeder Database 100 Produk
@@ -1354,6 +1488,26 @@ _InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
           const p = PropertiesService.getScriptProperties();
           if (String(payload.GEMINI_API_KEY).trim()) {
             p.setProperty("GEMINI_API_KEY", String(payload.GEMINI_API_KEY).trim());
+          }
+        } catch (eProp) {}
+      }
+
+      if (payload.TELEGRAM_BOT_TOKEN !== undefined && payload.TELEGRAM_BOT_TOKEN !== null) {
+        try {
+          const p = PropertiesService.getScriptProperties();
+          if (String(payload.TELEGRAM_BOT_TOKEN).trim()) {
+            p.setProperty("TELEGRAM_BOT_TOKEN", String(payload.TELEGRAM_BOT_TOKEN).trim());
+          }
+        } catch (eProp) {}
+      }
+
+      if (payload.ADMIN_CHAT_ID !== undefined && payload.ADMIN_CHAT_ID !== null) {
+        try {
+          const p = PropertiesService.getScriptProperties();
+          const cleanId = String(payload.ADMIN_CHAT_ID).trim();
+          if (cleanId) {
+            p.setProperty("ADMIN_CHAT_ID", cleanId);
+            p.setProperty("TELEGRAM_ADMIN_CHAT_ID", cleanId);
           }
         } catch (eProp) {}
       }
@@ -2196,6 +2350,7 @@ function generateDataDummyLengkap(ss) {
  */
 function tanyaKikoAI(pesanUser, sumber, riwayatChat) {
   try {
+    const ss = getDelinaSpreadsheet();
     const props = PropertiesService.getScriptProperties();
     // Baca API Key dari ScriptProperties ATAU dari Tab Pengaturan Google Sheets (Row GEMINI_API_KEY)
     let geminiApiKey = props.getProperty("GEMINI_API_KEY");
@@ -2463,34 +2618,81 @@ function setTelegramMenuButton() {
   }
 }
 
+function getActiveWebAppUrl() {
+  try {
+    const url = ScriptApp.getService().getUrl();
+    if (url && url.indexOf("/exec") !== -1) return url;
+  } catch (e) {}
+  return "https://script.google.com/macros/s/AKfycbyT06sft4rQBNQcQtoPDV7kNKk4ywk7_5bsMS1H3Dj2PozE2CYh4YpHgWKjPslfJBVA2w/exec";
+}
+
+function broadcastPesanTelegram(pesan, replyMarkup) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
+    const rawIds = props.getProperty("ADMIN_CHAT_ID") || props.getProperty("TELEGRAM_ADMIN_CHAT_ID") || "";
+    if (!botToken || !rawIds) {
+      Logger.log("Telegram Token atau Admin Chat ID belum diset.");
+      return;
+    }
+
+    const idList = String(rawIds)
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    idList.forEach(cId => {
+      kirimPesanTelegram(cId, pesan, replyMarkup);
+    });
+  } catch (err) {
+    Logger.log("Notice broadcastPesanTelegram: " + err.toString());
+  }
+}
+
 function kirimPesanTelegram(chatId, pesan, replyMarkup) {
   const props = PropertiesService.getScriptProperties();
   const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
   if (!botToken || !chatId) return;
+
+  const isGroup = String(chatId).startsWith("-");
+  const defaultMarkup = isGroup ? undefined : getTelegramPersistentKeyboard();
 
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const payload = { 
     chat_id: chatId, 
     text: pesan, 
     parse_mode: "Markdown",
-    reply_markup: replyMarkup || getTelegramPersistentKeyboard()
+    reply_markup: replyMarkup !== undefined ? replyMarkup : defaultMarkup
   };
 
   try {
-    UrlFetchApp.fetch(url, {
+    const res = UrlFetchApp.fetch(url, {
       method: "post",
       contentType: "application/json",
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     });
+    if (res.getResponseCode() !== 200) {
+      delete payload.parse_mode;
+      UrlFetchApp.fetch(url, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      });
+    }
   } catch (e) {
-    payload.parse_mode = "";
-    UrlFetchApp.fetch(url, {
-      method: "post",
-      contentType: "application/json",
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    });
+    try {
+      delete payload.parse_mode;
+      UrlFetchApp.fetch(url, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      });
+    } catch (e2) {
+      Logger.log("Kirim Telegram gagal: " + e2.toString());
+    }
   }
 }
 
@@ -2565,17 +2767,24 @@ ${itemsList}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 _Silakan klik tombol di bawah untuk verifikasi cepat:_`;
 
-  // Inline Keyboard Verifikasi & Siap Ambil Cepat untuk Pemilik Toko
+  // Inline Keyboard Verifikasi, Siap Ambil & WhatsApp Pembeli Cepat
+  const cleanPhoneNum = String(payload.customerPhone || "").replace(/\D/g, "");
+  const waTarget = cleanPhoneNum.startsWith("0") ? "62" + cleanPhoneNum.slice(1) : cleanPhoneNum;
+  const waText = encodeURIComponent(`Halo kak ${payload.customerName}, kami dari Toko Delina. Pesanan kakak #${payload.orderId} sedang kami proses nggih.`);
+
   const adminInlineMarkup = {
     inline_keyboard: [
       [
         { text: "✅ Verifikasi Lunas", callback_data: "verify_" + payload.orderId },
         { text: "📦 Siap Ambil", callback_data: "ready_" + payload.orderId }
+      ],
+      [
+        { text: "💬 Chat WhatsApp Pembeli", url: `https://wa.me/${waTarget}?text=${waText}` }
       ]
     ]
   };
 
-  kirimPesanTelegram(adminChatId, notifMsg, adminInlineMarkup);
+  broadcastPesanTelegram(notifMsg, adminInlineMarkup);
 }
 
 function inisialisasiSlotScriptProperties() {
@@ -2611,9 +2820,9 @@ function setTelegramWebhook() {
   const botToken = props.getProperty("TELEGRAM_BOT_TOKEN");
   if (!botToken) throw new Error("TELEGRAM_BOT_TOKEN belum diset.");
 
-  const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
+  const webAppUrl = getActiveWebAppUrl();
   const url = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
-  const res = UrlFetchApp.fetch(url);
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
 
   // Set Menu Button WebApp agar langsung interaktif di chat bar
   setTelegramMenuButton();
@@ -2629,7 +2838,7 @@ function resetDanBersihkanWebhook() {
   const delUrl = `https://api.telegram.org/bot${botToken}/deleteWebhook?drop_pending_updates=true`;
   const delRes = UrlFetchApp.fetch(delUrl, { muteHttpExceptions: true }).getContentText();
 
-  const webAppUrl = "https://script.google.com/macros/s/AKfycbxc_epV80Yx9G5pIyoLdCHGAPybi_JbWfYTC7B3G455UxtF0rhmRN1u0nXZTxFwrhGHTw/exec";
+  const webAppUrl = getActiveWebAppUrl();
   const setUrl = `https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webAppUrl)}&drop_pending_updates=true&allowed_updates=${encodeURIComponent(JSON.stringify(["message", "callback_query"]))}`;
   const setRes = UrlFetchApp.fetch(setUrl, { muteHttpExceptions: true }).getContentText();
 
@@ -3709,6 +3918,19 @@ function prosesRegisterMember(payload, ss) {
   const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm");
   sheet.appendRow(["'" + cleanPhone, rawPassword, rawName, 0, 0, nowStr]);
 
+  try {
+    const notifMember = `👤 *MEMBER BARU BERGABUNG!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎉 *Alhamdulillah! Ada pelanggan baru mendaftar Member VIP:*
+• 👤 *Nama:* *${rawName}*
+• 📱 *WhatsApp:* \`${cleanPhone}\`
+• 📅 *Waktu Daftar:* ${nowStr} WIB
+• 🎁 *Stempel Awal:* 0/30 Belanja`;
+    broadcastPesanTelegram(notifMember);
+  } catch (errNotif) {
+    Logger.log("Notice notif member: " + errNotif.toString());
+  }
+
   return {
     status: "success",
     message: "Alhamdulillah! Pendaftaran Member VIP Delina.store berhasil.",
@@ -4138,6 +4360,19 @@ function prosesCreatePosOrder(payload, ss) {
       "-",
       "Selesai (Kasir Toko)"
     ]);
+  }
+
+  try {
+    const posNotif = `💵 *TRANSAKSI KASIR POS SUKSES!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 📋 *No. Struk:* \`${orderId}\`
+• 💰 *Total Belanja:* *Rp ${totalPrice.toLocaleString("id-ID")}*
+• 💳 *Pembayaran:* *${payMethod}*
+• 🕒 *Waktu:* ${orderTimeNow} WIB
+• 📦 *Barang:* ${items.length} Macam Barang${memberPhoneInput ? "\n• 👤 *Member:* " + ((memberResult && memberResult.name) ? memberResult.name : memberPhoneInput) : ""}`;
+    broadcastPesanTelegram(posNotif);
+  } catch (errPosNotif) {
+    Logger.log("Notice notif pos: " + errPosNotif.toString());
   }
 
   return {
