@@ -1737,7 +1737,7 @@
                 </span>
               </div>
               <p class="text-[11px] text-slate-600 leading-relaxed">
-                Laporan otomatis untuk seluruh aktivitas: pesanan baru, cetak dokumen fotokopi, transaksi kasir POS, member baru, dan peringatan keamanan. Mendukung <strong>Grup Telegram</strong> agar banyak admin/kasir menerima notifikasi bersamaan!
+                Laporan otomatis untuk seluruh aktivitas: pesanan baru online, transaksi kasir POS, pendaftaran member baru, dan peringatan keamanan. Mendukung <strong>Grup Telegram</strong> agar banyak admin/kasir menerima notifikasi bersamaan!
               </p>
 
               <div class="space-y-2.5">
@@ -4354,9 +4354,7 @@
       if (statusLower.includes("selesai")) badgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300";
       if (statusLower.includes("batal")) badgeClass = "bg-red-100 text-red-900 border-red-300";
 
-      const fotokopiBtn = (order.fotokopiLink && order.fotokopiLink !== "-")
-        ? `<a href="${order.fotokopiLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-[11px] border border-blue-200"><i class="bi bi-file-earmark-pdf"></i> Unduh File Dokumen</a>`
-        : "";
+      const fotokopiBtn = "";
 
       const buktiBtn = (order.paymentProofLink && order.paymentProofLink !== "-")
         ? `<a href="${order.paymentProofLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] border border-emerald-200"><i class="bi bi-image"></i> Cek Bukti Transfer</a>`
@@ -6961,7 +6959,7 @@ ${escapeHtml(order.itemsText || "-")}
       { keywords: ["emina", "bright stuff", "sun battle", "lip tint", "face wash"], barcodePrefixes: ["8997032"], name: "Emina Bright Stuff Moisturizing / Face Wash", category: "Kosmetik & Cantik", unit: "Pcs", costPrice: 17000, price: 22500, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&auto=format&fit=crop&q=80", desc: "Rangkaian perawatan kulit remaja Emina Bright Stuff yang lembut dan mencerahkan." },
       { keywords: ["vaseline", "lotion", "healthy bright", "gluta hya", "repairing jelly"], barcodePrefixes: ["8999999"], name: "Vaseline Healthy Bright Hand & Body Lotion 200ml", category: "Kosmetik & Cantik", unit: "Btl", costPrice: 23000, price: 29500, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80", desc: "Body Lotion Vaseline melembapkan dan mencerahkan kulit secara menyeluruh." },
       { keywords: ["sidu", "sinar dunia", "buku tulis", "38", "58"], barcodePrefixes: ["8992388"], name: "Buku Tulis Sinar Dunia (SiDu) 38 / 58 Lembar", category: "ATK & Kantor", unit: "Pcs", costPrice: 3200, price: 4500, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80", desc: "Buku tulis Sinar Dunia kertas putih tebal berkualitas untuk sekolah dan kantor." },
-      { keywords: ["paperone", "hvs", "kertas", "a4", "f4"], barcodePrefixes: ["8992759"], name: "Kertas HVS PaperOne A4 75gsm (1 Rim)", category: "ATK & Kantor", unit: "Rim", costPrice: 44000, price: 55000, image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=80", desc: "Kertas HVS PaperOne A4 putih bersih anti macet di mesin fotokopi & printer." },
+      { keywords: ["paperone", "hvs", "kertas", "a4", "f4"], barcodePrefixes: ["8992759"], name: "Kertas HVS PaperOne A4 75gsm (1 Rim)", category: "ATK & Kantor", unit: "Rim", costPrice: 44000, price: 55000, image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&auto=format&fit=crop&q=80", desc: "Kertas HVS PaperOne A4 putih bersih anti macet untuk printer & tulis cepat." },
       { keywords: ["joyko", "pulpen", "gel", "pensil", "penghapus", "stapler", "gunting", "lakban"], barcodePrefixes: ["8997009"], name: "Pulpen Gel / Alat Tulis Kantor Joyko Original", category: "ATK & Kantor", unit: "Pcs", costPrice: 2200, price: 3500, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=80", desc: "Perlengkapan alat tulis kantor Joyko tinta lancar dan awet." },
       { keywords: ["snowman", "spidol", "boardmarker", "permanent", "marker"], barcodePrefixes: ["8991389"], name: "Spidol Snowman White Board / Permanent Marker", category: "ATK & Kantor", unit: "Pcs", costPrice: 6800, price: 9500, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=80", desc: "Spidol Snowman tinta pekat berkualitas tinggi untuk papan tulis dan kantor." },
       { keywords: ["indomie", "mie goreng", "soto", "ayam bawang"], barcodePrefixes: ["089686", "8998866"], name: "Indomie Mi Goreng Spesial 85g", category: "Kelontongan", unit: "Bks", costPrice: 2800, price: 3500, image: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500&auto=format&fit=crop&q=80", desc: "Mi instan favorit keluarga lengkap dengan bumbu lezat." },

@@ -1,7 +1,7 @@
 /**
  * printer.js - Modul Pencetakan Struk Thermal Bluetooth (ESC/POS 58mm / 80mm)
  * Mendukung Web Bluetooth API untuk Android, Samsung Galaxy Tab, dan browser Chromium.
- * Toko Delina ATK & Fotokopi
+ * Toko Delina ATK, Kosmetik & Kelontongan
  */
 
 class BluetoothThermalPrinter {
@@ -305,7 +305,7 @@ async function printReceiptViaBluetooth(order) {
 
     // 2. Susun Data ESC/POS
     const escposBytes = globalBluetoothPrinter.buildEscPosReceipt({
-      storeName: (typeof CONFIG !== "undefined" && CONFIG.STORE_NAME) ? CONFIG.STORE_NAME : "TOKO DELINA ATK & FOTOKOPI",
+      storeName: (typeof CONFIG !== "undefined" && CONFIG.STORE_NAME) ? CONFIG.STORE_NAME : "TOKO DELINA",
       storeSlogan: "Lengkap, Murah & Berkah",
       storeAddress: "Jl. Tanjung Raya Delina No. 12",
       storePhone: (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_PHONE) ? CONFIG.WHATSAPP_PHONE : "0821-8535-5316",

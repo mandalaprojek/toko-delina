@@ -1867,18 +1867,7 @@ function hitungDiskonGrosirKeranjang() {
       item.isGrosir = true;
       item.grosirDesc = "Grosir -Rp 2.000/lusin";
     }
-    // 4. Jasa Fotokopi: Cetak >= 100 lembar total dapat potongan Rp 50/lbr
-    else if (item.isFotokopi && item.specs) {
-      const totalLembar = (Number(item.specs.lembar) || 0) * (Number(item.specs.rangkap) || 1);
-      if (totalLembar >= 100) {
-        const diskon = totalLembar * 50;
-        totalDiskonGrosir += diskon;
-        item.isGrosir = true;
-        item.grosirDesc = "Grosir Cetak -Rp 50/lbr";
-      } else {
-        item.isGrosir = false;
-      }
-    } else {
+    else {
       item.isGrosir = false;
     }
   });
@@ -1903,13 +1892,12 @@ let PROMO_COUPONS = {
     minSpend: 30000,
     desc: "Diskon 10% s.d Rp 15.000 (Min. Belanja Rp 30.000)"
   },
-  "FOTOKOPILANCAR": {
-    code: "FOTOKOPILANCAR",
+  "BELANJABERKAH": {
+    code: "BELANJABERKAH",
     type: "fixed",
     discount: 3000,
-    minSpend: 10000,
-    requiresFotokopi: true,
-    desc: "Potongan Rp 3.000 Jasa Fotokopi/Cetak"
+    minSpend: 20000,
+    desc: "Potongan Rp 3.000 Belanja Hemat"
   },
   "DISKON5K": {
     code: "DISKON5K",
@@ -1949,14 +1937,6 @@ function applyCouponCode() {
   if (subtotal < coupon.minSpend) {
     if (msgElem) {
       msgElem.textContent = `Kupon ini berlaku untuk minimal belanja ${formatRupiah(coupon.minSpend)}.`;
-      msgElem.className = "text-[11px] mt-1.5 text-amber-600 font-medium block";
-    }
-    return;
-  }
-
-  if (coupon.requiresFotokopi && !cart.some(item => item.isFotokopi)) {
-    if (msgElem) {
-      msgElem.textContent = "Kupon ini khusus untuk pesanan yang memuat Jasa Cetak/Fotokopi.";
       msgElem.className = "text-[11px] mt-1.5 text-amber-600 font-medium block";
     }
     return;
@@ -2294,7 +2274,7 @@ function useSimulatedReceipt() {
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("DELINA STORE & FOTOKOPI", 210, 44);
+    ctx.fillText("DELINA.STORE", 210, 44);
 
     ctx.font = "11px 'Plus Jakarta Sans', sans-serif";
     ctx.fillStyle = "#a7f3d0";
@@ -2591,16 +2571,7 @@ function submitOrderCheckout() {
       couponCode: appliedCoupon ? appliedCoupon.code : null,
       discountAmount: totalPotongan,
       items: latestOrderData.items,
-      fotokopiFile: (function() {
-        const fotoItem = latestOrderData.items.find(i => i.isFotokopi && i.fileBase64);
-        if (fotoItem) {
-          return {
-            name: fotoItem.fileName || "dokumen.pdf",
-            base64: fotoItem.fileBase64
-          };
-        }
-        return null;
-      })(),
+      fotokopiFile: null,
       paymentProof: uploadedPaymentProof ? {
         name: uploadedPaymentProof.name,
         base64: uploadedPaymentProof.base64
@@ -3498,7 +3469,7 @@ function kikoSetCategoryQuickChips(categoryName) {
       { label: "📄 Kertas HVS A4", q: "Stok Kertas HVS PaperOne A4 ada?" },
       { label: "✒️ Pulpen Sarasa", q: "Pulpen Gel Zebra Sarasa Clip" },
       { label: "📚 Buku Tulis SiDu", q: "Buku Tulis Sinar Dunia pack" },
-      { label: "🖨️ Tarif Fotokopi", q: "Berapa tarif fotokopi warna dan jilid?" }
+      { label: "📎 Map & Binder", q: "Map Folder Plastik Document Clear Holder" }
     ],
     "Kosmetik & Cantik": [
       { label: "🧴 Deodorant Dove", q: "Deodorant Dove Ultimate Repair" },
@@ -3710,10 +3681,12 @@ async function kikoHandleLocalIntent(userText) {
     };
   }
 
-  // F. Tarif Fotokopi & Cetak (data live dari Tab Tarif_Fotokopi)
+  // F. Ketersediaan Jasa Fotokopi
   if (/(fotokopi|foto kopi|fotocopy|cetak|print|jilid|scan dokumen)/.test(q)) {
-    const t = typeof LIVE_TARIF === "object" ? LIVE_TARIF : {};
-    return `🖨️ *Tarif Fotokopi & Cetak Toko Delina*\n━━━━━━━━━━━━━━━━━━━━\n• Hitam-Putih A4: *${formatRupiah(t.PRINT_BW_A4 || 250)}*/lbr\n• Warna A4: *${formatRupiah(t.PRINT_COLOR_A4 || 1000)}*/lbr\n• Hitam-Putih F4: *${formatRupiah(t.PRINT_BW_F4 || 300)}*/lbr\n• Warna F4: *${formatRupiah(t.PRINT_COLOR_F4 || 1200)}*/lbr\n• Jilid Lakban: *${formatRupiah(t.JILID_LAKBAN || 4000)}*\n• Jilid Spiral: *${formatRupiah(t.JILID_SPIRAL || 10000)}*\n\nKakak bisa upload dokumen & hitung estimasi di menu *Fotokopi* tanpa antre nggih.`;
+    return {
+      text: "ℹ️ *Layanan Toko Delina*\n━━━━━━━━━━━━━━━━━━━━\nAfwan kak, Toko Delina kini berfokus penuh pada penjualan produk ritel fisik *ATK, Kosmetik & Skincare, dan Kelontongan Sembako* nggih.\n\nSilakan cek katalog produk lengkap kami di tombol bawah atau ketik nama barang yang dicari. _Barakallahu fiik._ 🤲",
+      categories: true
+    };
   }
 
   // G. Pencarian Produk (prioritas nama barang spesifik)
@@ -4457,14 +4430,14 @@ function sendCustomerWhatsAppNotification(orderId) {
 
   const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh kak ${order.customerName} 🙏
 
-Alhamdulillah, pesanan ATK & Fotokopi Anda di *Toko Delina* sudah *SELESAI* dan *SIAP DIAMBIL* di toko kami! 🌟
+Alhamdulillah, pesanan ATK, Kosmetik & Kelontongan Anda di *Toko Delina* sudah *SELESAI* dan *SIAP DIAMBIL* di toko kami! 🌟
 
 📋 *No. Nota:* ${order.orderId}
 📅 *Waktu Pesan:* ${order.orderTime || "-"}
 🚚 *Metode:* ${order.deliveryMethod || "Ambil Sendiri di Toko"}
 💰 *Total Tagihan:* ${formatRupiah(order.total || 0)}
 
-📍 *Lokasi Toko:* Toko ATK & Fotokopi Delina
+📍 *Lokasi Toko:* Delina.store (ATK, Kosmetik & Kelontongan)
 Jam Buka: 07.30 - 21.00 WIB
 
 _Jazakumullah khairan katsiran atas kepercayaannya. Semoga berkah, awet, dan bermanfaat selalu nggih kak! Barakallahu fiik._ 🙏`;
@@ -4513,8 +4486,8 @@ function generateThermalReceiptHtml(order) {
   return `
     <div style="font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; line-height: 1.35; max-width: 290px; margin: 0 auto; text-align: left;">
       <div style="text-align: center; margin-bottom: 8px;">
-        <div style="font-size: 14px; font-weight: 900; letter-spacing: -0.5px;">TOKO ATK & FOTOKOPI DELINA</div>
-        <div style="font-size: 10px;">Lengkap, Murah & Berkah</div>
+        <div style="font-size: 14px; font-weight: 900; letter-spacing: -0.5px;">DELINA.STORE</div>
+        <div style="font-size: 10px;">ATK, Kosmetik dan Kelontongan</div>
         <div style="font-size: 9px; margin-top: 2px;">WA: 0812-3456-7890 • Buka 07.30 - 21.00</div>
       </div>
 
@@ -6733,7 +6706,7 @@ function executePrintModernDigitalReceipt() {
         <div class="text-center">
           <div class="brand-logo">D</div>
           <h2 style="margin:0; font-size:18px;">DELINA.store</h2>
-          <div style="font-size:11px; color:#64748b;">ATK, Fotokopi, Kosmetik & Kelontongan</div>
+          <div style="font-size:11px; color:#64748b;">ATK, Kosmetik & Kelontongan</div>
           <div style="font-size:10px; color:#94a3b8;">WA Resmi: 0821-8535-5316</div>
           <div class="badge">✓ E-RECEIPT RESMI TERVERIFIKASI</div>
         </div>

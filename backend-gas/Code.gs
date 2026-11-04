@@ -1,7 +1,7 @@
 /**
  * =========================================================================
  * BACKEND TOKO DELINA (Google Apps Script - Code.gs)
- * Marketplace ATK, Jasa Fotokopi & Portal Manajemen Kasir / Super Admin
+ * Marketplace ATK, Kosmetik & Kelontongan | Portal Kasir & Super Admin
  * Bot Telegram Kiko AI Canggih (Interactive Inline Keyboard & Callback Query)
  * Arsitektur Serverless 100% Gratis - Google Apps Script + Sheets + Drive + Gemini
  * =========================================================================
@@ -10,7 +10,7 @@
 // Konstanta Nama Tab Spreadsheet
 const TAB_PRODUK = "Produk";
 const TAB_PESANAN = "Pesanan";
-const TAB_TARIF = "Tarif_Fotokopi";
+const TAB_TARIF = "Tarif_Fotokopi"; // Dipertahankan untuk kompatibilitas data lama jika ada
 const TAB_PENGATURAN = "Pengaturan";
 const TAB_KUPON = "Kupon";
 const TAB_MEMBER = "Member";
@@ -20,7 +20,6 @@ const TAB_KATEGORI = "Kategori";
 
 // Konstanta Nama Folder Google Drive Penyimpanan
 const FOLDER_UTAMA = "Toko Delina - Berkas Pelanggan";
-const SUBFOLDER_FOTOKOPI = "Dokumen_Fotokopi";
 const SUBFOLDER_BUKTI = "Bukti_Pembayaran";
 const SUBFOLDER_PRODUK = "Foto_Produk";
 const SUBFOLDER_QRIS = "Foto_QRIS";
@@ -193,28 +192,6 @@ function setupDatabaseOtomatis() {
     sheetPesanan.autoResizeColumns(1, headerPesanan[0].length);
   }
 
-  // --- C. Tab Tarif Fotokopi ---
-  let sheetTarif = ss.getSheetByName(TAB_TARIF);
-  if (!sheetTarif) {
-    sheetTarif = ss.insertSheet(TAB_TARIF);
-    sheetTarif.clear();
-    const headerTarif = [["Kode_Layanan", "Nama_Layanan", "Harga_Satuan"]];
-    sheetTarif.getRange(1, 1, 1, headerTarif[0].length).setValues(headerTarif);
-    formatHeaderSheet(sheetTarif, headerTarif[0].length);
-
-    const sampleTarif = [
-      ["PRINT_BW_A4", "Fotokopi / Cetak Hitam-Putih HVS A4", 250],
-      ["PRINT_COLOR_A4", "Fotokopi / Cetak Warna HVS A4", 1000],
-      ["PRINT_BW_F4", "Fotokopi / Cetak Hitam-Putih HVS F4 (Folio)", 300],
-      ["PRINT_COLOR_F4", "Fotokopi / Cetak Warna HVS F4 (Folio)", 1200],
-      ["JILID_LAKBAN", "Jilid Lakban Biasa (Include Mika Cover)", 4000],
-      ["JILID_SPIRAL", "Jilid Spiral Kawat/Plastik Modern", 10000],
-      ["ONGKIR_KURIR", "Biaya Kirim Kurir Toko Delina", 5000]
-    ];
-    sheetTarif.getRange(2, 1, sampleTarif.length, sampleTarif[0].length).setValues(sampleTarif);
-    sheetTarif.autoResizeColumns(1, headerTarif[0].length);
-  }
-
   // --- D. Tab Pengaturan Toko ---
   let sheetPengaturan = ss.getSheetByName(TAB_PENGATURAN);
   if (!sheetPengaturan) {
@@ -301,7 +278,7 @@ function setupTabKupon(sheet) {
   const sampleCoupons = [
     ["JUMATBERKAH", "PERSEN", 10, 50000, "AKTIF", "Diskon 10% Spesial Hari Jumat"],
     ["DELINABAROKAH", "NOMINAL", 5000, 30000, "AKTIF", "Potongan Langsung Rp 5.000"],
-    ["FOTOKOPILANCAR", "PERSEN", 15, 20000, "AKTIF", "Diskon Fotokopi & Cetak Dokumen 15%"],
+    ["BELANJABERKAH", "PERSEN", 10, 20000, "AKTIF", "Diskon Belanja ATK, Kosmetik & Kelontongan 10%"],
     ["DISKON5K", "NOMINAL", 5000, 25000, "AKTIF", "Voucher Belanja Hemat Rp 5.000"]
   ];
   sheet.getRange(2, 1, sampleCoupons.length, sampleCoupons[0].length).setValues(sampleCoupons);
@@ -623,28 +600,71 @@ Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau Wh
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // 2. Menu Info Tarif Fotokopi & Jilid
-      if (cbData === "menu_tarif") {
-        answerCallbackQuery(cb.id, "Memuat daftar tarif...");
-        const rates = ambilDaftarTarif(ss);
-        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA*
+      // 2a. Menu Kosmetik & Skincare
+      if (cbData === "menu_kosmetik") {
+        answerCallbackQuery(cb.id, "Koleksi Kosmetik & Skincare");
+        const kosmetikMsg = `💄 *KOLEKSI KOSMETIK & SKINCARE DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-📄 *Cetak & Fotokopi Dokumen:*
-`;
-        for (const k in rates) {
-          tarifMsg += `• *${rates[k].nama}:* Rp ${Number(rates[k].harga).toLocaleString("id-ID")}\n`;
-        }
-        tarifMsg += `━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 *Keunggulan di Toko Delina:*
-Kakak tidak perlu membuang waktu mengantre di toko! Cukup unggah dokumen di website, dan ambil saat pesanan sudah selesai.
+✨ *Cantik, Segar & Terawat Bersama Toko Delina:*
+Kami menyediakan produk perawatan harian original:
+• 🧴 *Skincare Harian:* Pembersih wajah (Micellar Water), sabun cuci muka, pelembab
+• ☀️ *Sunscreen & Body Lotion:* Menjaga kesehatan & kelembaban kulit
+• 🌸 *Perawatan Tubuh & Rambut:* Deodorant, shampo, sabun mandi, bedak & parfum
 
-_InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
+💡 *Tanya Kiko AI:*
+Kakak bisa langsung tanyakan rekomendasi kosmetik yang cocok untuk kebutuhan kakak di chat ini!
 
-        kirimPesanTelegram(fromChatId, tarifMsg, {
+👇 *Klik tombol di bawah untuk belanja kosmetik di web:*`;
+        kirimPesanTelegram(fromChatId, kosmetikMsg, {
           inline_keyboard: [
-            [
-              { text: "🖨️ Unggah Dokumen di Website", url: webAppStoreUrl }
-            ]
+            [{ text: "💄 Buka Etalase Kosmetik", url: webAppStoreUrl }]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 2b. Menu ATK & Kelontongan
+      if (cbData === "menu_atk_kelontong") {
+        answerCallbackQuery(cb.id, "Katalog ATK & Kelontongan");
+        const atkKelontongMsg = `🛒 *KATALOG ATK & KELONTONGAN DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *Kebutuhan Kantor, Sekolah & Rumah Tangga Lengkap:*
+
+📚 *Perlengkapan ATK:*
+• Kertas HVS (A4, F4), buku tulis (SiDu, Kiky, Big Boss)
+• Pulpen, pensil, spidol, map arsip, binder & stapler
+
+🍳 *Kelontongan & Sembako Dapur:*
+• Minyak goreng, beras, gula pasir, teh, kopi, mie instan
+• Susu UHT, biskuit, wafer & jajanan ringan
+• Sabun cuci piring, detergen pakaian & pembersih lantai
+
+👇 *Klik tombol di bawah untuk pesan langsung di web:*`;
+        kirimPesanTelegram(fromChatId, atkKelontongMsg, {
+          inline_keyboard: [
+            [{ text: "🛒 Buka Katalog di Web", url: webAppStoreUrl }]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 2c. Menu Member & Hadiah
+      if (cbData === "menu_member") {
+        answerCallbackQuery(cb.id, "Program Member Royalty");
+        const memberMsg = `🎁 *PROGRAM MEMBER & HADIAH TOKO DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *Kumpulkan Poin Setiap Belanja:*
+• Setiap belanja Rp 10.000 = *1 Poin Belanja*
+• Tukar *30 Poin* = *1 Hadiah Gratis* pilihan kakak!
+
+👉 *Cara Cek Poin Anda Langsung:*
+Ketik perintah: \`/poin [Nomor HP]\`
+Contoh: \`/poin 081234567890\`
+
+👇 *Atau klik tombol di bawah untuk melihat pilihan hadiah:*`;
+        kirimPesanTelegram(fromChatId, memberMsg, {
+          inline_keyboard: [
+            [{ text: "🎁 Lihat Poin & Hadiah di Web", url: webAppStoreUrl }]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
@@ -728,128 +748,265 @@ Salin kode Chat ID di atas: \`${chatId}\` ke kolom *Chat ID / Grup ID Telegram* 
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // A. Aksi Menu: Buka Toko
-      if (lower.includes("buka toko") || lower === "toko" || lower === "/toko" || lower === "belanja" || lower === "katalog") {
-        const pesanToko = `🏪 *TOKO ONLINE DELINA ATK & FOTOKOPI*
+      // =========================================================
+      // PERINTAH KHUSUS GRUP ADMIN & OPERASIONAL TOKO
+      // =========================================================
+
+      // 1. Rekap Penjualan & Omzet Hari Ini (/rekap atau /omzet)
+      if (lower === "/rekap" || lower === "/omzet" || lower === "rekap" || lower === "omzet") {
+        const orders = ambilDaftarPesanan(ss);
+        const todaySlash = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy");
+        let totalOmzet = 0;
+        let countWeb = 0;
+        let countPos = 0;
+
+        orders.forEach(o => {
+          if (o.orderTime && o.orderTime.includes(todaySlash)) {
+            totalOmzet += Number(o.total) || 0;
+            const rincianUpper = String(o.itemsText || "").toUpperCase();
+            const delivUpper = String(o.deliveryMethod || "").toUpperCase();
+            if (delivUpper.includes("POS") || rincianUpper.includes("KASIR POS") || delivUpper.includes("KASIR")) {
+              countPos++;
+            } else {
+              countWeb++;
+            }
+          }
+        });
+
+        const totalTrx = countWeb + countPos;
+        const rekapMsg = `📊 *REKAP OMZET & TRANSAKSI HARI INI*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-✨ *Bismillah!* Selamat datang di etalase digital Toko Delina.
+🏪 *Toko:* Delina.store (ATK, Kosmetik & Kelontongan)
+📅 *Tanggal:* ${todaySlash} WIB
 
-🛍️ *Katalog ATK Lengkap:* Kertas HVS, buku tulis, pulpen gel, map arsip, binder, dan perlengkapan kantor.
-🖨️ *Jasa Fotokopi Online:* Langsung unggah dokumen PDF/Word untuk cetak tanpa antre.
-💳 *Pembayaran Mudah:* Mendukung QRIS Bebas Biaya & Transfer Bank.
+💰 *Total Omzet:* *Rp ${totalOmzet.toLocaleString("id-ID")}*
+🧾 *Total Transaksi:* *${totalTrx} Transaksi*
+• 🛍️ *Pesanan Online Web:* ${countWeb} pesanan
+• 💻 *Transaksi Kasir POS:* ${countPos} transaksi
 
-👇 *Klik tombol di bawah untuk membuka toko:*`;
+_Laporan otomatis langsung dari Google Sheets Toko Delina._ 🤲✨`;
+        kirimPesanTelegram(chatId, rekapMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // 2. Cek Stok Menipis (/stok atau /stok_menipis)
+      if (lower === "/stok" || lower === "/stok_menipis" || lower === "stok menipis" || lower === "cek stok") {
+        const sheetProduk = ss.getSheetByName(TAB_PRODUK);
+        let lowItems = [];
+        if (sheetProduk && sheetProduk.getLastRow() > 1) {
+          const data = sheetProduk.getDataRange().getValues();
+          for (let i = 1; i < data.length; i++) {
+            const nama = data[i][1];
+            const kat = data[i][2];
+            const stok = Number(data[i][4]) || 0;
+            const unit = data[i][5] || "Pcs";
+            if (stok <= 5 && nama) {
+              lowItems.push(`• *${nama}* (${kat}): sisa *${stok} ${unit}*`);
+            }
+          }
+        }
+
+        let stokMsg = "";
+        if (lowItems.length > 0) {
+          stokMsg = `⚠️ *PERINGATAN STOK MENIPIS (<= 5 PCS)*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ditemukan *${lowItems.length} produk* yang perlu segera restock:
+
+${lowItems.slice(0, 25).join("\n")}
+${lowItems.length > 25 ? `\n_...dan ${lowItems.length - 25} produk lainnya._` : ""}
+
+💡 *Segera restock melalui Panel Admin Toko Delina.*`;
+        } else {
+          stokMsg = `✅ *STATUS STOK TOKO DELINA AMAN*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Alhamdulillah, seluruh stok produk ATK, Kosmetik & Kelontongan saat ini dalam kondisi aman (tersedia di atas 5 pcs). 🤲`;
+        }
+        kirimPesanTelegram(chatId, stokMsg);
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // =========================================================
+      // AKSI MENU & PERINTAH PELANGGAN (CHAT PRIBADI)
+      // =========================================================
+
+      // A. Aksi Menu: Buka Toko Delina
+      if (lower.includes("buka toko") || lower === "toko" || lower === "/toko" || lower === "belanja" || lower === "katalog") {
+        const pesanToko = `🏪 *DELINA.STORE - ATK, KOSMETIK & KELONTONGAN*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *Bismillah!* Selamat datang di etalase digital resmi Toko Delina.
+
+🛍️ *Pilihan Belanja Praktis & Lengkap:*
+• ✏️ *Alat Tulis Kantor & Sekolah:* Kertas HVS, buku tulis, pulpen, map arsip & binder.
+• 💄 *Kosmetik & Skincare:* Perawatan wajah harian, sunscreen, lotion & parfum original.
+• 🛒 *Kelontongan & Sembako:* Minyak goreng, beras, gula, mie instan, kopi & detergen.
+• 🎁 *Member Royalty:* Dapatkan poin belanja & klaim 10 pilihan hadiah gratis!
+
+💳 *Pembayaran Fleksibel:* QRIS Bebas Biaya, Transfer Bank, atau Bayar Tunai di Toko.
+
+👇 *Klik tombol di bawah untuk masuk ke website toko:*`;
         kirimPesanTelegram(chatId, pesanToko, {
           inline_keyboard: [
             [
-              { text: "🚀 Masuk ke Web Toko Delina", url: webAppStoreUrl }
+              { text: "🚀 Masuk ke Web Delina.store", url: webAppStoreUrl }
             ]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // B. Aksi Menu: Cek Status Nota Langsung
-      if (lower === "📦 cek status nota" || lower === "cek nota" || lower === "lacak nota" || lower === "cek status" || lower === "lacak pesanan") {
+      // B. Aksi Menu: Lacak Status Pesanan
+      if (lower.includes("lacak status pesanan") || lower === "📦 lacak status pesanan" || lower === "cek nota" || lower === "lacak nota" || lower === "cek status" || lower === "lacak pesanan") {
         const pesanCek = `📦 *LACAK STATUS PESANAN DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Untuk mengecek pesanan, silakan ketik atau salin *Nomor Nota* kakak langsung di chat ini.
+Untuk mengecek pesanan, silakan ketik *Nomor Nota* kakak langsung di chat ini.
 
 Contoh format:
 👉 \`#DLN-2026-9429\`
 👉 \`/cek #DLN-2026-9429\`
 
 💡 *Petunjuk:*
-Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau WhatsApp konfirmasi pesanan.`;
+Nomor nota tertera pada struk digital saat konfirmasi belanja di website atau pesan WhatsApp Toko Delina.`;
         kirimPesanTelegram(chatId, pesanCek, getTelegramPersistentKeyboard());
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // C. Aksi Menu: Info Tarif Fotokopi & Jilid
-      if (lower.includes("member") || lower.includes("hadiah") || lower.includes("royalty") || lower.includes("poin") || lower.includes("stempel")) {
-        const rates = ambilDaftarTarif(ss);
-        let tarifMsg = `🖨️ *DAFTAR TARIF FOTOKOPI & JILID DELINA*
+      // C. Aksi Menu: Kosmetik & Skincare
+      if (lower.includes("kosmetik") || lower.includes("skincare") || lower.includes("cantik") || lower.includes("perawatan") || lower === "💄 kosmetik & skincare") {
+        const kosmetikMsg = `💄 *KOLEKSI KOSMETIK & SKINCARE DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-📄 *Cetak & Fotokopi Dokumen:*
-`;
-        for (const k in rates) {
-          tarifMsg += `• *${rates[k].nama}:* Rp ${Number(rates[k].harga).toLocaleString("id-ID")}\n`;
-        }
-        tarifMsg += `━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 *Keunggulan di Toko Delina:*
-Kakak tidak perlu membuang waktu mengantre di toko! Cukup unggah dokumen di website, dan ambil saat pesanan sudah selesai.
+✨ *Cantik, Segar & Terawat Bersama Toko Delina:*
+Kami menyediakan aneka produk perawatan harian original:
+• 🧴 *Skincare Harian:* Pembersih wajah (Micellar Water), sabun cuci muka, pelembab & toner.
+• ☀️ *Sunscreen & Body Care:* Perlindungan sinar UV & menjaga kelembapan kulit setiap hari.
+• 🌸 *Perawatan Tubuh & Rambut:* Deodorant, shampo, sabun mandi, bedak tabur & parfum wangi segar.
 
-_InsyaAllah hasil cetak tajam, rapi, dan berkah._ 🤲`;
+💡 *Konsultasi Bersama Kiko AI:*
+Kakak bisa langsung tanyakan rekomendasi kosmetik di sini, contoh:
+👉 *"Rekomendasi sunscreen yang ringan untuk sehari-hari"*
+👉 *"Ada sabun cuci muka Garnier atau pelembab Wardah?"*
 
-        kirimPesanTelegram(chatId, tarifMsg, {
+👇 *Klik tombol di bawah untuk melihat katalog kosmetik di web:*`;
+        kirimPesanTelegram(chatId, kosmetikMsg, {
           inline_keyboard: [
-            [
-              { text: "🖨️ Unggah Dokumen di Website", url: webAppStoreUrl }
-            ]
+            [{ text: "💄 Buka Etalase Kosmetik", url: webAppStoreUrl }]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // D. Aksi Menu: Lokasi Google Maps
-      if (lower.includes("lokasi") || lower.includes("alamat") || lower.includes("maps") || lower.includes("peta") || lower.includes("posisi")) {
-        const pesanLokasi = `📍 *LOKASI TOKO FISIK DELINA ATK*
+      // D. Aksi Menu: ATK & Kelontongan
+      if (lower.includes("kelontong") || lower.includes("sembako") || lower.includes("dapur") || lower.includes("alat tulis") || lower === "🛒 atk & kelontongan" || (lower.includes("atk") && !lower.includes("toko"))) {
+        const atkKelontongMsg = `🛒 *KATALOG ATK & KELONTONGAN DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏢 *Alamat:* ${settings.ALAMAT_TOKO || "Jl. Raya Delina No. 12, Samping Masjid"}
+✨ *Kebutuhan Kantor, Sekolah & Rumah Tangga Lengkap:*
+
+📚 *Perlengkapan ATK:*
+• Kertas HVS (A4, F4 Folio, Double Folio)
+• Buku tulis (SiDu, Kiky, Big Boss berbagai ukuran)
+• Pulpen gel, pensil, spidol, penghapus, map arsip & binder
+
+🍳 *Kelontongan & Sembako Dapur:*
+• Minyak goreng, beras, gula pasir, teh, kopi, mie instan
+• Susu UHT, wafer, biskuit & makanan ringan
+• Sabun cuci piring, detergen pakaian & pembersih lantai
+
+👇 *Klik tombol di bawah untuk belanja langsung:*`;
+        kirimPesanTelegram(chatId, atkKelontongMsg, {
+          inline_keyboard: [
+            [{ text: "🛒 Buka Katalog di Web", url: webAppStoreUrl }]
+          ]
+        });
+        return HtmlService.createHtmlOutput("OK");
+      }
+
+      // E. Aksi Menu: Cek Poin & Hadiah (/poin atau /poin [nomor_hp])
+      const matchPoin = userText.match(/\/poin\s*([0-9\+]+)?/i) || (lower.startsWith("poin") ? userText.match(/poin\s*([0-9\+]+)?/i) : null);
+      if (matchPoin || lower.includes("cek poin") || lower.includes("poin member") || lower.includes("hadiah") || lower.includes("royalty") || lower === "🎁 cek poin & hadiah") {
+        const rawPhone = matchPoin && matchPoin[1] ? matchPoin[1].trim() : "";
+        if (rawPhone) {
+          const memberRes = prosesGetMemberData(rawPhone, ss);
+          if (memberRes && memberRes.status === "success" && memberRes.member) {
+            const m = memberRes.member;
+            const poinMsg = `🎁 *INFORMASI POIN MEMBER DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 *Nama Member:* *${m.nama}*
+📱 *No. Handphone:* \`${m.phone}\`
+⭐ *Saldo Poin Belanja:* *${m.poin || 0} Poin*
+🏷️ *Status Member:* *${m.status || "Aktif"}*
+
+💡 *Hadiah Royalty:*
+Tiap 30 Poin dapat ditukarkan dengan 1 Hadiah Gratis pilihan kakak di Toko Delina!
+${(m.poin || 0) >= 30 ? "🎉 *Alhamdulillah! Poin kakak sudah cukup untuk klaim hadiah gratis!*" : `_Kumpulkan ${(30 - (m.poin || 0))} poin lagi untuk klaim hadiah berikutnya._`}
+
+_Terima kasih telah setia berbelanja di Toko Delina._ 🤲✨`;
+            kirimPesanTelegram(chatId, poinMsg, getTelegramPersistentKeyboard());
+            return HtmlService.createHtmlOutput("OK");
+          } else {
+            kirimPesanTelegram(chatId, `Afwan kak, nomor HP \`${rawPhone}\` belum terdaftar sebagai Member Delina.\n\nSilakan daftar gratis di website Toko Delina (menu Member) untuk mengumpulkan poin belanja setiap transaksi! 🎁`, getTelegramPersistentKeyboard());
+            return HtmlService.createHtmlOutput("OK");
+          }
+        } else {
+          const poinGuideMsg = `🎁 *PROGRAM POIN & MEMBER ROYALTY DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *Dapatkan Keuntungan Belanja:*
+• Setiap belanja Rp 10.000 = *1 Poin Belanja*
+• Kumpulkan *30 Poin* = *1 Hadiah Gratis* pilihan kakak!
+
+👉 *Cara Cek Saldo Poin Anda:*
+Ketik perintah: \`/poin [Nomor HP]\`
+Contoh: \`/poin 081234567890\`
+
+👇 *Atau klik tombol di bawah untuk melihat pilihan hadiah di web:*`;
+          kirimPesanTelegram(chatId, poinGuideMsg, {
+            inline_keyboard: [
+              [{ text: "🎁 Lihat Poin & Hadiah di Web", url: webAppStoreUrl }]
+            ]
+          });
+          return HtmlService.createHtmlOutput("OK");
+        }
+      }
+
+      // F. Aksi Menu: Lokasi Toko & Kontak
+      if (lower.includes("lokasi") || lower.includes("alamat") || lower.includes("maps") || lower.includes("kontak") || lower.includes("whatsapp") || lower.includes("wa") || lower === "📍 lokasi toko & kontak") {
+        const pesanLokasi = `📍 *LOKASI & KONTAK RESMI TOKO DELINA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏢 *Alamat Toko:* ${settings.ALAMAT_TOKO || "Jl. Raya Delina No. 12, Samping Masjid"}
 ⏰ *Jam Buka:* 07.30 - 21.00 WIB (Buka Setiap Hari)
-📞 *WhatsApp:* \`${settings.NO_WA_TOKO || "081234567890"}\`
+📞 *WhatsApp:* \`${cleanWa ? (cleanWa.startsWith("0") ? cleanWa : "0" + cleanWa.slice(2)) : "082185355316"}\`
 
 🗺️ *Akses & Parkir:*
 Tepat berada di samping masjid dengan area parkir yang luas dan nyaman untuk motor maupun mobil.
 
-👇 *Klik tombol di bawah untuk panduan rute:*`;
+👇 *Pilih tombol di bawah untuk panduan rute atau chat langsung:*`;
         kirimPesanTelegram(chatId, pesanLokasi, {
           inline_keyboard: [
             [
-              { text: "🗺️ Buka Rute Google Maps", url: mapsUrl }
+              { text: "🗺️ Buka Rute Google Maps", url: mapsUrl },
+              { text: "💬 WhatsApp Customer Service", url: waUrl }
             ]
           ]
         });
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // E. Aksi Menu: WhatsApp Pemilik Toko
-      if (lower.includes("whatsapp") || lower.includes("wa toko") || lower.includes("hubungi") || lower.includes("kontak") || lower.includes("owner") || lower.includes("admin")) {
-        const pesanWa = `📞 *CUSTOMER SERVICE & PEMESANAN KHUSUS*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-Butuh konsultasi tender kantor, pengadaan perlengkapan sekolah, pembuatan nota resmi berstempel, atau negosiasi grosir?
-
-Admin pemilik toko siap melayani kakak secara langsung melalui WhatsApp.
-
-👇 *Klik tombol di bawah untuk chat WhatsApp:*`;
-        kirimPesanTelegram(chatId, pesanWa, {
-          inline_keyboard: [
-            [
-              { text: "💬 Chat WhatsApp Pemilik Toko", url: waUrl }
-            ]
-          ]
-        });
-        return HtmlService.createHtmlOutput("OK");
-      }
-
-      // F. Aksi Menu: Tanya Kiko AI
+      // G. Aksi Menu: Tanya Kiko AI
       if (lower.includes("tanya kiko") || lower.includes("konsultasi") || lower === "bantuan" || lower === "help") {
-        const pesanTanya = `🤖 *KONSULTASI STOK & REKOMENDASI ATK*
+        const pesanTanya = `🤖 *ASISTEN BELANJA KIKO AI DELINA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Assalamu'alaikum kak! Saya *Kiko*, asisten cerdas Toko Delina.
 
-Kakak bisa langsung menanyakan ketersediaan produk apa saja, contoh:
-• *"Ada kertas HVS PaperOne A4 75gsm?"*
-• *"Buku tulis SiDu isi 10 pack berapa harganya?"*
-• *"Rekomendasi pulpen gel hitam yang enak buat ujian"*
-• *"Bisa jilid spiral untuk makalah 50 lembar?"*
+Kiko siap membantu menjawab ketersediaan stok & harga barang:
+• ✏️ *"Ada kertas HVS PaperOne A4 75gsm?"*
+• 💄 *"Rekomendasi sabun cuci muka Garnier atau pelembab wajah?"*
+• 🛒 *"Harga minyak goreng 2 liter berapa kak?"*
+• 🎁 *"Bagaimana cara cek poin belanja saya?"*
 
-Silakan ketik pertanyaan kakak langsung di sini, InsyaAllah Kiko jawab dengan ramah dan akurat! 😊`;
+Silakan ketik pertanyaan kakak langsung di sini, InsyaAllah Kiko jawab dengan ramah dan akurat! 😊🤲`;
         kirimPesanTelegram(chatId, pesanTanya, getTelegramPersistentKeyboard());
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // G. Pola Nota / Cek Resi (/cek [Nota] atau format #DLN-...)
+      // H. Pola Nota / Cek Resi (/cek [Nota] atau format #DLN-...)
       const matchNota = userText.match(/#?DLN-[\w-]+/i);
       const isCekCommand = lower.startsWith("/cek");
 
@@ -908,22 +1065,6 @@ _Jazakumullah Khairan Katsiran atas kepercayaannya di Toko Delina._ 🤲✨`;
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // H. Perintah Cek Status Server / Backend
-      if (lower === "/status") {
-        const props = PropertiesService.getScriptProperties();
-        const geminiKey = props.getProperty("GEMINI_API_KEY");
-        const statusAI = geminiKey ? "✅ Terpasang (Google Gemini API)" : "ℹ️ Fallback Cerdas (Database Google Sheets)";
-        const statusMsg = `📊 *STATUS ASISTEN KIKO TOKO DELINA*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-• 🧠 *Koneksi AI:* ${statusAI}
-• 🆔 *Chat ID Anda:* \`${chatId}\`
-• ⚡ *Layanan Aktif:* Katalog ATK, Tarif Fotokopi, dan Lacak Nota.
-
-Silakan pilih menu di bawah atau tanyakan kebutuhan kakak nggih! _Barakallahu fiik._ 🤲`;
-        kirimPesanTelegram(chatId, statusMsg, getTelegramPersistentKeyboard());
-        return HtmlService.createHtmlOutput("OK");
-      }
-
       // I. Salam Pembuka, Sapaan Awal, atau Kata Singkat (Assalamu, Halo, Hai, P, Menu, Start)
       const isStart = lower === "/start" || lower === "start";
       const isGreeting = (lower.startsWith("assalamu") && lower.length < 35);
@@ -931,29 +1072,28 @@ Silakan pilih menu di bawah atau tanyakan kebutuhan kakak nggih! _Barakallahu fi
 
       if (isStart || isGreeting || isShortIntro) {
         const welcomeText = `✨ *BISMILLAHIRRAHMANIRRAHIM* ✨
-🏪 *LAYANAN VIRTUAL TOKO DELINA ATK*
+🏪 *SELAMAT DATANG DI DELINA.STORE*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Assalamu'alaikum Warahmatullahi Wabarakatuh! 👋
 
-Selamat datang di *Toko ATK & Jasa Fotokopi Delina*.
-Saya *Kiko*, asisten AI virtual yang siap melayani kebutuhan perlengkapan sekolah, kantor, cetak dokumen, dan jilid kakak 24/7 secara amanah.
+Saya *Kiko*, asisten AI cerdas Toko Delina yang siap melayani kebutuhan *Alat Tulis Kantor (ATK), Kosmetik, Skincare, dan Kelontongan Sembako* kakak 24/7 secara amanah.
 
-📌 *Pilihan Layanan Cepat:*
-🛍️ *Katalog ATK:* Belanja eceran & grosir sekolah
-🖨️ *Jasa Fotokopi:* Cetak tugas & jilid tanpa antre
-📦 *Lacak Nota:* Pantau status pesanan real-time
-📍 *Toko Fisik:* Kunjungi lokasi kami di Google Maps
+📌 *Layanan Utama Toko Delina:*
+• 🛍️ *Katalog Ritel Lengkap:* ATK, Kosmetik & Kelontongan
+• 🎁 *Member Royalty:* Belanja dapat poin, kumpulkan & tukar hadiah!
+• 📦 *Lacak Nota:* Pantau status pesanan online secara langsung
+• 📍 *Toko Fisik:* Kunjungi lokasi kami di Google Maps atau pesan antar kurir
 
-💡 *Kemudahan Interaksi:*
-Kakak tidak perlu mengetik perintah rumit! Silakan tekan tombol menu di bawah layar atau langsung tanyakan barang yang dicari.
+💡 *Kemudahan Berbelanja:*
+Silakan tekan tombol menu di bawah layar atau langsung tanyakan barang yang kakak butuhkan di sini.
 
-_InsyaAllah belanja hemat, mudah, dan berkah._ 🤲`;
+_InsyaAllah belanja lengkap, hemat, dan penuh berkah._ 🤲✨`;
 
         kirimPesanTelegram(chatId, welcomeText, getTelegramPersistentKeyboard());
         return HtmlService.createHtmlOutput("OK");
       }
 
-      // J. Pertanyaan Produk / Konsultasi ATK ke AI Kiko
+      // J. Pertanyaan Produk / Konsultasi ke AI Kiko
       const jawabanAI = tanyaKikoAI(userText, "Telegram");
       kirimPesanTelegram(chatId, jawabanAI, getTelegramPersistentKeyboard());
       return HtmlService.createHtmlOutput("OK");
@@ -1594,29 +1734,11 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
       return createJsonResponse({ status: "success", message: `Kupon baru "${code}" berhasil ditambahkan.` });
     }
 
-    // 4.7 Perbarui Tarif Fotokopi & Jilid
+    // 4.7 Perbarui Tarif (Legacy Stub)
     if (action === "updateRates") {
-      const auth = validatePin(payload.pin, ss);
-      if (!auth.valid || auth.role !== "admin") {
-        return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak mengubah tarif fotokopi." });
-      }
-
-      const sheetTarif = ss.getSheetByName(TAB_TARIF);
-      if (!sheetTarif) throw new Error("Tab Tarif_Fotokopi tidak ditemukan.");
-
-      const newRates = payload.rates || {};
-      const data = sheetTarif.getDataRange().getValues();
-
-      for (let i = 1; i < data.length; i++) {
-        const code = String(data[i][0]).trim();
-        if (newRates[code] !== undefined) {
-          sheetTarif.getRange(i + 1, 3).setValue(Number(newRates[code]) || 0);
-        }
-      }
-
       return createJsonResponse({
         status: "success",
-        message: "Alhamdulillah! Tarif fotokopi dan jilid berhasil diperbarui."
+        message: "Layanan Toko Delina kini fokus penuh pada penjualan produk ritel ATK, Kosmetik & Kelontongan."
       });
     }
 
@@ -1624,18 +1746,10 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
     // JALUR 5: CHECKOUT & PESANAN BARU DARI PELANGGAN (WEBSITE)
     // =========================================================
     let linkDokumenFotokopi = "-";
-    if (payload.fotokopiFile && payload.fotokopiFile.base64) {
-      linkDokumenFotokopi = saveBase64ToDriveFolder(
-        payload.fotokopiFile.base64,
-        payload.orderId + "_Dokumen_" + (payload.fotokopiFile.name || "fotokopi.pdf"),
-        SUBFOLDER_FOTOKOPI
-      );
-    }
 
     let linkBuktiBayar = "-";
     if (payload.paymentProof && payload.paymentProof.base64) {
       linkBuktiBayar = saveBase64ToDriveFolder(
-        payload.paymentProof.base64,
         payload.orderId + "_BuktiBayar_" + (payload.paymentProof.name || "struk.jpg"),
         SUBFOLDER_BUKTI
       );
@@ -2364,11 +2478,9 @@ function tanyaKikoAI(pesanUser, sumber, riwayatChat) {
     }
 
     const sheetProduk = ss.getSheetByName(TAB_PRODUK);
-    const sheetTarif = ss.getSheetByName(TAB_TARIF);
 
     // Katalog live dari Google Sheets, kategori dinormalisasi ke 4 Kategori Resmi
-    // (ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman) agar istilah lama
-    // seperti "Sembako & Dapur" / "Makanan & Minuman" tetap terpetakan dengan benar.
+    // (ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman)
     let daftarStok = [];
     if (sheetProduk && sheetProduk.getLastRow() > 1) {
       const dataProduk = sheetProduk.getDataRange().getValues();
@@ -2401,19 +2513,7 @@ function tanyaKikoAI(pesanUser, sumber, riwayatChat) {
       }).join("\n");
     }
 
-    let daftarTarif = [];
-    if (sheetTarif && sheetTarif.getLastRow() > 1) {
-      const dataTarif = sheetTarif.getDataRange().getValues();
-      for (let j = 1; j < dataTarif.length; j++) {
-        const t = dataTarif[j];
-        if (t[0]) {
-          daftarTarif.push(`- ${t[1]} : Rp ${Number(t[2]).toLocaleString("id-ID")}`);
-        }
-      }
-    }
-
     const contextKatalog = daftarStok.join("\n");
-    const contextTarif = daftarTarif.join("\n");
 
     const systemPrompt = `Kamu adalah "Kiko", asisten AI virtual resmi Toko Online Delina.store (ATK, Kosmetik dan Kelontongan).
 Sifatmu: Sangat ramah, santun, beradab Islami, amanah, jujur, solutif, dan profesional.
@@ -2427,22 +2527,19 @@ Format Gaya Balasan yang WAJIB Kamu Gunakan:
    💰 *Harga:* *Rp [Harga]*
    📊 *Sisa Stok:* *[Jumlah] [Satuan]*
    🏷️ *Kategori:* [Kategori]
-4. Gunakan bullet points (•) dan emoticon tematik yang serasi (📄, ✏️, 📦, 💡, 🏷️).
+4. Gunakan bullet points (•) dan emoticon tematik yang serasi (💄, ✏️, 📦, 💡, 🏷️, 🛒).
 5. Berikan rekomendasi produk alternatif jika stok kosong atau tawarkan promo terkait.
 6. Berikan petunjuk belanja: "Barang ini bisa langsung dipesan lewat website resmi Toko Delina nggih kak."
 7. Jangan pernah mengarang harga atau stok di luar data katalog yang diberikan!
-8. Toko Delina kini fokus pada 4 Kategori Resmi: ATK & Kantor, Kosmetik & Cantik, Kelontongan, Minuman.
-   Jika pelanggan menyebut istilah lama ("sembako", "dapur", "makanan & minuman"), arahkan ke kategori resmi yang sesuai (sembako/dapur/snack -> Kelontongan, minuman -> Minuman).
-9. Jika pelanggan baru bingung cara belanja, jelaskan singkat 4 langkah: pilih barang -> masukkan keranjang -> checkout (pilih Ambil di Toko / Diantar Kurir + jam) -> bayar QRIS/Transfer, lalu lacak pesanan dengan nomor nota.
+8. Toko Delina kini berfokus pada 3 Kategori Utama: Alat Tulis Kantor (ATK), Kosmetik & Skincare, dan Kelontongan (Sembako & Kebutuhan Rumah Tangga).
+   PENTING: Toko Delina SUDAH TIDAK melayani jasa fotokopi maupun cetak dokumen! Jika ada pelanggan yang bertanya tentang fotokopi atau cetak dokumen, jelaskan dengan santun bahwa Toko Delina saat ini berfokus penuh pada penjualan produk ritel fisik ATK, Kosmetik & Skincare, dan Kelontongan.
+9. Jika pelanggan baru bingung cara belanja, jelaskan singkat 4 langkah: pilih barang -> masukkan keranjang -> checkout (pilih Ambil di Toko / Diantar Kurir) -> bayar QRIS/Transfer, lalu lacak pesanan dengan nomor nota.
 10. Jika ada kupon promo aktif yang relevan, tawarkan dengan sopan.
 11. Akhiri balasan dengan doa keberkahan khas Delina:
    "Semoga Allah memberkahi segala urusan dan aktivitas kakak hari ini. Barakallahu fiik. 🤲✨"
 
 DATA KATALOG REAL-TIME TOKO DELINA (Google Sheets):
 ${contextKatalog}
-
-DATA TARIF JASA FOTOKOPI & CETAK:
-${contextTarif}
 
 KUPON PROMO AKTIF:
 ${daftarKupon.length ? daftarKupon.join("\n") : "- (Belum ada kupon aktif)"}
@@ -2487,7 +2584,7 @@ Saluran pelanggan: ${sumber || "Telegram"}. Buat jawaban terstruktur rapi, elega
     return fallbackKikoLocal(pesanUser, daftarStok);
   } catch (error) {
     Logger.log("Error tanyaKikoAI: " + error.toString());
-    return `✨ *ASISTEN KIKO • TOKO DELINA* ✨\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nWa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋\n\nKiko siap melayani kebutuhan ATK dan fotokopi di Toko Delina. Boleh disebutkan barang yang sedang kakak butuhkan? _Barakallahu fiik._ 🤲`;
+    return `✨ *ASISTEN KIKO • TOKO DELINA* ✨\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nWa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋\n\nKiko siap melayani kebutuhan ATK, kosmetik, skincare, dan kelontongan di Toko Delina. Boleh disebutkan barang yang sedang kakak butuhkan? _Barakallahu fiik._ 🤲`;
   }
 }
 
@@ -2506,11 +2603,11 @@ function fallbackKikoLocal(pesanUser, daftarStok) {
 Wa'alaikumsalam Warahmatullahi Wabarakatuh kak! 👋
 
 Ada yang bisa Kiko bantu cekkan hari ini?
-• ✏️ *ATK & Kantor:* Kertas HVS, buku, pulpen, stapler, dll.
-• 💄 *Kosmetik & Cantik:* Deodorant, micellar water, sunscreen, dll.
-• 🛒 *Kelontongan:* Minyak goreng, beras, gula, mie instan, deterjen, dll.
+• ✏️ *ATK & Kantor:* Kertas HVS, buku, pulpen, map, binder, dll.
+• 💄 *Kosmetik & Skincare:* Deodorant, micellar water, sunscreen, pelembab, dll.
+• 🛒 *Kelontongan & Sembako:* Minyak goreng, beras, gula, mie instan, deterjen, dll.
 • 🥤 *Minuman:* Air mineral, teh, kopi, susu UHT, dll.
-• 📄 *Tarif Fotokopi:* Cetak hitam-putih, cetak warna, jilid skripsi
+• 🎁 *Member Royalty:* Belanja dapat poin & klaim hadiah gratis
 • 🚚 *Pemesanan Cepat:* Ambil di toko atau diantar kurir
 
 Silakan sebutkan nama barang atau pilih menu di bawah nggih. _Barakallahu fiik._ 🤲`;
@@ -2569,16 +2666,16 @@ function getTelegramPersistentKeyboard() {
   return {
     keyboard: [
       [
-        { text: "🛍️ Buka Toko Delina" },
-        { text: "📦 Cek Status Nota" }
+        { text: "🏪 Buka Toko Delina" },
+        { text: "📦 Lacak Status Pesanan" }
       ],
       [
-        { text: "🎁 Program Member & Hadiah" },
-        { text: "📍 Lokasi Google Maps" }
+        { text: "💄 Kosmetik & Skincare" },
+        { text: "🛒 ATK & Kelontongan" }
       ],
       [
-        { text: "💬 Tanya Kiko AI" },
-        { text: "📞 WhatsApp Toko" }
+        { text: "🎁 Cek Poin & Hadiah" },
+        { text: "📍 Lokasi Toko & Kontak" }
       ]
     ],
     resize_keyboard: true,
@@ -2762,7 +2859,6 @@ function kirimNotifikasiPesananTelegram(payload, linkDokumen, linkBukti) {
 📦 *Rincian Belanja:*
 ${itemsList}
 
-📄 *Dokumen Cetak:* ${linkDokumen !== "-" ? linkDokumen : "Tidak ada dokumen"}
 💳 *Bukti Bayar:* ${linkBukti !== "-" ? linkBukti : "Belum diunggah"}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 _Silakan klik tombol di bawah untuk verifikasi cepat:_`;
