@@ -4071,6 +4071,14 @@ async function fetchProductsFromGAS() {
     // 5. Sinkron Banner Pop-up Promo Carousel Dinamis
     if (json.popupPromos) {
       window.popupPromoData = json.popupPromos;
+      const modal = document.getElementById("welcomePromoCarouselModal");
+      if (modal && !modal.classList.contains("hidden")) {
+        if (json.popupPromos.enabled === false) {
+          closeWelcomePromoModal();
+        } else if (Array.isArray(json.popupPromos.slides) && json.popupPromos.slides.length > 0) {
+          renderWelcomePromoModal(json.popupPromos.slides);
+        }
+      }
     }
   } catch (e) {
     console.log("Memuat katalog lokal Toko Delina:", e.message);
@@ -7414,11 +7422,11 @@ let currentPromoSlides = [];
 let promoTouchStartX = 0;
 let promoTouchEndX = 0;
 
-function initWelcomeSplash() {
+function initWelcomeSplash(force = false) {
   const splash = document.getElementById("delinaWelcomeSplash");
   if (!splash) return;
 
-  const shown = sessionStorage.getItem("delina_welcome_shown");
+  const shown = !force && sessionStorage.getItem("delina_welcome_shown");
   if (shown) {
     // Sesi ini sudah pernah melihat splash screen, langsung hilangkan seketika tanpa delay
     splash.style.display = "none";
@@ -7442,18 +7450,20 @@ function initWelcomeSplash() {
   }
 }
 
-function checkAndOpenWelcomePromoModal() {
+function checkAndOpenWelcomePromoModal(force = false) {
   // Cek apakah pengguna memilih opsi "Jangan tampilkan lagi hari ini"
-  const today = new Date().toISOString().slice(0, 10);
-  const dismissedDate = localStorage.getItem("delina_popup_dismissed_date");
-  if (dismissedDate === today) {
-    console.log("Pop-up promo dilewati untuk hari ini oleh preferensi pengguna.");
-    return;
+  if (!force) {
+    const today = new Date().toISOString().slice(0, 10);
+    const dismissedDate = localStorage.getItem("delina_popup_dismissed_date");
+    if (dismissedDate === today) {
+      console.log("Pop-up promo dilewati untuk hari ini oleh preferensi pengguna.");
+      return;
+    }
   }
 
   // Cek konfigurasi dari backend
   let promoConfig = window.popupPromoData;
-  if (promoConfig && promoConfig.enabled === false) {
+  if (!force && promoConfig && promoConfig.enabled === false) {
     console.log("Pop-up promo dinonaktifkan dari pengaturan toko.");
     return;
   }
@@ -7732,6 +7742,7 @@ function handlePromoSlideAction(idx) {
 // Export fungsi ke window untuk interaksi UI HTML
 window.initWelcomeSplash = initWelcomeSplash;
 window.checkAndOpenWelcomePromoModal = checkAndOpenWelcomePromoModal;
+window.showWelcomePromoModal = (force = true) => checkAndOpenWelcomePromoModal(force);
 window.closeWelcomePromoModal = closeWelcomePromoModal;
 window.nextWelcomePromoSlide = nextWelcomePromoSlide;
 window.prevWelcomePromoSlide = prevWelcomePromoSlide;

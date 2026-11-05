@@ -21,13 +21,35 @@
   <!-- Prioritas Tertinggi Preload Logo Resmi Delina (0-Detik Tampil Kilat) -->
   <link rel="preload" as="image" href="./assets/Logo.png" fetchpriority="high" type="image/png" />
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA Service Worker Registration dengan Auto-Update Kilat -->
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js")
-          .then((reg) => console.log("PWA Service Worker terdaftar:", reg.scope))
+        navigator.serviceWorker.register("./sw.js?v=20261105_05", { updateViaCache: "none" })
+          .then((reg) => {
+            console.log("PWA Service Worker terdaftar:", reg.scope);
+            if (reg.update) reg.update();
+            reg.addEventListener("updatefound", () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener("statechange", () => {
+                  if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    console.log("⚡ Versi baru Admin terpasang, memuat ulang...");
+                    window.location.reload();
+                  }
+                });
+              }
+            });
+          })
           .catch((err) => console.warn("PWA Service Worker gagal:", err));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       });
     }
   </script>
@@ -193,7 +215,7 @@
   <!-- JsBarcode Library untuk Lembar Sakti Barcode Kasir -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <!-- Modul Printer Bluetooth Thermal ESC/POS -->
-  <script src="./js/printer.js?v=20261030_02"></script>
+  <script src="./js/printer.js?v=20261105_05"></script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200 delina-admin-bg">
 
@@ -3183,7 +3205,7 @@
   <div id="modernToastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
 
   <!-- Konfigurasi URL Google Apps Script -->
-  <script src="./js/config.js?v=20261030_02"></script>
+  <script src="./js/config.js?v=20261105_05"></script>
 
   <!-- Script Logika Admin & Kasir -->
   <script>
