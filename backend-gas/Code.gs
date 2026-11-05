@@ -97,6 +97,90 @@ function getPengaturanData(ss) {
 }
 
 /**
+ * Helper Simpan / Perbarui Baris Pengaturan di Tab "Pengaturan"
+ */
+function simpanPengaturanNilai(sheetPengaturan, key, val) {
+  if (!sheetPengaturan) return;
+  const data = sheetPengaturan.getDataRange().getValues();
+  let row = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0] || "").trim() === key) {
+      row = i + 1;
+      break;
+    }
+  }
+  if (row > 0) {
+    sheetPengaturan.getRange(row, 2).setValue(val);
+  } else {
+    sheetPengaturan.appendRow([key, val, "Pengaturan Tambahan"]);
+  }
+}
+
+/**
+ * 3 Slide Default Pop-up Promo Sambutan Berkualitas Tinggi
+ */
+function getPopupPromoDefaultSlides() {
+  return [
+    {
+      id: "promo_atk_1",
+      title: "Paket Semangat Sekolah & Kantor",
+      subtitle: "Kertas HVS, Buku Tulis SiDu, Pulpen & Map Hemat s.d 15%",
+      badge: "✏️ PROMO ATK & KANTOR",
+      image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80",
+      actionType: "category",
+      actionValue: "ATK & Kantor",
+      buttonText: "✏️ Belanja ATK Sekarang"
+    },
+    {
+      id: "promo_kosmetik_2",
+      title: "Glow-Up & Cantik Tiap Hari",
+      subtitle: "Diskon Spesial Skincare, Sunscreen & Micellar Water Original",
+      badge: "💄 BEAUTY DEALS",
+      image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80",
+      actionType: "category",
+      actionValue: "Kosmetik & Cantik",
+      buttonText: "💄 Lihat Koleksi Kosmetik"
+    },
+    {
+      id: "promo_sembako_3",
+      title: "Belanja Sembako + Gratis Stempel Member VIP",
+      subtitle: "Gunakan Kupon DELINABERKAH & Kumpulkan Poin Hadiah Gratis",
+      badge: "🎁 VOUCHER & MEMBER",
+      image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80",
+      actionType: "coupon",
+      actionValue: "DELINABERKAH",
+      buttonText: "🎟️ Klaim Kupon DELINABERKAH"
+    }
+  ];
+}
+
+/**
+ * Ambil Data Pop-up Banner Promo Sambutan dari Tab "Pengaturan"
+ */
+function getPopupPromoData(ss, settings) {
+  if (!settings) settings = getPengaturanData(ss);
+  const enabled = settings.POPUP_PROMO_ENABLED !== "false";
+  let slides = [];
+  if (settings.POPUP_PROMO_SLIDES) {
+    try {
+      const parsed = typeof settings.POPUP_PROMO_SLIDES === "string" 
+        ? JSON.parse(settings.POPUP_PROMO_SLIDES) 
+        : settings.POPUP_PROMO_SLIDES;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        slides = parsed;
+      }
+    } catch (e) {}
+  }
+  if (!slides || slides.length === 0) {
+    slides = getPopupPromoDefaultSlides();
+  }
+  return {
+    enabled: enabled,
+    slides: slides
+  };
+}
+
+/**
  * Ambil Data Kupon dari Tab "Kupon"
  */
 function getKuponData(ss) {
@@ -507,7 +591,16 @@ function doGet(e) {
         members: members,
         rewards: rewards,
         claims: claims,
+        popupPromos: getPopupPromoData(ss, auth.settings),
         settings: safeSettings
+      });
+    }
+
+    // 5b. API Ambil Pop-up Banner Promo Sambutan
+    if (action === "getPopupPromos") {
+      return createJsonResponse({
+        status: "success",
+        popupPromos: getPopupPromoData(ss)
       });
     }
 
@@ -542,7 +635,8 @@ function doGet(e) {
       products: products,
       rates: rates,
       coupons: activeCoupons,
-      rewards: rewards
+      rewards: rewards,
+      popupPromos: getPopupPromoData(ss, settings)
     });
 
   } catch (error) {
@@ -1956,6 +2050,71 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
       } catch (eC) {}
 
       return createJsonResponse({ status: "success", message: `Kupon baru "${code}" berhasil ditambahkan.` });
+    }
+
+    // 4.6b Kelola Banner Promo Pop-up Sambutan (Carousel Pelanggan)
+    if (action === "savePopupPromos") {
+      const auth = validatePin(payload.pin, ss);
+      if (!auth.valid || auth.role !== "admin") {
+        return createJsonResponse({ status: "error", message: "Hanya Super Admin yang berhak mengelola banner promo." });
+      }
+
+      const enabled = payload.enabled === true || String(payload.enabled) === "true";
+      let slides = Array.isArray(payload.slides) ? payload.slides : [];
+
+      slides = slides.map((s, idx) => {
+        let imgUrl = String(s.image || "").trim();
+        if (s.imageBase64) {
+          try {
+            const driveUrl = saveBase64ToDriveFolder(
+              s.imageBase64,
+              "PromoBanner_" + Date.now() + "_" + idx + ".jpg",
+              SUBFOLDER_PRODUK
+            );
+            imgUrl = convertDriveUrlToLh3(driveUrl);
+          } catch (eDrive) {
+            Logger.log("Err upload promo img: " + eDrive.toString());
+          }
+        }
+        return {
+          id: s.id || ("promo_" + Date.now() + "_" + idx),
+          title: String(s.title || "").trim(),
+          subtitle: String(s.subtitle || "").trim(),
+          badge: String(s.badge || "").trim(),
+          image: imgUrl || "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80",
+          actionType: String(s.actionType || "category").trim(),
+          actionValue: String(s.actionValue || "").trim(),
+          buttonText: String(s.buttonText || "Lihat Promo").trim()
+        };
+      });
+
+      let sheetPengaturan = ss.getSheetByName(TAB_PENGATURAN);
+      if (!sheetPengaturan) {
+        sheetPengaturan = ss.insertSheet(TAB_PENGATURAN);
+        setupTabPengaturan(sheetPengaturan);
+      }
+
+      simpanPengaturanNilai(sheetPengaturan, "POPUP_PROMO_ENABLED", enabled ? "true" : "false");
+      simpanPengaturanNilai(sheetPengaturan, "POPUP_PROMO_SLIDES", JSON.stringify(slides));
+
+      try {
+        const promoNotif = `🖼️ *BANNER PROMO POP-UP DIUPDATE!*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🔘 *Status:* ${enabled ? "🟢 Aktif (Tampil di Web)" : "🔴 Dinonaktifkan"}
+• 📑 *Jumlah Slide:* ${slides.length} Banner Promo
+• 🕒 *Waktu Update:* ${Utilities.formatDate(new Date(), "Asia/Jakarta", "dd/MM/yyyy HH:mm")} WIB
+• 👤 *Oleh:* Super Admin Toko Delina`;
+        broadcastPesanTelegram(promoNotif);
+      } catch (eP) {}
+
+      return createJsonResponse({
+        status: "success",
+        message: "Alhamdulillah! Banner promo pop-up berhasil diperbarui.",
+        popupPromos: {
+          enabled: enabled,
+          slides: slides
+        }
+      });
     }
 
     // 4.7 Perbarui Tarif (Legacy Stub)

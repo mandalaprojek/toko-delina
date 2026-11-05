@@ -4067,6 +4067,11 @@ async function fetchProductsFromGAS() {
         footerMapsLink.href = t.maps;
       }
     }
+
+    // 5. Sinkron Banner Pop-up Promo Carousel Dinamis
+    if (json.popupPromos) {
+      window.popupPromoData = json.popupPromos;
+    }
   } catch (e) {
     console.log("Memuat katalog lokal Toko Delina:", e.message);
   }
@@ -4640,6 +4645,7 @@ function triggerChidoriCycle() {
 
 // Inisialisasi Saat Dokumen Dimuat
 document.addEventListener("DOMContentLoaded", () => {
+  initWelcomeSplash();
   renderProducts();
   updateCartBadge();
   calculateFotokopi();
@@ -7358,6 +7364,380 @@ window.openCart = function() {
 };
 window.setActiveBottomNav = setActiveBottomNav;
 window.handleBottomNav = handleBottomNav;
+
+// =========================================================================
+// 16. WELCOME SPLASH SCREEN ANIMASI MOTOR KURIR & POP-UP PROMO CAROUSEL ALA ALFAGIFT
+// =========================================================================
+
+const DEFAULT_POPUP_PROMOS = [
+  {
+    id: "promo_atk",
+    badge: "HEMAT S.D 15%",
+    badgeColor: "bg-rose-600",
+    title: "Paket Semangat Sekolah & Kantor",
+    subtitle: "Kertas HVS, buku tulis & alat tulis lengkap diskon s.d 15%",
+    code: "ATKHEMAT",
+    image: "https://images.unsplash.com/photo-1456735190829-80ab072ac1a0?w=800&auto=format&fit=crop&q=80",
+    actionType: "category",
+    actionTarget: "ATK & Kantor",
+    ctaText: "🛒 Lihat Promo ATK"
+  },
+  {
+    id: "promo_kosmetik",
+    badge: "GLOW-UP ORI",
+    badgeColor: "bg-pink-600",
+    title: "Glow-Up Cantik Tiap Hari",
+    subtitle: "Diskon Skincare & Kosmetik Original Bergaransi Aman",
+    code: "CANTIKORI",
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop&q=80",
+    actionType: "category",
+    actionTarget: "Kosmetik & Cantik",
+    ctaText: "💄 Lihat Diskon Kosmetik"
+  },
+  {
+    id: "promo_sembako_member",
+    badge: "GRATIS STEMPEL",
+    badgeColor: "bg-amber-500",
+    title: "Sembako Murah + Stempel VIP",
+    subtitle: "Belanja harian hemat, kumpulkan stempel dan dapatkan hadiah!",
+    code: "DELINABERKAH",
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
+    actionType: "member",
+    actionTarget: "open_member",
+    ctaText: "⭐ Buka Kartu Member VIP"
+  }
+];
+
+let currentPromoSlideIndex = 0;
+let promoAutoSlideTimer = null;
+let currentPromoSlides = [];
+let promoTouchStartX = 0;
+let promoTouchEndX = 0;
+
+function initWelcomeSplash() {
+  const splash = document.getElementById("delinaWelcomeSplash");
+  if (!splash) return;
+
+  const shown = sessionStorage.getItem("delina_welcome_shown");
+  if (shown) {
+    // Sesi ini sudah pernah melihat splash screen, langsung hilangkan seketika tanpa delay
+    splash.style.display = "none";
+    if (splash.parentNode) splash.parentNode.removeChild(splash);
+    // Langsung cek pop-up promo
+    setTimeout(() => {
+      checkAndOpenWelcomePromoModal();
+    }, 350);
+  } else {
+    // Kunjungan pertama dalam sesi browser ini: tampilkan animasi motor selama ~2.1 detik
+    setTimeout(() => {
+      sessionStorage.setItem("delina_welcome_shown", "true");
+      splash.style.transition = "opacity 0.45s ease-out";
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+        if (splash.parentNode) splash.parentNode.removeChild(splash);
+        checkAndOpenWelcomePromoModal();
+      }, 450);
+    }, 2100);
+  }
+}
+
+function checkAndOpenWelcomePromoModal() {
+  // Cek apakah pengguna memilih opsi "Jangan tampilkan lagi hari ini"
+  const today = new Date().toISOString().slice(0, 10);
+  const dismissedDate = localStorage.getItem("delina_popup_dismissed_date");
+  if (dismissedDate === today) {
+    console.log("Pop-up promo dilewati untuk hari ini oleh preferensi pengguna.");
+    return;
+  }
+
+  // Cek konfigurasi dari backend
+  let promoConfig = window.popupPromoData;
+  if (promoConfig && promoConfig.enabled === false) {
+    console.log("Pop-up promo dinonaktifkan dari pengaturan toko.");
+    return;
+  }
+
+  const slides = (promoConfig && Array.isArray(promoConfig.slides) && promoConfig.slides.length > 0)
+    ? promoConfig.slides
+    : DEFAULT_POPUP_PROMOS;
+
+  renderWelcomePromoModal(slides);
+}
+
+function renderWelcomePromoModal(slides) {
+  const modal = document.getElementById("welcomePromoCarouselModal");
+  const track = document.getElementById("welcomePromoTrack");
+  const dotsContainer = document.getElementById("welcomePromoDots");
+  const card = document.getElementById("welcomePromoCard");
+  if (!modal || !track) return;
+
+  currentPromoSlides = slides;
+  currentPromoSlideIndex = 0;
+
+  // Render Slide Items
+  track.innerHTML = slides.map((slide, idx) => {
+    const badgeHtml = slide.badge ? `
+      <span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide text-white uppercase shadow-md ${slide.badgeColor || 'bg-rose-600'}">
+        ${escapeHtml(slide.badge)}
+      </span>
+    ` : '';
+
+    const couponHtml = slide.code ? `
+      <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 text-[11px] font-bold text-amber-800 dark:text-amber-300">
+        <i class="bi bi-ticket-perforated-fill text-amber-500"></i>
+        <span>Kupon: ${escapeHtml(slide.code)}</span>
+      </div>
+    ` : '';
+
+    const rawImg = slide.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80";
+    const imgUrl = typeof formatImageUrl === "function" ? formatImageUrl(rawImg) : rawImg;
+
+    return `
+      <div class="w-full shrink-0 flex flex-col select-none cursor-pointer" onclick="handlePromoSlideAction(${idx})">
+        <!-- Banner Image -->
+        <div class="relative w-full h-44 sm:h-52 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          ${badgeHtml}
+          <img src="${imgUrl}" alt="${escapeHtml(slide.title || 'Promo')}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-2.5 left-3 right-3 text-white">
+            <h3 class="text-base sm:text-lg font-black leading-tight drop-shadow-md line-clamp-1">
+              ${escapeHtml(slide.title || '')}
+            </h3>
+          </div>
+        </div>
+
+        <!-- Banner Body & CTA -->
+        <div class="p-4 bg-white dark:bg-slate-900 flex flex-col justify-between">
+          <p class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+            ${escapeHtml(slide.subtitle || '')}
+          </p>
+
+          ${couponHtml}
+
+          <button type="button" onclick="event.stopPropagation(); handlePromoSlideAction(${idx})" class="mt-3.5 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all">
+            <span>${escapeHtml(slide.ctaText || 'Lihat Promo')}</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Render Indicator Dots
+  if (dotsContainer) {
+    if (slides.length > 1) {
+      dotsContainer.innerHTML = slides.map((_, idx) => `
+        <button type="button" onclick="goToWelcomePromoSlide(${idx})" class="promo-dot w-2 h-2 rounded-full ${idx === 0 ? 'active' : 'bg-gray-300 dark:bg-slate-600'}" aria-label="Slide ${idx + 1}"></button>
+      `).join("");
+      dotsContainer.classList.remove("hidden");
+    } else {
+      dotsContainer.innerHTML = "";
+      dotsContainer.classList.add("hidden");
+    }
+  }
+
+  // Tampilkan / Sembunyikan Tombol Panah jika slide hanya 1
+  const prevBtn = document.getElementById("promoPrevBtn");
+  const nextBtn = document.getElementById("promoNextBtn");
+  if (prevBtn && nextBtn) {
+    if (slides.length <= 1) {
+      prevBtn.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+    } else {
+      prevBtn.classList.remove("hidden");
+      nextBtn.classList.remove("hidden");
+    }
+  }
+
+  // Pasang Touch Swipe Listener pada kontainer carousel
+  setupPromoTouchSwipe();
+
+  // Buka Modal dengan Transisi Mulus
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0");
+    if (card) {
+      card.classList.remove("scale-95");
+      card.classList.add("scale-100");
+    }
+  });
+
+  // Mulai Auto-Slide
+  startPromoAutoSlide();
+}
+
+function updatePromoCarouselUI() {
+  const track = document.getElementById("welcomePromoTrack");
+  if (!track || currentPromoSlides.length === 0) return;
+
+  track.style.transform = `translateX(-${currentPromoSlideIndex * 100}%)`;
+
+  const dots = document.querySelectorAll("#welcomePromoDots .promo-dot");
+  dots.forEach((dot, idx) => {
+    if (idx === currentPromoSlideIndex) {
+      dot.classList.add("active");
+      dot.classList.remove("bg-gray-300", "dark:bg-slate-600");
+    } else {
+      dot.classList.remove("active");
+      dot.classList.add("bg-gray-300", "dark:bg-slate-600");
+    }
+  });
+}
+
+function nextWelcomePromoSlide() {
+  if (currentPromoSlides.length <= 1) return;
+  currentPromoSlideIndex = (currentPromoSlideIndex + 1) % currentPromoSlides.length;
+  updatePromoCarouselUI();
+  restartPromoAutoSlide();
+}
+
+function prevWelcomePromoSlide() {
+  if (currentPromoSlides.length <= 1) return;
+  currentPromoSlideIndex = (currentPromoSlideIndex - 1 + currentPromoSlides.length) % currentPromoSlides.length;
+  updatePromoCarouselUI();
+  restartPromoAutoSlide();
+}
+
+function goToWelcomePromoSlide(idx) {
+  if (idx < 0 || idx >= currentPromoSlides.length) return;
+  currentPromoSlideIndex = idx;
+  updatePromoCarouselUI();
+  restartPromoAutoSlide();
+}
+
+function startPromoAutoSlide() {
+  stopPromoAutoSlide();
+  if (currentPromoSlides.length > 1) {
+    promoAutoSlideTimer = setInterval(() => {
+      nextWelcomePromoSlide();
+    }, 4000);
+  }
+}
+
+function stopPromoAutoSlide() {
+  if (promoAutoSlideTimer) {
+    clearInterval(promoAutoSlideTimer);
+    promoAutoSlideTimer = null;
+  }
+}
+
+function restartPromoAutoSlide() {
+  stopPromoAutoSlide();
+  startPromoAutoSlide();
+}
+
+function setupPromoTouchSwipe() {
+  const container = document.getElementById("welcomePromoCarouselContainer");
+  if (!container || container._swipeInitialized) return;
+
+  container.addEventListener("touchstart", (e) => {
+    if (e.changedTouches && e.changedTouches[0]) {
+      promoTouchStartX = e.changedTouches[0].screenX;
+    }
+  }, { passive: true });
+
+  container.addEventListener("touchend", (e) => {
+    if (e.changedTouches && e.changedTouches[0]) {
+      promoTouchEndX = e.changedTouches[0].screenX;
+      handlePromoSwipeGesture();
+    }
+  }, { passive: true });
+
+  container._swipeInitialized = true;
+}
+
+function handlePromoSwipeGesture() {
+  const diff = promoTouchStartX - promoTouchEndX;
+  if (Math.abs(diff) > 40) {
+    if (diff > 0) {
+      nextWelcomePromoSlide();
+    } else {
+      prevWelcomePromoSlide();
+    }
+  }
+}
+
+function closeWelcomePromoModal() {
+  const modal = document.getElementById("welcomePromoCarouselModal");
+  const card = document.getElementById("welcomePromoCard");
+  const check = document.getElementById("dontShowPromoTodayCheck");
+
+  // Jika dicentang, simpan hari ini ke localStorage
+  if (check && check.checked) {
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem("delina_popup_dismissed_date", today);
+  }
+
+  stopPromoAutoSlide();
+
+  if (modal) {
+    modal.classList.add("opacity-0");
+    if (card) {
+      card.classList.remove("scale-100");
+      card.classList.add("scale-95");
+    }
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }, 300);
+  }
+}
+
+function handlePromoSlideAction(idx) {
+  const slide = currentPromoSlides[idx];
+  if (!slide) return;
+
+  closeWelcomePromoModal();
+
+  const type = slide.actionType || "category";
+  const target = slide.actionTarget || "";
+
+  if (type === "category") {
+    if (typeof selectCategory === "function") {
+      selectCategory(target || "Semua Produk");
+    }
+    const grid = document.getElementById("productGrid") || document.getElementById("katalogSection");
+    if (grid) {
+      grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (typeof showToast === "function") {
+      showToast(`Menampilkan kategori: ${target || 'Semua Produk'}`);
+    }
+  } else if (type === "coupon") {
+    const code = slide.code || target;
+    if (code && navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        if (typeof showToast === "function") {
+          showToast(`🎟️ Kupon "${code}" berhasil disalin!`);
+        }
+      }).catch(() => {
+        if (typeof showToast === "function") {
+          showToast(`🎟️ Kupon: ${code}`);
+        }
+      });
+    }
+  } else if (type === "member") {
+    if (typeof openMemberModal === "function") {
+      openMemberModal();
+    }
+  } else if (type === "url") {
+    if (target) {
+      window.open(target, "_blank");
+    }
+  }
+}
+
+// Export fungsi ke window untuk interaksi UI HTML
+window.initWelcomeSplash = initWelcomeSplash;
+window.checkAndOpenWelcomePromoModal = checkAndOpenWelcomePromoModal;
+window.closeWelcomePromoModal = closeWelcomePromoModal;
+window.nextWelcomePromoSlide = nextWelcomePromoSlide;
+window.prevWelcomePromoSlide = prevWelcomePromoSlide;
+window.goToWelcomePromoSlide = goToWelcomePromoSlide;
+window.handlePromoSlideAction = handlePromoSlideAction;
+
 
 
 

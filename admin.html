@@ -1595,6 +1595,50 @@
           </div>
         </div>
 
+        <!-- =========================================================
+             KELOLA POP-UP BANNER PROMO SAMBUTAN (CAROUSEL ALA ALFAGIFT)
+             ========================================================= -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs max-w-3xl mx-auto space-y-4">
+          <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                  <i class="bi bi-images"></i>
+                </span>
+                <h3 class="font-extrabold text-base text-slate-800">Pop-up Banner Promo Sambutan (Carousel)</h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Banner promo bergerak dinamis yang menyambut pelanggan pertama kali membuka website Delina.</p>
+            </div>
+            
+            <!-- Toggle Switch Aktif/Nonaktif -->
+            <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+              <span class="text-xs font-bold text-slate-700">Status Pop-up:</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="adminPromoEnabledToggle" onchange="toggleAdminPromoEnabled(this.checked)" class="sr-only peer" checked>
+                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <span id="adminPromoEnabledText" class="ml-2 text-xs font-extrabold text-emerald-700">Aktif</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Bar: Tambah Slide & Simpan -->
+          <div class="flex items-center justify-between gap-2 pt-1">
+            <button type="button" onclick="openAddPromoSlideModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 font-bold text-xs border border-slate-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+              <i class="bi bi-plus-circle text-emerald-600"></i>
+              <span>Tambah Slide Promo</span>
+            </button>
+            <button type="button" id="btnSaveAllPromoSlides" onclick="handleSavePopupPromos()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
+              <i class="bi bi-cloud-arrow-up-fill"></i>
+              <span>Simpan Perubahan Banner</span>
+            </button>
+          </div>
+
+          <!-- Container Daftar Slide Promo -->
+          <div id="adminPromoSlidesContainer" class="space-y-3 pt-2">
+            <!-- Diisi otomatis oleh renderAdminPopupPromos() -->
+          </div>
+        </div>
+
       </section>
 
       <!-- =========================================================
@@ -2999,6 +3043,139 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       MODAL EDIT / TAMBAH SLIDE PROMO CAROUSEL
+       ========================================================= -->
+  <div id="modalEditPromoSlide" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden animate-scaleIn border border-slate-100">
+      
+      <!-- Header Modal -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-base shadow-xs">
+            <i class="bi bi-image-fill"></i>
+          </span>
+          <div>
+            <h3 id="modalEditPromoSlideHeading" class="font-black text-slate-900 text-base">Edit Slide Banner Promo</h3>
+            <p class="text-xs text-slate-500">Sesuaikan poster promo, kupon & target aksinya</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeEditPromoSlideModal()" class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-rose-100 hover:text-rose-600 text-slate-600 flex items-center justify-center font-black text-sm active:scale-95 transition-all cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body Modal (Scrollable Form) -->
+      <form id="formEditPromoSlide" onsubmit="handleSavePromoSlide(event)" class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+        
+        <!-- Judul Promo -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Judul Banner Promo</label>
+          <input type="text" id="promoSlideTitleInput" placeholder="Contoh: Paket Semangat Sekolah & Kantor" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600" required />
+        </div>
+
+        <!-- Subjudul / Deskripsi Singkat -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Deskripsi Singkat / Keterangan Diskon</label>
+          <input type="text" id="promoSlideSubtitleInput" placeholder="Contoh: Kertas HVS, buku tulis & alat tulis lengkap diskon s.d 15%" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" required />
+        </div>
+
+        <!-- 2 Kolom: Badge & Warna Badge -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Teks Badge / Pita Promo</label>
+            <input type="text" id="promoSlideBadgeInput" placeholder="Contoh: HEMAT 15% / GLOW UP / POPULER" class="w-full uppercase font-black bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Warna Badge</label>
+            <select id="promoSlideBadgeColorInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600">
+              <option value="bg-rose-600">🔴 Merah Rose (bg-rose-600)</option>
+              <option value="bg-pink-600">🌸 Merah Muda / Pink (bg-pink-600)</option>
+              <option value="bg-amber-500">🟡 Kuning Emas / Amber (bg-amber-500)</option>
+              <option value="bg-emerald-600">🟢 Hijau Emerald (bg-emerald-600)</option>
+              <option value="bg-indigo-600">🔵 Biru Indigo (bg-indigo-600)</option>
+              <option value="bg-purple-600">🟣 Ungu Elegant (bg-purple-600)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Kode Kupon Terkait (Opsional) -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Kode Kupon Terkait (Opsional)</label>
+          <input type="text" id="promoSlideCodeInput" placeholder="Contoh: ATKHEMAT / DELINABERKAH (otomatis disalin pembeli)" class="w-full uppercase font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" />
+          <p class="text-[10px] text-slate-400 mt-1">Jika diisi, badge kupon akan tampil dan pelanggan dapat menyalinnya dalam sekali klik.</p>
+        </div>
+
+        <!-- Aksi Saat Slide Diklik -->
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+          <label class="block font-bold text-slate-800">Tindakan Saat Pelanggan Mengklik Banner:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 text-[11px]">Tipe Aksi</label>
+              <select id="promoSlideActionTypeInput" onchange="onPromoSlideActionTypeChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600">
+                <option value="category">📂 Buka Kategori Tertentu</option>
+                <option value="coupon">🎟️ Salin Kode Kupon Diskon</option>
+                <option value="member">⭐ Buka Kartu Member VIP</option>
+                <option value="url">🔗 Buka Tautan Eksternal (URL)</option>
+              </select>
+            </div>
+            <div>
+              <label id="promoSlideTargetLabel" class="block font-semibold text-slate-600 mb-1 text-[11px]">Pilihan Target Kategori</label>
+              <div id="promoSlideTargetContainer">
+                <select id="promoSlideTargetCategorySelect" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600">
+                  <option value="ATK & Kantor">ATK & Kantor</option>
+                  <option value="Kosmetik & Cantik">Kosmetik & Cantik</option>
+                  <option value="Kelontongan">Kelontongan</option>
+                  <option value="Minuman">Minuman</option>
+                </select>
+                <input type="text" id="promoSlideTargetTextInput" placeholder="https://..." class="hidden w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1 text-[11px]">Teks Tombol Aksi (CTA)</label>
+            <input type="text" id="promoSlideCtaTextInput" placeholder="Contoh: 🛒 Lihat Promo Sekarang" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600" required />
+          </div>
+        </div>
+
+        <!-- Foto Banner Promo (Unggah HP / URL Gambar) -->
+        <div class="space-y-2">
+          <label class="block font-bold text-slate-700">Foto Poster Banner (HD)</label>
+          <div class="flex flex-col sm:flex-row gap-3 items-center">
+            <!-- Preview Box -->
+            <div class="w-full sm:w-36 h-28 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center relative shrink-0">
+              <img id="modalPromoImagePreview" src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80" alt="Preview Banner" class="w-full h-full object-cover" />
+            </div>
+
+            <!-- Upload & URL Controls -->
+            <div class="flex-1 w-full space-y-2">
+              <label class="block">
+                <span class="sr-only">Pilih File Banner</span>
+                <input type="file" id="modalPromoImageFileInput" accept="image/*" onchange="handlePromoImageFile(this)" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" />
+              </label>
+              <div>
+                <span class="text-[10px] text-slate-400">Atau masukkan URL Foto Gambar:</span>
+                <input type="url" id="modalPromoImageUrlInput" oninput="handlePromoImageUrlInput(this.value)" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Tombol Modal -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <button type="button" onclick="closeEditPromoSlideModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all active:scale-95 cursor-pointer">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Simpan ke Daftar Slide</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
   <!-- AREA KHUSUS CETAK LEMBAR SAKTI BARCODE KASIR (HANYA MUNCUL SAAT PRINT) -->
   <div id="lembar-sakti-print-sheet" class="hidden"></div>
 
@@ -3809,6 +3986,9 @@
 
       // 11. Modul Ringkasan & Riwayat Pelanggan Kasir POS
       if (typeof renderPosCustomerHistory === "function") renderPosCustomerHistory();
+
+      // 12. Modul Banner Pop-up Promo Sambutan
+      if (typeof renderAdminPopupPromos === "function") renderAdminPopupPromos();
     }
 
     // =========================================================
@@ -6031,6 +6211,436 @@ ${escapeHtml(order.itemsText || "-")}
         }
       } catch (e) {
         showToastAdmin("Koneksi gagal.");
+      }
+    }
+
+    // =========================================================
+    // 9b. MODUL KELOLA POP-UP BANNER PROMO SAMBUTAN (CAROUSEL ALA ALFAGIFT)
+    // =========================================================
+    let adminPopupPromoData = {
+      enabled: true,
+      slides: []
+    };
+    let editingPromoSlideIndex = -1;
+    let tempPromoSlideImageBase64 = "";
+
+    const DEFAULT_ADMIN_POPUP_SLIDES = [
+      {
+        id: "promo_atk",
+        badge: "HEMAT S.D 15%",
+        badgeColor: "bg-rose-600",
+        title: "Paket Semangat Sekolah & Kantor",
+        subtitle: "Kertas HVS, buku tulis & alat tulis lengkap diskon s.d 15%",
+        code: "ATKHEMAT",
+        image: "https://images.unsplash.com/photo-1456735190829-80ab072ac1a0?w=800&auto=format&fit=crop&q=80",
+        actionType: "category",
+        actionTarget: "ATK & Kantor",
+        ctaText: "🛒 Lihat Promo ATK"
+      },
+      {
+        id: "promo_kosmetik",
+        badge: "GLOW-UP ORI",
+        badgeColor: "bg-pink-600",
+        title: "Glow-Up Cantik Tiap Hari",
+        subtitle: "Diskon Skincare & Kosmetik Original Bergaransi Aman",
+        code: "CANTIKORI",
+        image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop&q=80",
+        actionType: "category",
+        actionTarget: "Kosmetik & Cantik",
+        ctaText: "💄 Lihat Diskon Kosmetik"
+      },
+      {
+        id: "promo_sembako_member",
+        badge: "GRATIS STEMPEL",
+        badgeColor: "bg-amber-500",
+        title: "Sembako Murah + Stempel VIP",
+        subtitle: "Belanja harian hemat, kumpulkan stempel dan dapatkan hadiah!",
+        code: "DELINABERKAH",
+        image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
+        actionType: "member",
+        actionTarget: "open_member",
+        ctaText: "⭐ Buka Kartu Member VIP"
+      }
+    ];
+
+    function renderAdminPopupPromos() {
+      if (adminData && adminData.popupPromos) {
+        adminPopupPromoData.enabled = adminData.popupPromos.enabled !== false;
+        adminPopupPromoData.slides = Array.isArray(adminData.popupPromos.slides) && adminData.popupPromos.slides.length > 0
+          ? JSON.parse(JSON.stringify(adminData.popupPromos.slides))
+          : JSON.parse(JSON.stringify(DEFAULT_ADMIN_POPUP_SLIDES));
+      } else {
+        adminPopupPromoData.enabled = true;
+        adminPopupPromoData.slides = JSON.parse(JSON.stringify(DEFAULT_ADMIN_POPUP_SLIDES));
+      }
+      renderAdminPopupPromosUI();
+    }
+
+    function renderAdminPopupPromosUI() {
+      // 1. Sync Toggle
+      const toggle = document.getElementById("adminPromoEnabledToggle");
+      const toggleText = document.getElementById("adminPromoEnabledText");
+      if (toggle) {
+        toggle.checked = adminPopupPromoData.enabled;
+      }
+      if (toggleText) {
+        toggleText.textContent = adminPopupPromoData.enabled ? "Aktif" : "Nonaktif";
+        toggleText.className = adminPopupPromoData.enabled
+          ? "ml-2 text-xs font-extrabold text-emerald-700"
+          : "ml-2 text-xs font-extrabold text-slate-400";
+      }
+
+      // 2. Render Slides List
+      const container = document.getElementById("adminPromoSlidesContainer");
+      if (!container) return;
+
+      const slides = adminPopupPromoData.slides || [];
+      if (slides.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 space-y-2">
+            <i class="bi bi-images text-2xl text-slate-300"></i>
+            <p class="text-xs">Belum ada slide promo. Klik "Tambah Slide Promo" di atas untuk menambahkan slide baru.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = slides.map((s, idx) => {
+        const rawImg = s.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80";
+        const imgUrl = typeof formatImageUrl === "function" ? formatImageUrl(rawImg) : rawImg;
+        const isFirst = idx === 0;
+        const isLast = idx === slides.length - 1;
+
+        let actionDesc = "Kategori: " + (s.actionTarget || "Semua");
+        if (s.actionType === "coupon") actionDesc = "Salin Kupon: " + (s.code || s.actionTarget || "-");
+        else if (s.actionType === "member") actionDesc = "Buka Member VIP";
+        else if (s.actionType === "url") actionDesc = "URL: " + (s.actionTarget || "-");
+
+        return `
+          <div class="p-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors">
+            
+            <!-- Info Slide & Foto -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="w-20 h-16 rounded-xl bg-slate-200 overflow-hidden shrink-0 border border-slate-200 shadow-xs relative">
+                <img src="${imgUrl}" alt="${escapeHtml(s.title || '')}" class="w-full h-full object-cover" />
+                <span class="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-black text-white ${s.badgeColor || 'bg-rose-600'}">
+                  #${idx + 1}
+                </span>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-extrabold text-xs text-slate-900 truncate">${escapeHtml(s.title || 'Tanpa Judul')}</h4>
+                  ${s.badge ? `<span class="px-2 py-0.5 rounded text-[9px] font-black text-white ${s.badgeColor || 'bg-rose-600'}">${escapeHtml(s.badge)}</span>` : ''}
+                </div>
+                <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHtml(s.subtitle || '')}</p>
+                <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-600 font-medium">
+                  <span class="inline-flex items-center gap-1 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                    <i class="bi bi-cursor-fill text-emerald-600"></i> ${escapeHtml(actionDesc)}
+                  </span>
+                  ${s.code ? `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded font-mono font-bold"><i class="bi bi-ticket-perforated"></i> ${escapeHtml(s.code)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Tombol Aksi (Urutkan, Edit, Hapus) -->
+            <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+              <button type="button" onclick="movePromoSlide(${idx}, -1)" ${isFirst ? 'disabled class="w-7 h-7 rounded-lg bg-slate-100 text-slate-300 cursor-not-allowed flex items-center justify-center text-xs"' : 'class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 active:scale-95 flex items-center justify-center text-xs cursor-pointer"'} title="Geser ke Atas">
+                ▲
+              </button>
+              <button type="button" onclick="movePromoSlide(${idx}, 1)" ${isLast ? 'disabled class="w-7 h-7 rounded-lg bg-slate-100 text-slate-300 cursor-not-allowed flex items-center justify-center text-xs"' : 'class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 active:scale-95 flex items-center justify-center text-xs cursor-pointer"'} title="Geser ke Bawah">
+                ▼
+              </button>
+              <button type="button" onclick="openEditPromoSlideModal(${idx})" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-emerald-700 hover:bg-emerald-50 active:scale-95 font-bold text-xs flex items-center gap-1 cursor-pointer">
+                <i class="bi bi-pencil-square"></i>
+                <span>Edit</span>
+              </button>
+              <button type="button" onclick="deletePromoSlide(${idx})" class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 active:scale-95 flex items-center justify-center text-xs cursor-pointer" title="Hapus Slide">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join("");
+    }
+
+    function toggleAdminPromoEnabled(val) {
+      adminPopupPromoData.enabled = val;
+      const toggleText = document.getElementById("adminPromoEnabledText");
+      if (toggleText) {
+        toggleText.textContent = val ? "Aktif" : "Nonaktif";
+        toggleText.className = val
+          ? "ml-2 text-xs font-extrabold text-emerald-700"
+          : "ml-2 text-xs font-extrabold text-slate-400";
+      }
+    }
+
+    function openAddPromoSlideModal() {
+      editingPromoSlideIndex = -1;
+      tempPromoSlideImageBase64 = "";
+
+      const heading = document.getElementById("modalEditPromoSlideHeading");
+      if (heading) heading.textContent = "Tambah Slide Banner Promo";
+
+      document.getElementById("formEditPromoSlide").reset();
+      document.getElementById("promoSlideBadgeColorInput").value = "bg-rose-600";
+      document.getElementById("promoSlideActionTypeInput").value = "category";
+      onPromoSlideActionTypeChange("category");
+      document.getElementById("promoSlideCtaTextInput").value = "🛒 Lihat Promo Sekarang";
+
+      const preview = document.getElementById("modalPromoImagePreview");
+      if (preview) preview.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80";
+
+      const modal = document.getElementById("modalEditPromoSlide");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function openEditPromoSlideModal(idx) {
+      editingPromoSlideIndex = idx;
+      tempPromoSlideImageBase64 = "";
+
+      const s = adminPopupPromoData.slides[idx];
+      if (!s) return;
+
+      const heading = document.getElementById("modalEditPromoSlideHeading");
+      if (heading) heading.textContent = `Edit Slide Banner Promo #${idx + 1}`;
+
+      document.getElementById("promoSlideTitleInput").value = s.title || "";
+      document.getElementById("promoSlideSubtitleInput").value = s.subtitle || "";
+      document.getElementById("promoSlideBadgeInput").value = s.badge || "";
+      document.getElementById("promoSlideBadgeColorInput").value = s.badgeColor || "bg-rose-600";
+      document.getElementById("promoSlideCodeInput").value = s.code || "";
+      
+      const actType = s.actionType || "category";
+      document.getElementById("promoSlideActionTypeInput").value = actType;
+      onPromoSlideActionTypeChange(actType);
+
+      if (actType === "category") {
+        document.getElementById("promoSlideTargetCategorySelect").value = s.actionTarget || "ATK & Kantor";
+      } else {
+        document.getElementById("promoSlideTargetTextInput").value = s.actionTarget || "";
+      }
+
+      document.getElementById("promoSlideCtaTextInput").value = s.ctaText || "🛒 Lihat Promo Sekarang";
+
+      const rawImg = s.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80";
+      const imgUrl = typeof formatImageUrl === "function" ? formatImageUrl(rawImg) : rawImg;
+      const preview = document.getElementById("modalPromoImagePreview");
+      if (preview) preview.src = imgUrl;
+
+      document.getElementById("modalPromoImageUrlInput").value = s.image && !s.image.startsWith("data:") ? s.image : "";
+      document.getElementById("modalPromoImageFileInput").value = "";
+
+      const modal = document.getElementById("modalEditPromoSlide");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeEditPromoSlideModal() {
+      const modal = document.getElementById("modalEditPromoSlide");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function onPromoSlideActionTypeChange(val) {
+      const catSelect = document.getElementById("promoSlideTargetCategorySelect");
+      const textInput = document.getElementById("promoSlideTargetTextInput");
+      const targetLabel = document.getElementById("promoSlideTargetLabel");
+
+      if (val === "category") {
+        if (catSelect) catSelect.classList.remove("hidden");
+        if (textInput) textInput.classList.add("hidden");
+        if (targetLabel) targetLabel.textContent = "Pilihan Target Kategori:";
+      } else if (val === "coupon") {
+        if (catSelect) catSelect.classList.add("hidden");
+        if (textInput) {
+          textInput.classList.remove("hidden");
+          textInput.placeholder = "Masukkan kode kupon yang disalin saat diklik";
+        }
+        if (targetLabel) targetLabel.textContent = "Kode Kupon Diskon:";
+      } else if (val === "member") {
+        if (catSelect) catSelect.classList.add("hidden");
+        if (textInput) textInput.classList.add("hidden");
+        if (targetLabel) targetLabel.textContent = "Target: Kartu Member VIP Otomatis";
+      } else if (val === "url") {
+        if (catSelect) catSelect.classList.add("hidden");
+        if (textInput) {
+          textInput.classList.remove("hidden");
+          textInput.placeholder = "https://...";
+        }
+        if (targetLabel) targetLabel.textContent = "Tautan URL Website / WhatsApp:";
+      }
+    }
+
+    function handlePromoImageFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressed = canvas.toDataURL("image/jpeg", 0.85);
+          tempPromoSlideImageBase64 = compressed;
+
+          const preview = document.getElementById("modalPromoImagePreview");
+          if (preview) preview.src = compressed;
+          showToastAdmin("Foto banner berhasil disiapkan!");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handlePromoImageUrlInput(url) {
+      if (!url) return;
+      tempPromoSlideImageBase64 = "";
+      const preview = document.getElementById("modalPromoImagePreview");
+      if (preview) {
+        const formatted = typeof formatImageUrl === "function" ? formatImageUrl(url) : url;
+        preview.src = formatted;
+      }
+    }
+
+    function handleSavePromoSlide(e) {
+      e.preventDefault();
+
+      const title = document.getElementById("promoSlideTitleInput").value.trim();
+      const subtitle = document.getElementById("promoSlideSubtitleInput").value.trim();
+      const badge = document.getElementById("promoSlideBadgeInput").value.trim();
+      const badgeColor = document.getElementById("promoSlideBadgeColorInput").value;
+      const code = document.getElementById("promoSlideCodeInput").value.trim().toUpperCase();
+      const actionType = document.getElementById("promoSlideActionTypeInput").value;
+      
+      let actionTarget = "";
+      if (actionType === "category") {
+        actionTarget = document.getElementById("promoSlideTargetCategorySelect").value;
+      } else if (actionType === "member") {
+        actionTarget = "open_member";
+      } else {
+        actionTarget = document.getElementById("promoSlideTargetTextInput").value.trim();
+      }
+
+      const ctaText = document.getElementById("promoSlideCtaTextInput").value.trim() || "Lihat Promo";
+
+      const urlInput = document.getElementById("modalPromoImageUrlInput").value.trim();
+      let existingImg = "";
+      if (editingPromoSlideIndex >= 0 && adminPopupPromoData.slides[editingPromoSlideIndex]) {
+        existingImg = adminPopupPromoData.slides[editingPromoSlideIndex].image || "";
+      }
+
+      const slideObj = {
+        id: editingPromoSlideIndex >= 0 ? adminPopupPromoData.slides[editingPromoSlideIndex].id : "promo_" + Date.now(),
+        title: title,
+        subtitle: subtitle,
+        badge: badge,
+        badgeColor: badgeColor,
+        code: code,
+        actionType: actionType,
+        actionTarget: actionTarget,
+        ctaText: ctaText,
+        image: urlInput || existingImg || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80"
+      };
+
+      if (tempPromoSlideImageBase64) {
+        slideObj.imageBase64 = tempPromoSlideImageBase64;
+      }
+
+      if (editingPromoSlideIndex >= 0) {
+        adminPopupPromoData.slides[editingPromoSlideIndex] = slideObj;
+      } else {
+        adminPopupPromoData.slides.push(slideObj);
+      }
+
+      closeEditPromoSlideModal();
+      renderAdminPopupPromosUI();
+      showToastAdmin("Slide berhasil diperbarui di daftar. Klik 'Simpan Perubahan Banner' untuk mempublikasikan.");
+    }
+
+    async function deletePromoSlide(idx) {
+      const s = adminPopupPromoData.slides[idx];
+      const ok = await showDelinaConfirm({
+        title: "Hapus Slide Banner?",
+        subtitle: "Manajemen Pop-up Promo",
+        message: `Hapus slide "${s ? s.title : 'ini'}" dari banner carousel sambutan?`,
+        confirmText: "Ya, Hapus",
+        cancelText: "Batal",
+        type: "danger",
+        icon: "bi bi-trash-fill"
+      });
+      if (!ok) return;
+
+      adminPopupPromoData.slides.splice(idx, 1);
+      renderAdminPopupPromosUI();
+      showToastAdmin("Slide dihapus. Klik 'Simpan Perubahan Banner' untuk menyimpan ke database.");
+    }
+
+    function movePromoSlide(idx, dir) {
+      const targetIdx = idx + dir;
+      if (targetIdx < 0 || targetIdx >= adminPopupPromoData.slides.length) return;
+
+      const temp = adminPopupPromoData.slides[idx];
+      adminPopupPromoData.slides[idx] = adminPopupPromoData.slides[targetIdx];
+      adminPopupPromoData.slides[targetIdx] = temp;
+
+      renderAdminPopupPromosUI();
+    }
+
+    async function handleSavePopupPromos() {
+      const pin = sessionStorage.getItem("delina_admin_pin") || enteredPin;
+      const btn = document.getElementById("btnSaveAllPromoSlides");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="bi bi-hourglass-split animate-spin"></i> Menyimpan ke Sheets...`;
+      }
+
+      const payload = {
+        action: "savePopupPromos",
+        pin: pin,
+        enabled: adminPopupPromoData.enabled,
+        slides: adminPopupPromoData.slides
+      };
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          showToastAdmin("Alhamdulillah, banner promo sambutan berhasil disimpan & disinkronkan!");
+          if (json.popupPromos) {
+            adminPopupPromoData = json.popupPromos;
+            if (adminData) adminData.popupPromos = json.popupPromos;
+          }
+          renderAdminPopupPromosUI();
+        } else {
+          showToastAdmin("Gagal: " + (json.message || "Gagal menyimpan banner."));
+        }
+      } catch (err) {
+        console.error("Gagal simpan popup promos:", err);
+        showToastAdmin("Koneksi ke backend gagal.");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="bi bi-cloud-arrow-up-fill"></i> <span>Simpan Perubahan Banner</span>`;
+        }
       }
     }
 
@@ -10108,6 +10718,13 @@ ${escapeHtml(order.itemsText || "-")}
       const lookup = document.getElementById("barcodeLookupLoadingModal");
       if (lookup && !lookup.classList.contains("hidden")) {
         lookup.classList.add("hidden");
+        anyClosed = true;
+      }
+
+      // 11. Edit Promo Slide Modal
+      const promoModal = document.getElementById("modalEditPromoSlide");
+      if (promoModal && !promoModal.classList.contains("hidden")) {
+        closeEditPromoSlideModal();
         anyClosed = true;
       }
 
