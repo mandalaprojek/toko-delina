@@ -1,22 +1,23 @@
 /**
  * sw.js - Service Worker Ringan PWA Delina.store
- * Versi v20261106-03 (Fix Forward Transition +Keranjang & Beli Sekarang Instant Navigation)
+ * Versi v20261106-04 (Exclusive Doodle Wallpaper for Checkout & Ringkasan Belanja)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261106-03";
+const CACHE_NAME = "delina-store-pwa-v20261106-04";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
-  "./css/custom.css?v=20261106_03",
-  "./js/app.js?v=20261106_03",
-  "./js/config.js?v=20261106_03",
-  "./js/printer.js?v=20261106_03",
+  "./css/custom.css?v=20261106_04",
+  "./js/app.js?v=20261106_04",
+  "./js/config.js?v=20261106_04",
+  "./js/printer.js?v=20261106_04",
   "./manifest.json",
   "./assets/Logo.png",
   "./assets/logo.png",
   "./assets/app-bg.jpg",
   "./assets/kiko-bg.jpg",
+  "./assets/checkout-bg.jpg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",

@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_03", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_04", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -104,7 +104,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261106_03" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261106_04" />
 </head>
 
 <body
@@ -1059,9 +1059,10 @@
         </button>
       </div>
 
-      <!-- Konten Formulir Checkout (Scrollable) -->
+      <!-- Konten Formulir Checkout (Scrollable dengan Wallpaper Doodle Eksklusif) -->
       <div id="checkoutModalScrollBody"
-        class="p-3.5 sm:p-5 overflow-y-auto space-y-4 text-xs text-gray-700 flex-1 relative">
+        class="p-3.5 sm:p-5 overflow-y-auto space-y-4 text-xs text-gray-700 flex-1 relative bg-repeat bg-center"
+        style="background-image: url('assets/checkout-bg.jpg'); background-size: 300px auto; background-color: #f7f4ed;">
 
         <!-- 1. Ringkasan Pesanan & Total Tagihan (STICKY / FREEZE SAAT SCROLL DI MOBILE) -->
         <div id="checkoutStickySummaryCard"
@@ -1145,8 +1146,8 @@
           </div>
         </div>
 
-        <!-- 2. Data Pemesan -->
-        <div class="space-y-3">
+        <!-- 2. Data Pemesan (Frosted Glass Bento Card) -->
+        <div class="space-y-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
           <div class="flex items-center justify-between">
             <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
               <i class="bi bi-person-fill text-tokopedia-green"></i> Data Pemesan
@@ -1361,8 +1362,8 @@
           </div>
         </div>
 
-        <!-- 3. Informasi Pembayaran QRIS & Transfer Bank -->
-        <div class="space-y-3 pt-2 border-t border-gray-100">
+        <!-- 3. Informasi Pembayaran QRIS & Transfer Bank (Frosted Glass Bento Card) -->
+        <div class="space-y-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
           <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
             <i class="bi bi-qr-code text-tokopedia-green"></i> Pembayaran QRIS Bebas Biaya Admin
           </h4>
@@ -2987,10 +2988,11 @@
         </button>
       </div>
 
-      <!-- Isi Rincian Barang & Total Tagihan -->
-      <div class="p-4 overflow-y-auto space-y-3.5 text-xs flex-1">
+      <!-- Isi Rincian Barang & Total Tagihan (Wallpaper Doodle Eksklusif) -->
+      <div class="p-4 overflow-y-auto space-y-3.5 text-xs flex-1 bg-repeat bg-center"
+        style="background-image: url('assets/checkout-bg.jpg'); background-size: 300px auto; background-color: #f7f4ed;">
         <div
-          class="p-3 rounded-2xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-amber-950 dark:text-amber-200 flex items-start gap-2">
+          class="p-3 rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-amber-300 dark:border-slate-700 text-amber-950 dark:text-amber-200 flex items-start gap-2 shadow-xs">
           <i class="bi bi-bell-fill text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
           <p class="text-[11px] leading-relaxed font-medium">
             Sebelum mengunggah bukti pembayaran, mohon periksa kembali <strong>daftar barang</strong> dan <strong>total
@@ -2999,14 +3001,14 @@
         </div>
 
         <!-- Daftar Riwayat Barang yang Akan Dibeli -->
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-2xl border border-emerald-500/25 shadow-xs">
           <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 dark:text-slate-300">
             <span>📦 Daftar Barang yang Akan Dibeli:</span>
             <span id="verifyUploadItemCount"
               class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">0 Item</span>
           </div>
           <div id="verifyUploadItemsList"
-            class="max-h-44 overflow-y-auto space-y-1.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+            class="max-h-44 overflow-y-auto space-y-1.5 p-2 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
             <!-- Diisi otomatis dari keranjang oleh app.js -->
           </div>
         </div>
@@ -3354,9 +3356,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261106_03"></script>
-  <script src="./js/printer.js?v=20261106_03"></script>
-  <script src="./js/app.js?v=20261106_03"></script>
+  <script src="./js/config.js?v=20261106_04"></script>
+  <script src="./js/printer.js?v=20261106_04"></script>
+  <script src="./js/app.js?v=20261106_04"></script>
 
 </body>
 

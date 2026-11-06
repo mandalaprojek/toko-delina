@@ -2397,9 +2397,9 @@ function renderCheckoutSummary() {
         ? `<span class="inline-block bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded ml-1">🏷️ Grosir</span>`
         : "";
       return `
-      <div class="flex items-center justify-between gap-2.5 text-xs py-1.5 border-b border-gray-100 dark:border-slate-800 last:border-none">
+      <div class="flex items-center justify-between gap-2.5 text-xs py-1.5 px-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-emerald-100/80 dark:border-slate-700 shadow-2xs mb-1.5 last:mb-0 transition-all">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 flex-shrink-0 shadow-2xs">
+          <div class="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white flex-shrink-0 shadow-2xs">
             <img src="${thumbUrl}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
             <span class="absolute bottom-0 right-0 bg-emerald-800/95 text-amber-300 text-[8px] font-black px-1 py-0.2 rounded-tl-md leading-tight">${item.qty}x</span>
           </div>

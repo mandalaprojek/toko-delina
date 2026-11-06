@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_03", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_04", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -215,7 +215,7 @@
   <!-- JsBarcode Library untuk Lembar Sakti Barcode Kasir -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <!-- Modul Printer Bluetooth Thermal ESC/POS -->
-  <script src="./js/printer.js?v=20261106_03"></script>
+  <script src="./js/printer.js?v=20261106_04"></script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200 delina-admin-bg">
 
@@ -3205,7 +3205,7 @@
   <div id="modernToastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
 
   <!-- Konfigurasi URL Google Apps Script -->
-  <script src="./js/config.js?v=20261106_03"></script>
+  <script src="./js/config.js?v=20261106_04"></script>
 
   <!-- Script Logika Admin & Kasir -->
   <script>
