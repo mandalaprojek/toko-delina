@@ -2056,6 +2056,271 @@ const setPrintType = updatePrintTypeUI;
 // 13. LOGIKA MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2)
 // =========================================================================
 
+let phoneLookupTimeout = null;
+let lastLookedUpPhone = "";
+let checkoutDetectedMember = null;
+
+function normalizePhoneNumber(raw) {
+  let num = String(raw || "").trim().replace(/\D/g, "");
+  if (num.startsWith("62")) {
+    num = "0" + num.substring(2);
+  } else if (num.startsWith("8")) {
+    num = "0" + num;
+  }
+  return num;
+}
+
+function onCustPhoneInput(rawVal) {
+  if (currentMemberSession) return;
+  clearTimeout(phoneLookupTimeout);
+  const clean = normalizePhoneNumber(rawVal);
+  const statusEl = document.getElementById("custPhoneMemberDetected");
+  const spinnerEl = document.getElementById("custPhoneSpinner");
+  const guestNoteEl = document.getElementById("custPhoneGuestNote");
+
+  if (!clean || clean.length < 10) {
+    if (statusEl) statusEl.classList.add("hidden");
+    if (spinnerEl) spinnerEl.classList.add("hidden");
+    if (guestNoteEl) guestNoteEl.classList.add("hidden");
+    checkoutDetectedMember = null;
+    return;
+  }
+
+  phoneLookupTimeout = setTimeout(() => {
+    checkCustPhoneMembership(clean);
+  }, 450);
+}
+
+function onCustPhoneBlur(rawVal) {
+  if (currentMemberSession) return;
+  const clean = normalizePhoneNumber(rawVal);
+  if (clean && clean.length >= 10 && clean !== lastLookedUpPhone) {
+    checkCustPhoneMembership(clean);
+  }
+}
+
+async function checkCustPhoneMembership(cleanPhone) {
+  if (currentMemberSession && normalizePhoneNumber(currentMemberSession.phone) === cleanPhone) {
+    return;
+  }
+  lastLookedUpPhone = cleanPhone;
+  const spinnerEl = document.getElementById("custPhoneSpinner");
+  const detectedEl = document.getElementById("custPhoneMemberDetected");
+  const detectedText = document.getElementById("custPhoneMemberText");
+  const guestNoteEl = document.getElementById("custPhoneGuestNote");
+  const nameInput = document.getElementById("custName");
+
+  if (spinnerEl) spinnerEl.classList.remove("hidden");
+  if (detectedEl) detectedEl.classList.add("hidden");
+  if (guestNoteEl) guestNoteEl.classList.add("hidden");
+
+  try {
+    const ts = Date.now();
+    const res = await fetch(`${CONFIG.GAS_API_URL}?action=getMemberData&phone=${encodeURIComponent(cleanPhone)}&_t=${ts}`);
+    const json = await res.json();
+
+    if (spinnerEl) spinnerEl.classList.add("hidden");
+
+    if (json.status === "success" && json.member) {
+      checkoutDetectedMember = json.member;
+      if (nameInput) {
+        nameInput.value = json.member.name || "";
+        nameInput.classList.add("ring-2", "ring-emerald-400");
+        setTimeout(() => nameInput.classList.remove("ring-2", "ring-emerald-400"), 1200);
+      }
+      if (detectedText) {
+        const count = Number(json.member.belanjaCount) || 0;
+        detectedText.innerHTML = `<strong>${escapeHtml(json.member.name)}</strong> (${count} Stempel VIP)`;
+      }
+      if (detectedEl) detectedEl.classList.remove("hidden");
+      if (guestNoteEl) guestNoteEl.classList.add("hidden");
+
+      if (typeof playCuteSound === "function") playCuteSound("bubble");
+      openCheckoutQuickMemberPinModal();
+    } else {
+      checkoutDetectedMember = null;
+      if (detectedEl) detectedEl.classList.add("hidden");
+      if (guestNoteEl) guestNoteEl.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.warn("Lookup member phone error:", err);
+    if (spinnerEl) spinnerEl.classList.add("hidden");
+  }
+}
+
+function openCheckoutQuickMemberPinModal() {
+  const modal = document.getElementById("checkoutQuickMemberPinModal");
+  const nameDisplay = document.getElementById("quickMemberPinName");
+  const pinInput = document.getElementById("quickMemberPinInput");
+  const errorMsg = document.getElementById("quickMemberPinErrorMsg");
+
+  if (nameDisplay) {
+    nameDisplay.textContent = (checkoutDetectedMember && checkoutDetectedMember.name)
+      ? checkoutDetectedMember.name
+      : "Kak Pelanggan";
+  }
+  if (pinInput) {
+    pinInput.value = "";
+    pinInput.classList.remove("ring-2", "ring-rose-500");
+  }
+  if (errorMsg) {
+    errorMsg.textContent = "";
+    errorMsg.classList.add("hidden");
+  }
+
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    setTimeout(() => {
+      if (pinInput) pinInput.focus();
+    }, 200);
+  }
+}
+
+function closeCheckoutQuickMemberPinModal(resetPhone = false) {
+  const modal = document.getElementById("checkoutQuickMemberPinModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+  if (resetPhone) {
+    checkoutDetectedMember = null;
+    const phoneInput = document.getElementById("custPhone");
+    const nameInput = document.getElementById("custName");
+    const detectedEl = document.getElementById("custPhoneMemberDetected");
+    const guestNoteEl = document.getElementById("custPhoneGuestNote");
+    if (phoneInput) {
+      phoneInput.value = "";
+      phoneInput.readOnly = false;
+      phoneInput.focus();
+    }
+    if (nameInput) {
+      nameInput.value = "";
+      nameInput.readOnly = false;
+    }
+    if (detectedEl) detectedEl.classList.add("hidden");
+    if (guestNoteEl) guestNoteEl.classList.add("hidden");
+  }
+}
+
+function toggleQuickMemberPinVisibility() {
+  const pinInput = document.getElementById("quickMemberPinInput");
+  const icon = document.getElementById("quickMemberPinEyeIcon");
+  if (!pinInput) return;
+  if (pinInput.type === "password") {
+    pinInput.type = "text";
+    if (icon) {
+      icon.classList.remove("bi-eye");
+      icon.classList.add("bi-eye-slash");
+    }
+  } else {
+    pinInput.type = "password";
+    if (icon) {
+      icon.classList.remove("bi-eye-slash");
+      icon.classList.add("bi-eye");
+    }
+  }
+}
+
+async function verifyCheckoutQuickMemberPin() {
+  const pinInput = document.getElementById("quickMemberPinInput");
+  const errorMsg = document.getElementById("quickMemberPinErrorMsg");
+  const btn = document.getElementById("btnVerifyQuickMemberPin");
+  const pin = pinInput ? pinInput.value.trim() : "";
+  const phone = checkoutDetectedMember ? checkoutDetectedMember.phone : (document.getElementById("custPhone")?.value || "");
+  const cleanPhone = normalizePhoneNumber(phone);
+
+  if (!pin) {
+    if (errorMsg) {
+      errorMsg.textContent = "Silakan masukkan PIN Member Anda.";
+      errorMsg.classList.remove("hidden");
+    }
+    if (pinInput) {
+      pinInput.focus();
+      pinInput.classList.add("ring-2", "ring-rose-500");
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> <span>Memverifikasi PIN...</span>`;
+  }
+
+  try {
+    const res = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "loginMember",
+        phone: cleanPhone,
+        password: pin
+      })
+    });
+    const json = await res.json();
+
+    if (json.status === "success" && json.member) {
+      json.member.password = pin;
+      currentMemberSession = json.member;
+      localStorage.setItem("delina_member_session", JSON.stringify(json.member));
+      if (typeof startMemberIdleWatchdog === "function") startMemberIdleWatchdog();
+      if (typeof playCuteSound === "function") playCuteSound("fanfare");
+
+      // Kunci field nama dan HP di form checkout
+      const nameInput = document.getElementById("custName");
+      const phoneInput = document.getElementById("custPhone");
+      const addressInput = document.getElementById("custAddress");
+      const nameLockBadge = document.getElementById("custNameLockBadge");
+      const phoneLockBadge = document.getElementById("custPhoneLockBadge");
+      const memberBadge = document.getElementById("checkoutMemberBadgeIndicator");
+      const memberBanner = document.getElementById("checkoutMemberBanner");
+      const headerText = document.getElementById("headerMemberText");
+
+      if (nameInput) {
+        nameInput.value = json.member.name || "";
+        nameInput.readOnly = true;
+        nameInput.classList.add("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      }
+      if (phoneInput) {
+        phoneInput.value = json.member.phone || cleanPhone;
+        phoneInput.readOnly = true;
+        phoneInput.classList.add("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
+      }
+      if (addressInput && !addressInput.value && json.member.address) {
+        addressInput.value = json.member.address;
+      }
+      if (nameLockBadge) nameLockBadge.classList.remove("hidden");
+      if (phoneLockBadge) phoneLockBadge.classList.remove("hidden");
+      if (memberBadge) memberBadge.classList.remove("hidden");
+      if (memberBanner) memberBanner.classList.remove("hidden");
+      if (headerText && json.member.name) headerText.textContent = json.member.name.split(" ")[0];
+
+      closeCheckoutQuickMemberPinModal(false);
+      showToast(`Alhamdulillah, selamat datang kembali ${json.member.name}! +1 Stempel siap masuk.`, "success");
+    } else {
+      if (typeof playCuteSound === "function") playCuteSound("cancel");
+      if (errorMsg) {
+        errorMsg.textContent = json.message || "PIN yang Anda masukkan salah. Coba lagi.";
+        errorMsg.classList.remove("hidden");
+      }
+      if (pinInput) {
+        pinInput.focus();
+        pinInput.classList.add("ring-2", "ring-rose-500");
+      }
+    }
+  } catch (err) {
+    console.error("Gagal verifikasi PIN quick member:", err);
+    if (errorMsg) {
+      errorMsg.textContent = "Gagal menghubungi server. Periksa koneksi internet.";
+      errorMsg.classList.remove("hidden");
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Verifikasi PIN & Lanjutkan Belanja</span>`;
+    }
+  }
+}
+
 function goToCheckout() {
   const selectedItems = Array.isArray(cart) ? cart.filter(item => item.selected !== false) : [];
   if (selectedItems.length === 0) {
@@ -2109,15 +2374,26 @@ function openCheckoutModal() {
     if (memberBadge) memberBadge.classList.remove("hidden");
     if (memberBanner) memberBanner.classList.remove("hidden");
   } else {
+    checkoutDetectedMember = null;
+    const detectedEl = document.getElementById("custPhoneMemberDetected");
+    const spinnerEl = document.getElementById("custPhoneSpinner");
+    const guestNoteEl = document.getElementById("custPhoneGuestNote");
+    if (detectedEl) detectedEl.classList.add("hidden");
+    if (spinnerEl) spinnerEl.classList.add("hidden");
+    if (guestNoteEl) guestNoteEl.classList.add("hidden");
+
     if (nameInput) {
       nameInput.readOnly = false;
       nameInput.classList.remove("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
-      nameInput.classList.add("bg-gray-50");
+      nameInput.classList.add("bg-white/90");
     }
     if (phoneInput) {
       phoneInput.readOnly = false;
       phoneInput.classList.remove("bg-emerald-50/80", "border-emerald-300", "text-emerald-950", "font-bold", "cursor-not-allowed");
-      phoneInput.classList.add("bg-gray-50");
+      phoneInput.classList.add("bg-white/90");
+      if (phoneInput.value && normalizePhoneNumber(phoneInput.value).length >= 10) {
+        checkCustPhoneMembership(normalizePhoneNumber(phoneInput.value));
+      }
     }
     if (nameLockBadge) nameLockBadge.classList.add("hidden");
     if (phoneLockBadge) phoneLockBadge.classList.add("hidden");
@@ -2788,6 +3064,22 @@ function submitOrderCheckout() {
   if (!customerPhone) {
     showToast("Mohon masukkan Nomor WhatsApp aktif Anda.", "warning");
     if (phoneInput) phoneInput.focus();
+    return;
+  }
+
+  // Validasi Wajib Verifikasi PIN jika Nomor Terdaftar sebagai Member VIP
+  if (checkoutDetectedMember && !currentMemberSession) {
+    if (typeof playCuteSound === "function") playCuteSound("reminder");
+    showDelinaAlert({
+      title: "Verifikasi PIN Member Diperlukan",
+      subtitle: "Amankan Hak Stempel Belanja Anda",
+      message: `Nomor ${customerPhone} terdaftar sebagai Akun Member VIP a.n ${checkoutDetectedMember.name}.`,
+      details: "Sistem mewajibkan login PIN agar pesanan ini resmi mendapatkan +1 Stempel Belanja Gratis ke buku stempel Anda untuk klaim hadiah!",
+      buttonText: "🔑 Masukkan PIN Sekarang",
+      type: "warning",
+      icon: "bi bi-shield-lock"
+    });
+    openCheckoutQuickMemberPinModal();
     return;
   }
 
@@ -7221,6 +7513,16 @@ window.kikoSetCategoryQuickChips = kikoSetCategoryQuickChips;
   window.openPromoInfoModal = openPromoInfoModal;
   window.closePromoInfoModal = closePromoInfoModal;
   window.copyPromoCouponCode = copyPromoCouponCode;
+
+  // Checkout Member Auto-lookup & Quick PIN Login Handlers
+  window.onCustPhoneInput = onCustPhoneInput;
+  window.onCustPhoneBlur = onCustPhoneBlur;
+  window.checkCustPhoneMembership = checkCustPhoneMembership;
+  window.openCheckoutQuickMemberPinModal = openCheckoutQuickMemberPinModal;
+  window.closeCheckoutQuickMemberPinModal = closeCheckoutQuickMemberPinModal;
+  window.toggleQuickMemberPinVisibility = toggleQuickMemberPinVisibility;
+  window.verifyCheckoutQuickMemberPin = verifyCheckoutQuickMemberPin;
+  window.normalizePhoneNumber = normalizePhoneNumber;
 
   // PWA Customer Handlers
   window.triggerCustomerPwaInstall = triggerCustomerPwaInstall;

@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_04", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_05", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -104,7 +104,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261106_04" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261106_05" />
 </head>
 
 <body
@@ -1037,13 +1037,14 @@
 
   <!-- ================= MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2) ================= -->
   <div id="checkoutModal" onclick="if(event.target === this) closeCheckoutModal()"
-    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] hidden flex items-center justify-center p-3 sm:p-4">
+    class="fixed inset-0 bg-black/65 backdrop-blur-xs z-[80] hidden flex items-center justify-center p-3 sm:p-4">
     <div onclick="event.stopPropagation()"
-      class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[92vh] animate-fadeIn">
+      class="w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-emerald-900/30 flex flex-col max-h-[92vh] animate-fadeIn bg-[#f7f4ed] relative"
+      style="background-image: url('assets/checkout-bg.jpg'); background-size: 280px auto; background-color: #f7f4ed; background-repeat: repeat;">
 
       <!-- Header Modal Checkout -->
       <div
-        class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-4 flex items-center justify-between flex-shrink-0">
+        class="bg-gradient-to-r from-delina-dark to-tokopedia-dark text-white p-4 flex items-center justify-between flex-shrink-0 shadow-sm z-10">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-amber-300 font-bold">
             <i class="bi bi-receipt-cutoff text-lg"></i>
@@ -1059,14 +1060,13 @@
         </button>
       </div>
 
-      <!-- Konten Formulir Checkout (Scrollable dengan Wallpaper Doodle Eksklusif) -->
+      <!-- Konten Formulir Checkout (Scrollable dengan Wallpaper Doodle Eksklusif & Frosted Glass Bento) -->
       <div id="checkoutModalScrollBody"
-        class="p-3.5 sm:p-5 overflow-y-auto space-y-4 text-xs text-gray-700 flex-1 relative bg-repeat bg-center"
-        style="background-image: url('assets/checkout-bg.jpg'); background-size: 300px auto; background-color: #f7f4ed;">
+        class="p-3.5 sm:p-5 overflow-y-auto space-y-4 text-xs text-gray-700 flex-1 relative bg-transparent">
 
         <!-- 1. Ringkasan Pesanan & Total Tagihan (STICKY / FREEZE SAAT SCROLL DI MOBILE) -->
         <div id="checkoutStickySummaryCard"
-          class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3 sm:p-3.5 border-2 border-emerald-500/40 dark:border-emerald-700/60 shadow-[0_8px_20px_-6px_rgba(6,95,70,0.18)] space-y-2 transition-all">
+          class="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl p-3 sm:p-3.5 border-2 border-emerald-500/40 dark:border-emerald-700/60 shadow-[0_8px_20px_-6px_rgba(6,95,70,0.18)] space-y-2 transition-all">
           <div
             class="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-slate-700 pb-2 gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
@@ -1147,7 +1147,7 @@
         </div>
 
         <!-- 2. Data Pemesan (Frosted Glass Bento Card) -->
-        <div class="space-y-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
+        <div class="space-y-3 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
           <div class="flex items-center justify-between">
             <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
               <i class="bi bi-person-fill text-tokopedia-green"></i> Data Pemesan
@@ -1178,7 +1178,7 @@
                 </span>
               </div>
               <input type="text" id="custName" placeholder="Contoh: Ahmad Fauzi"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                class="w-full bg-white/90 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
                 required />
             </div>
             <div>
@@ -1191,8 +1191,29 @@
                 </span>
               </div>
               <input type="tel" id="custPhone" placeholder="Contoh: 081234567890"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                class="w-full bg-white/90 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
+                oninput="onCustPhoneInput(this.value)" onblur="onCustPhoneBlur(this.value)"
                 required />
+
+              <!-- Indikator Deteksi Real-Time Akun Member VIP -->
+              <div id="custPhoneFeedback" class="mt-1 min-h-[16px]">
+                <div id="custPhoneSpinner" class="hidden text-[10px] text-emerald-700 font-bold flex items-center gap-1.5 py-0.5">
+                  <span class="inline-block w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Mengecek status Member VIP...</span>
+                </div>
+                <div id="custPhoneMemberDetected" class="hidden text-[10px] text-emerald-900 bg-emerald-100/90 border border-emerald-300 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 shadow-2xs animate-fadeIn">
+                  <span class="truncate font-extrabold flex items-center gap-1">
+                    <i class="bi bi-patch-check-fill text-emerald-600 text-xs"></i>
+                    <span id="custPhoneMemberText">Member VIP Terdeteksi</span>
+                  </span>
+                  <button type="button" onclick="openCheckoutQuickMemberPinModal()" class="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-700 text-amber-300 hover:bg-emerald-800 flex-shrink-0 cursor-pointer shadow-2xs">
+                    🔑 Masukkan PIN
+                  </button>
+                </div>
+                <div id="custPhoneGuestNote" class="hidden text-[9px] text-slate-500 font-medium py-0.5">
+                  💡 Nomor umum (Belum terdaftar Member).
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1363,14 +1384,14 @@
         </div>
 
         <!-- 3. Informasi Pembayaran QRIS & Transfer Bank (Frosted Glass Bento Card) -->
-        <div class="space-y-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
+        <div class="space-y-3 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-emerald-500/25 shadow-sm">
           <h4 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
             <i class="bi bi-qr-code text-tokopedia-green"></i> Pembayaran QRIS Bebas Biaya Admin
           </h4>
 
           <!-- Box QRIS Toko Delina -->
           <div
-            class="bg-gradient-to-b from-emerald-50/70 to-white dark:from-slate-900/90 dark:to-slate-800/90 rounded-2xl p-4 border border-emerald-200 dark:border-slate-700 text-center space-y-3">
+            class="bg-white/85 dark:bg-slate-900/90 rounded-2xl p-4 border border-emerald-300 dark:border-slate-700 text-center space-y-3 shadow-xs">
             <div
               class="flex items-center justify-between text-[11px] border-b border-emerald-100 dark:border-slate-700 pb-2">
               <span class="font-extrabold text-delina-emerald tracking-wide">QRIS RESMI TOKO DELINA</span>
@@ -1404,7 +1425,7 @@
 
               <!-- Kartu a: Rekening BCA (Utama) -->
               <div
-                class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2">
+                class="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2 shadow-2xs">
                 <div class="text-left flex-1 min-w-0 pr-2">
                   <div class="text-[11px] font-semibold text-gray-500 dark:text-slate-400">BCA - Rekening Utama</div>
                   <div id="checkoutRekBcaNum"
@@ -1419,7 +1440,7 @@
 
               <!-- Kartu b: Rekening BRI (Alternatif) -->
               <div
-                class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2">
+                class="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2 shadow-2xs">
                 <div class="text-left flex-1 min-w-0 pr-2">
                   <div class="text-[11px] font-semibold text-gray-500 dark:text-slate-400">BRI - Rekening Alternatif
                   </div>
@@ -1435,7 +1456,7 @@
 
               <!-- Kartu c: E-Wallet ShopeePay -->
               <div
-                class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2">
+                class="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between mb-2 shadow-2xs">
                 <div class="text-left flex-1 min-w-0 pr-2">
                   <div class="flex items-center gap-1.5 mb-0.5">
                     <span
@@ -1453,7 +1474,7 @@
 
               <!-- Kartu d: E-Wallet GoPay -->
               <div
-                class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between">
+                class="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between shadow-2xs">
                 <div class="text-left flex-1 min-w-0 pr-2">
                   <div class="flex items-center gap-1.5 mb-0.5">
                     <span
@@ -1494,7 +1515,7 @@
               </div>
             </div>
             <div onclick="onClickUploadPaymentProofTrigger(event)"
-              class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-emerald-50/40 transition-all active:scale-98">
+              class="border-2 border-dashed border-emerald-400 hover:border-emerald-600 rounded-xl p-3 text-center flex flex-col items-center justify-center cursor-pointer bg-white/85 hover:bg-emerald-50/80 transition-all active:scale-98 shadow-xs">
               <i class="bi bi-image text-2xl text-emerald-600"></i>
               <span id="paymentProofNameText" class="text-xs font-bold text-gray-700 mt-1">Pilih Foto Bukti Transfer /
                 QRIS</span>
@@ -1527,7 +1548,7 @@
 
       <!-- Footer Modal Checkout: Tombol Konfirmasi -->
       <div
-        class="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3 flex-shrink-0">
+        class="p-3.5 sm:p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-emerald-600/20 flex items-center justify-between gap-3 flex-shrink-0 z-10">
         <button type="button" onclick="playCuteSound('cancel'); closeCheckoutModal()"
           class="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-100 cursor-pointer">
           Batal
@@ -1542,9 +1563,77 @@
     </div>
   </div>
 
+  <!-- ================= MODAL QUICK LOGIN PIN MEMBER WAJIB (CHECKOUT) ================= -->
+  <div id="checkoutQuickMemberPinModal"
+    class="fixed inset-0 bg-black/75 backdrop-blur-xs z-[95] hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div onclick="event.stopPropagation()"
+      class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl border-2 border-emerald-500 overflow-hidden flex flex-col animate-scaleUp p-5 text-center space-y-3.5 relative">
+      
+      <!-- Icon Member Emas/Hijau -->
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-amber-300 mx-auto flex items-center justify-center text-2xl shadow-lg border-2 border-amber-300">
+        <i class="bi bi-star-fill"></i>
+      </div>
+
+      <div>
+        <span class="inline-block text-[10px] font-black text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full uppercase tracking-wider border border-emerald-200">
+          ✨ Akun Member VIP Terdeteksi!
+        </span>
+        <h3 class="text-base font-extrabold text-gray-900 dark:text-white mt-1.5">
+          Selamat Datang, <span id="quickMemberPinName" class="text-delina-emerald">Kak Pelanggan</span>!
+        </h3>
+        <p class="text-xs text-gray-600 dark:text-slate-300 mt-1 leading-snug">
+          Nomor Anda terdaftar sebagai Member VIP Toko Delina. Masukkan PIN akun Anda untuk <strong>mengamankan +1 Stempel Belanja Gratis</strong> dan melanjutkan pembayaran.
+        </p>
+      </div>
+
+      <!-- Kotak Peringatan Wajib -->
+      <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300/80 rounded-xl p-2.5 text-left text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2 shadow-2xs">
+        <i class="bi bi-shield-lock-fill text-amber-600 text-sm mt-0.5 flex-shrink-0"></i>
+        <span>Login PIN diwajibkan agar stempel belanja otomatis masuk ke buku stempel Anda untuk klaim hadiah gratis!</span>
+      </div>
+
+      <!-- Input PIN Member -->
+      <div class="space-y-1.5 text-left">
+        <label class="block text-[11px] font-bold text-gray-700 dark:text-slate-300">
+          PIN Keamanan Member (4-6 Angka):
+        </label>
+        <div class="relative">
+          <input type="password" id="quickMemberPinInput" maxlength="10" placeholder="Masukkan PIN Member Anda"
+            class="w-full text-center tracking-widest text-lg font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-emerald-400 focus:border-emerald-600 focus:bg-white rounded-xl py-2.5 px-3 focus:outline-none transition-all"
+            onkeydown="if(event.key==='Enter') verifyCheckoutQuickMemberPin()" />
+          <button type="button" onclick="toggleQuickMemberPinVisibility()"
+            class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm cursor-pointer" title="Lihat PIN">
+            <i id="quickMemberPinEyeIcon" class="bi bi-eye"></i>
+          </button>
+        </div>
+        <div id="quickMemberPinErrorMsg" class="hidden text-[11px] font-bold text-rose-600 text-center mt-1"></div>
+      </div>
+
+      <!-- Tombol Aksi -->
+      <div class="space-y-2 pt-1">
+        <button type="button" id="btnVerifyQuickMemberPin" onclick="verifyCheckoutQuickMemberPin()"
+          class="w-full py-2.5 px-4 rounded-xl bg-delina-emerald hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>Verifikasi PIN & Lanjutkan Belanja</span>
+        </button>
+        <div class="flex items-center justify-between text-[11px] pt-1 px-1">
+          <a href="https://wa.me/6281234567890?text=Halo%20Admin%20Delina,%20saya%20lupa%20PIN%20Member%20saya" target="_blank"
+            class="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
+            <i class="bi bi-whatsapp"></i> Lupa PIN?
+          </a>
+          <button type="button" onclick="closeCheckoutQuickMemberPinModal(true)"
+            class="text-gray-500 hover:text-gray-700 dark:text-slate-400 font-semibold cursor-pointer">
+            Ganti Nomor
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ================= MODAL SUKSES / NOTA PESANAN (FASE 2) ================= -->
   <div id="orderSuccessModal"
-    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[95] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col text-center p-5 sm:p-6 space-y-3.5 animate-fadeIn my-auto max-h-[94vh] overflow-y-auto">
 
@@ -2965,9 +3054,9 @@
        MODAL PERINGATAN CEK ULANG BARANG & TOTAL BAYAR SEBELUM UNGGAH BUKTI BAYAR
        ========================================================================= -->
   <div id="modalVerifyCartBeforeUpload"
-    class="fixed inset-0 z-[75] bg-slate-950/75 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    class="fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
     <div
-      class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-300 dark:border-amber-500/50 overflow-hidden flex flex-col max-h-[90vh]">
+      class="bg-[#f7f4ed] dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-300 dark:border-amber-500/50 overflow-hidden flex flex-col max-h-[90vh]">
 
       <!-- Header Peringatan Ceria & Elegan -->
       <div
@@ -2990,9 +3079,9 @@
 
       <!-- Isi Rincian Barang & Total Tagihan (Wallpaper Doodle Eksklusif) -->
       <div class="p-4 overflow-y-auto space-y-3.5 text-xs flex-1 bg-repeat bg-center"
-        style="background-image: url('assets/checkout-bg.jpg'); background-size: 300px auto; background-color: #f7f4ed;">
+        style="background-image: url('assets/checkout-bg.jpg'); background-size: 280px auto; background-color: #f7f4ed;">
         <div
-          class="p-3 rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-amber-300 dark:border-slate-700 text-amber-950 dark:text-amber-200 flex items-start gap-2 shadow-xs">
+          class="p-3 rounded-2xl bg-white/85 dark:bg-slate-800/85 backdrop-blur-md border border-amber-300 dark:border-slate-700 text-amber-950 dark:text-amber-200 flex items-start gap-2 shadow-xs">
           <i class="bi bi-bell-fill text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
           <p class="text-[11px] leading-relaxed font-medium">
             Sebelum mengunggah bukti pembayaran, mohon periksa kembali <strong>daftar barang</strong> dan <strong>total
@@ -3001,7 +3090,7 @@
         </div>
 
         <!-- Daftar Riwayat Barang yang Akan Dibeli -->
-        <div class="space-y-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-2xl border border-emerald-500/25 shadow-xs">
+        <div class="space-y-1.5 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md p-3 rounded-2xl border border-emerald-500/25 shadow-xs">
           <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 dark:text-slate-300">
             <span>📦 Daftar Barang yang Akan Dibeli:</span>
             <span id="verifyUploadItemCount"
@@ -3356,9 +3445,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261106_04"></script>
-  <script src="./js/printer.js?v=20261106_04"></script>
-  <script src="./js/app.js?v=20261106_04"></script>
+  <script src="./js/config.js?v=20261106_05"></script>
+  <script src="./js/printer.js?v=20261106_05"></script>
+  <script src="./js/app.js?v=20261106_05"></script>
 
 </body>
 
