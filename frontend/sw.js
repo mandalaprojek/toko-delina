@@ -1,17 +1,17 @@
 /**
  * sw.js - Service Worker Ringan PWA Delina.store
- * Versi v20261106-05 (Frosted Glass Wallpaper Checkout & Smart Member VIP Lookup)
+ * Versi v20261106-06 (Global Z-Index Hierarchy Fix, Member Forgot PIN & Universal WA Link)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261106-05";
+const CACHE_NAME = "delina-store-pwa-v20261106-06";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
-  "./css/custom.css?v=20261106_05",
-  "./js/app.js?v=20261106_05",
-  "./js/config.js?v=20261106_05",
-  "./js/printer.js?v=20261106_05",
+  "./css/custom.css?v=20261106_06",
+  "./js/app.js?v=20261106_06",
+  "./js/config.js?v=20261106_06",
+  "./js/printer.js?v=20261106_06",
   "./manifest.json",
   "./assets/Logo.png",
   "./assets/logo.png",

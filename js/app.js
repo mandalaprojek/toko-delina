@@ -3336,27 +3336,15 @@ function sendConfirmationWhatsApp(appMode = "regular") {
 // Helper Universal Membuka WhatsApp Biasa vs WhatsApp Business (Android, iOS & Desktop)
 function openWhatsAppWithAppChoice(cleanPhone, messageText, appMode = "regular") {
   const encodedText = encodeURIComponent(messageText || "");
-  const webFallbackUrl = cleanPhone
+  const waUrl = cleanPhone
     ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`
     : `https://api.whatsapp.com/send?text=${encodedText}`;
 
-  const isAndroid = /android/i.test(navigator.userAgent || "");
-
-  if (isAndroid) {
-    if (appMode === "business") {
-      // Target langsung package resmi WhatsApp Business (com.whatsapp.w4b) dengan fallback aman
-      const intentW4b = `intent://send?phone=${cleanPhone}&text=${encodedText}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${encodeURIComponent(webFallbackUrl)};end`;
-      window.location.href = intentW4b;
-      return;
-    } else if (appMode === "regular") {
-      // Target langsung package resmi WhatsApp Biasa (com.whatsapp) dengan fallback aman
-      const intentWa = `intent://send?phone=${cleanPhone}&text=${encodedText}#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=${encodeURIComponent(webFallbackUrl)};end`;
-      window.location.href = intentWa;
-      return;
-    }
+  // Buka URL WhatsApp secara universal & aman tanpa memicu error intent:// unregistered scheme
+  const opened = window.open(waUrl, "_blank");
+  if (!opened || opened.closed || typeof opened.closed === "undefined") {
+    window.location.href = waUrl;
   }
-
-  window.open(webFallbackUrl, "_blank");
 }
 
 // =========================================================================
@@ -5736,6 +5724,7 @@ function switchMemberAuthMode(mode) {
   const nameField = document.getElementById("fieldMemberNameContainer");
   const nameInput = document.getElementById("memberInputName");
   const submitText = document.getElementById("btnSubmitMemberAuthText");
+  const forgotLink = document.getElementById("linkMemberForgotPassword");
 
   if (mode === "login") {
     if (btnLogin) {
@@ -5746,6 +5735,7 @@ function switchMemberAuthMode(mode) {
     }
     if (nameField) nameField.classList.add("hidden");
     if (nameInput) nameInput.required = false;
+    if (forgotLink) forgotLink.classList.remove("hidden");
     if (submitText) submitText.textContent = "Masuk ke Akun Member";
   } else {
     if (btnRegister) {
@@ -5756,12 +5746,51 @@ function switchMemberAuthMode(mode) {
     }
     if (nameField) nameField.classList.remove("hidden");
     if (nameInput) nameInput.required = true;
+    if (forgotLink) forgotLink.classList.add("hidden");
     if (submitText) submitText.textContent = "Daftar Member VIP Delina";
   }
 }
 
 function switchMemberAuthTab(mode) {
   switchMemberAuthMode(mode);
+}
+
+function toggleMemberAuthPasswordVisibility() {
+  const passInput = document.getElementById("memberInputPassword");
+  const icon = document.getElementById("memberAuthPasswordEyeIcon");
+  if (!passInput) return;
+  if (passInput.type === "password") {
+    passInput.type = "text";
+    if (icon) {
+      icon.classList.remove("bi-eye");
+      icon.classList.add("bi-eye-slash");
+    }
+  } else {
+    passInput.type = "password";
+    if (icon) {
+      icon.classList.remove("bi-eye-slash");
+      icon.classList.add("bi-eye");
+    }
+  }
+}
+
+function openMemberForgotPinWhatsApp() {
+  const phoneInput = document.getElementById("memberInputPhone");
+  const enteredPhone = phoneInput ? phoneInput.value.trim() : "";
+  const phoneText = enteredPhone ? ` untuk nomor WhatsApp: *${enteredPhone}*` : "";
+  const msg = `Halo Admin Toko Delina,\n\nSaya lupa PIN / Password Akun Member saya${phoneText}.\nMohon bantuannya untuk reset / informasi PIN saya agar bisa login dan mengumpulkan stempel belanja. Terima kasih! 🙏`;
+
+  let storePhone = "6282185355316";
+  if (window.currentTokoInfo && window.currentTokoInfo.wa && !String(window.currentTokoInfo.wa).includes("123456789")) {
+    storePhone = window.currentTokoInfo.wa;
+  } else if (typeof CONFIG !== "undefined" && CONFIG.WHATSAPP_PHONE && !String(CONFIG.WHATSAPP_PHONE).includes("123456789")) {
+    storePhone = CONFIG.WHATSAPP_PHONE;
+  }
+  let cleanWa = String(storePhone || "6282185355316").replace(/\D/g, "");
+  if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.slice(1);
+  else if (cleanWa.startsWith("8")) cleanWa = "62" + cleanWa;
+
+  openWhatsAppWithAppChoice(cleanWa, msg);
 }
 
 async function handleMemberAuthSubmit(event) {
@@ -7523,6 +7552,8 @@ window.kikoSetCategoryQuickChips = kikoSetCategoryQuickChips;
   window.toggleQuickMemberPinVisibility = toggleQuickMemberPinVisibility;
   window.verifyCheckoutQuickMemberPin = verifyCheckoutQuickMemberPin;
   window.normalizePhoneNumber = normalizePhoneNumber;
+  window.toggleMemberAuthPasswordVisibility = toggleMemberAuthPasswordVisibility;
+  window.openMemberForgotPinWhatsApp = openMemberForgotPinWhatsApp;
 
   // PWA Customer Handlers
   window.triggerCustomerPwaInstall = triggerCustomerPwaInstall;
@@ -8025,7 +8056,7 @@ const DEFAULT_POPUP_PROMOS = [
     title: "Paket Semangat Sekolah & Kantor",
     subtitle: "Kertas HVS, buku tulis & alat tulis lengkap diskon s.d 15%",
     code: "ATKHEMAT",
-    image: "https://images.unsplash.com/photo-1456735190829-80ab072ac1a0?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=800&auto=format&fit=crop&q=80",
     actionType: "category",
     actionTarget: "ATK & Kantor",
     ctaText: "🛒 Lihat Promo ATK"

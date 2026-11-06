@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_05", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_06", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -104,7 +104,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261106_05" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261106_06" />
 </head>
 
 <body
@@ -925,7 +925,7 @@
 
   <!-- ================= POPUP / WIDGET CHAT KIKO SEMENTARA (PREVIEW FASE 1) ================= -->
   <div id="kikoChatModal" onclick="if(event.target === this) closeKikoChat()"
-    class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    class="fixed inset-0 bg-black/50 backdrop-blur-xs z-[120] hidden flex items-center justify-center p-4">
     <div onclick="event.stopPropagation()"
       class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[85vh]">
       <!-- Header Kiko -->
@@ -2174,11 +2174,11 @@
 
   <!-- WADAH TOAST MODERN MELAYANG DI ATAS LAYAR -->
   <div id="modernToastContainer"
-    class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+    class="fixed top-4 left-1/2 -translate-x-1/2 z-[250] flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
 
   <!-- MODAL DIALOG KONFIRMASI & ALERT MODERN (PENGGANTI WINDOW.CONFIRM & ALERT) -->
   <div id="delinaModernModal"
-    class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+    class="fixed inset-0 z-[200] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
     <div id="delinaModernModalCard"
       class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 transform scale-95 transition-all duration-200 text-left space-y-4">
       <div class="flex items-start gap-3.5">
@@ -2387,13 +2387,23 @@
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Password / PIN Keamanan <span
-                  class="text-red-500">*</span></label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-bold text-slate-700">Password / PIN Keamanan <span
+                    class="text-red-500">*</span></label>
+                <a id="linkMemberForgotPassword" href="javascript:void(0)" onclick="openMemberForgotPinWhatsApp()"
+                  class="text-[11px] text-emerald-700 dark:text-emerald-400 font-extrabold hover:underline flex items-center gap-1 cursor-pointer">
+                  <i class="bi bi-whatsapp"></i> Lupa PIN?
+                </a>
+              </div>
               <div class="relative">
                 <i class="bi bi-lock text-slate-400 absolute left-3 top-2.5 text-sm"></i>
                 <input type="password" id="memberInputPassword" placeholder="Masukkan password atau 4 digit PIN"
                   required
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-emerald-600 focus:bg-white focus:outline-none" />
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-10 py-2.5 text-xs font-bold focus:border-emerald-600 focus:bg-white focus:outline-none" />
+                <button type="button" onclick="toggleMemberAuthPasswordVisibility()"
+                  class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm cursor-pointer" title="Lihat PIN">
+                  <i id="memberAuthPasswordEyeIcon" class="bi bi-eye"></i>
+                </button>
               </div>
             </div>
 
@@ -2828,7 +2838,7 @@
 
   <!-- ================= MODAL BARCODE / QR MEMBER DIGITAL ================= -->
   <div id="memberBarcodeModal"
-    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    class="fixed inset-0 z-[120] bg-black/75 backdrop-blur-xs hidden flex items-center justify-center p-4">
     <div
       class="bg-white rounded-3xl max-w-xs w-full p-5 text-center shadow-2xl border border-slate-200 animate-fadeIn space-y-3.5">
       <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -2855,7 +2865,7 @@
     </div>
   </div>
   <div id="modalPromoInfo"
-    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    class="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
     <div
       class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100 flex flex-col max-h-[90vh] animate-fadeIn">
 
@@ -2982,7 +2992,7 @@
        MODAL SAKLAR MODE TERANG / GELAP (PERSIS GAMBAR REFERENSI DENGAN HIJAU DELINA)
        ========================================================================= -->
   <div id="modalThemeToggle" onclick="if(event.target === this) closeThemeModal()"
-    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    class="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
     <div
       class="bg-[#f8f9fa] dark:bg-slate-900 text-gray-900 dark:text-white rounded-[32px] w-full max-w-sm sm:max-w-md shadow-2xl border border-gray-200/80 dark:border-slate-800 p-6 sm:p-8 relative overflow-hidden transition-colors duration-300">
 
@@ -3151,7 +3161,7 @@
        HALAMAN / MODAL CETAK STRUK DIGITAL BARU (MODERN, ELEGAN & KEKINIAN)
        ========================================================================= -->
   <div id="modernDigitalReceiptModal"
-    class="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto animate-fadeIn">
+    class="fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto animate-fadeIn">
     <div class="w-full max-w-md my-auto flex flex-col max-h-[95vh]">
 
       <!-- Kertas Struk Modern Fintech (Bagian yang Dapat Dicetak) -->
@@ -3288,7 +3298,7 @@
        MODAL VOUCHER & BARCODE KLAIM HADIAH MEMBER (TUNJUKKAN DI KASIR TOKO)
        ========================================================================= -->
   <div id="rewardClaimBarcodeModal"
-    class="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
+    class="fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
     <div
       class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border-2 border-amber-400 text-center flex flex-col">
 
@@ -3364,7 +3374,7 @@
        MODAL POP-UP KONFIRMASI UPLOAD KTP & KLAIM VOUCHER RAHASIA KE WHATSAPP ADMIN
        ========================================================================= -->
   <div id="modalKtpWhatsappConfirm"
-    class="fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
+    class="fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
     <div
       class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border-2 border-amber-400 text-center flex flex-col">
       <!-- Header Emas & Zamrud -->
@@ -3445,9 +3455,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261106_05"></script>
-  <script src="./js/printer.js?v=20261106_05"></script>
-  <script src="./js/app.js?v=20261106_05"></script>
+  <script src="./js/config.js?v=20261106_06"></script>
+  <script src="./js/printer.js?v=20261106_06"></script>
+  <script src="./js/app.js?v=20261106_06"></script>
 
 </body>
 
