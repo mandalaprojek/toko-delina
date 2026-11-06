@@ -1,17 +1,17 @@
 /**
  * sw.js - Service Worker Ringan PWA Delina.store
- * Versi v20261106-02 (Cart Selection, Bulk Delete, Quick Buy Now & Direct Cart Navigation)
+ * Versi v20261106-03 (Fix Forward Transition +Keranjang & Beli Sekarang Instant Navigation)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261106-02";
+const CACHE_NAME = "delina-store-pwa-v20261106-03";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
-  "./css/custom.css?v=20261106_02",
-  "./js/app.js?v=20261106_02",
-  "./js/config.js?v=20261106_02",
-  "./js/printer.js?v=20261106_02",
+  "./css/custom.css?v=20261106_03",
+  "./js/app.js?v=20261106_03",
+  "./js/config.js?v=20261106_03",
+  "./js/printer.js?v=20261106_03",
   "./manifest.json",
   "./assets/Logo.png",
   "./assets/logo.png",

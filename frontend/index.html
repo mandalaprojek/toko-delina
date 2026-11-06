@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_02", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_03", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -104,7 +104,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261106_02" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261106_03" />
 </head>
 
 <body
@@ -847,10 +847,10 @@
 
   <!-- ================= LACI KERANJANG BELANJA (OFF-CANVAS DRAWER) ================= -->
   <div id="cartOverlay" onclick="toggleCartDrawer(false)"
-    class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+    class="fixed inset-0 bg-black/50 backdrop-blur-xs z-[70] hidden transition-opacity"></div>
 
   <div id="cartDrawer"
-    class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[75] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
     <!-- Header Drawer -->
     <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
       <div class="flex items-center gap-2.5">
@@ -1037,7 +1037,7 @@
 
   <!-- ================= MODAL CHECKOUT & PEMBAYARAN QRIS (FASE 2) ================= -->
   <div id="checkoutModal" onclick="if(event.target === this) closeCheckoutModal()"
-    class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] hidden flex items-center justify-center p-3 sm:p-4">
     <div onclick="event.stopPropagation()"
       class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[92vh] animate-fadeIn">
 
@@ -1768,7 +1768,7 @@
 
   <!-- ================= MODAL DETAIL PRODUK GAYA TOKOPEDIA ================= -->
   <div id="productDetailModal" onclick="if(event.target === this) closeProductDetailModal()"
-    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] hidden flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
     <div
       class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 flex flex-col max-h-[92vh]">
       <!-- Header Modal -->
@@ -1898,12 +1898,12 @@
             <!-- Tombol Beli / Keranjang -->
             <div class="grid grid-cols-2 gap-2.5">
               <button type="button" onclick="detailAddToCart()"
-                class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-delina-emerald font-extrabold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-delina-emerald font-extrabold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                 <i class="bi bi-cart-plus text-base"></i>
                 <span>+ Keranjang</span>
               </button>
               <button type="button" onclick="detailBuyNow()"
-                class="py-2.5 px-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                class="py-2.5 px-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                 <i class="bi bi-lightning-charge-fill"></i>
                 <span>Beli Sekarang</span>
               </button>
@@ -3354,9 +3354,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261106_02"></script>
-  <script src="./js/printer.js?v=20261106_02"></script>
-  <script src="./js/app.js?v=20261106_02"></script>
+  <script src="./js/config.js?v=20261106_03"></script>
+  <script src="./js/printer.js?v=20261106_03"></script>
+  <script src="./js/app.js?v=20261106_03"></script>
 
 </body>
 

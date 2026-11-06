@@ -1365,15 +1365,36 @@ function toggleCartDrawer(open = true, notifyHistory = true) {
   if (open) {
     renderCartDrawer();
     drawer.classList.remove("translate-x-full");
+    drawer.classList.add("translate-x-0");
+    drawer.style.transform = "translateX(0%)";
     overlay.classList.remove("hidden");
-    if (typeof pushModalState === "function") pushModalState("cartDrawer");
+    overlay.style.display = "block";
+    document.body.classList.add("overflow-hidden");
+
+    if (typeof setActiveBottomNav === "function") {
+      setActiveBottomNav("cart");
+    }
+
+    if (history.state && history.state.modalOpen) {
+      try {
+        history.replaceState({ modalOpen: true, modalId: "cartDrawer", count: modalHistoryCount }, "");
+      } catch (err) {}
+    } else {
+      if (typeof pushModalState === "function") pushModalState("cartDrawer");
+    }
   } else {
     const wasOpen = !drawer.classList.contains("translate-x-full");
+    drawer.classList.remove("translate-x-0");
     drawer.classList.add("translate-x-full");
+    drawer.style.transform = "translateX(100%)";
     overlay.classList.add("hidden");
-    if (activeBottomNav === "cart") {
+    overlay.style.display = "none";
+    document.body.classList.remove("overflow-hidden");
+
+    if (activeBottomNav === "cart" && typeof setActiveBottomNav === "function") {
       setActiveBottomNav("home");
     }
+
     if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") {
       notifyModalClosed();
     }
@@ -1541,18 +1562,24 @@ function openProductDetailModal(productId) {
 
   if (modal) {
     modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    modal.style.display = "flex";
     document.body.classList.add("overflow-hidden");
     if (typeof pushModalState === "function") pushModalState("productDetailModal");
   }
 }
 
-function closeProductDetailModal() {
+function closeProductDetailModal(notifyHistory = true) {
   const modal = document.getElementById("productDetailModal");
   if (modal) {
     const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    modal.style.display = "none";
     document.body.classList.remove("overflow-hidden");
-    if (wasOpen && typeof notifyModalClosed === "function") notifyModalClosed();
+    if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") {
+      notifyModalClosed();
+    }
   }
 }
 
@@ -1587,6 +1614,16 @@ function updateDetailSubtotal() {
 
 function detailAddToCart() {
   if (!detailCurrentProduct) return;
+
+  // Pastikan kuantitas terbaru diambil dari input jika diketik manual
+  const elQtyInput = document.getElementById("detailQtyInput");
+  if (elQtyInput) {
+    const parsed = parseInt(elQtyInput.value, 10);
+    if (!isNaN(parsed) && parsed >= 1) {
+      detailCurrentQty = parsed;
+    }
+  }
+
   const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
   if (existingIndex > -1) {
     cart[existingIndex].qty += detailCurrentQty;
@@ -1603,18 +1640,32 @@ function detailAddToCart() {
       selected: true
     });
   }
+
   saveCart();
   updateCartBadge();
   renderCartDrawer();
   if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
   showToast(`✅ ${detailCurrentQty}x ${detailCurrentProduct.name} ditambahkan ke keranjang!`, "success");
-  closeProductDetailModal();
+
+  // PENTING: Tutup modal detail produk TANPA memicu history.back()
+  closeProductDetailModal(false);
+
   // Langsung buka Halaman Keranjang Belanja Delina
-  toggleCartDrawer(true);
+  toggleCartDrawer(true, false);
 }
 
 function detailBuyNow() {
   if (!detailCurrentProduct) return;
+
+  // Pastikan kuantitas terbaru diambil dari input jika diketik manual
+  const elQtyInput = document.getElementById("detailQtyInput");
+  if (elQtyInput) {
+    const parsed = parseInt(elQtyInput.value, 10);
+    if (!isNaN(parsed) && parsed >= 1) {
+      detailCurrentQty = parsed;
+    }
+  }
+
   const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
   if (existingIndex > -1) {
     cart[existingIndex].qty = Math.max(cart[existingIndex].qty, detailCurrentQty);
@@ -1632,7 +1683,7 @@ function detailBuyNow() {
     });
   }
 
-  // Pastikan produk yang baru dipilih ini tercentang (selected = true)
+  // Pastikan produk yang ingin dibeli ini tercentang (selected = true)
   const item = cart.find(i => i.id === detailCurrentProduct.id);
   if (item) item.selected = true;
 
@@ -1640,7 +1691,10 @@ function detailBuyNow() {
   updateCartBadge();
   renderCartDrawer();
   if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
-  closeProductDetailModal();
+
+  // PENTING: Tutup modal detail produk TANPA memicu history.back()
+  closeProductDetailModal(false);
+
   // Langsung buka Halaman Checkout & Pembayaran Pesanan
   openCheckoutModal();
 }
@@ -2074,6 +2128,9 @@ function openCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
   if (modal) {
     modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    modal.style.display = "flex";
+    document.body.classList.add("overflow-hidden");
     if (history.state && history.state.modalOpen) {
       try {
         history.replaceState({ modalOpen: true, modalId: "checkoutModal", count: modalHistoryCount }, "");
@@ -2089,6 +2146,9 @@ function closeCheckoutModal(notifyHistory = true) {
   if (modal) {
     const wasOpen = !modal.classList.contains("hidden");
     modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    modal.style.display = "none";
+    document.body.classList.remove("overflow-hidden");
     if (notifyHistory && wasOpen && typeof notifyModalClosed === "function") {
       notifyModalClosed();
     }
