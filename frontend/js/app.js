@@ -7404,15 +7404,15 @@ const DEFAULT_POPUP_PROMOS = [
   },
   {
     id: "promo_sembako_member",
-    badge: "GRATIS STEMPEL",
+    badge: "GRATIS 1 HADIAH",
     badgeColor: "bg-amber-500",
-    title: "Sembako Murah + Stempel VIP",
-    subtitle: "Belanja harian hemat, kumpulkan stempel dan dapatkan hadiah!",
+    title: "Sembako Murah + Gratis Stempel VIP",
+    subtitle: "Kumpulkan 30 stempel belanja dan dapatkan hadiah gratis pilihan Anda!",
     code: "DELINABERKAH",
     image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
-    actionType: "member",
-    actionTarget: "open_member",
-    ctaText: "⭐ Buka Kartu Member VIP"
+    actionType: "hadiah",
+    actionTarget: "rewards",
+    ctaText: "🎁 Buka Halaman Hadiah & Member"
   }
 ];
 
@@ -7485,17 +7485,18 @@ function renderWelcomePromoModal(slides) {
   currentPromoSlides = slides;
   currentPromoSlideIndex = 0;
 
-  // Render Slide Items
+  // Render Slide Items (Full-Bleed Immersive Poster Ala Alfagift)
   track.innerHTML = slides.map((slide, idx) => {
     const badgeHtml = slide.badge ? `
-      <span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide text-white uppercase shadow-md ${slide.badgeColor || 'bg-rose-600'}">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black tracking-wider text-white uppercase shadow-lg backdrop-blur-md border border-white/30 ${slide.badgeColor || 'bg-rose-600'}">
+        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
         ${escapeHtml(slide.badge)}
       </span>
     ` : '';
 
     const couponHtml = slide.code ? `
-      <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 text-[11px] font-bold text-amber-800 dark:text-amber-300">
-        <i class="bi bi-ticket-perforated-fill text-amber-500"></i>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-400/20 backdrop-blur-md border border-amber-300/40 text-[11px] font-black text-amber-300 w-fit shadow-md">
+        <i class="bi bi-ticket-perforated-fill text-amber-400 text-xs"></i>
         <span>Kupon: ${escapeHtml(slide.code)}</span>
       </div>
     ` : '';
@@ -7504,30 +7505,38 @@ function renderWelcomePromoModal(slides) {
     const imgUrl = typeof formatImageUrl === "function" ? formatImageUrl(rawImg) : rawImg;
 
     return `
-      <div class="w-full shrink-0 flex flex-col select-none cursor-pointer" onclick="handlePromoSlideAction(${idx})">
-        <!-- Banner Image -->
-        <div class="relative w-full h-44 sm:h-52 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+      <div class="w-full h-full shrink-0 relative flex flex-col justify-between overflow-hidden select-none cursor-pointer" onclick="handlePromoSlideAction(${idx})">
+        <!-- Full-Bleed Poster Image (100% Mengisi Kartu Vertikal) -->
+        <img src="${imgUrl}" alt="${escapeHtml(slide.title || 'Promo')}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
+
+        <!-- Gradien Gelap Top & Bottom untuk Keterbacaan Sempurna -->
+        <div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+        <div class="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none"></div>
+
+        <!-- Top Floating Badge -->
+        <div class="relative z-10 p-4 pt-4 flex items-center justify-between pointer-events-none">
           ${badgeHtml}
-          <img src="${imgUrl}" alt="${escapeHtml(slide.title || 'Promo')}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-          <div class="absolute bottom-2.5 left-3 right-3 text-white">
-            <h3 class="text-base sm:text-lg font-black leading-tight drop-shadow-md line-clamp-1">
-              ${escapeHtml(slide.title || '')}
-            </h3>
-          </div>
         </div>
 
-        <!-- Banner Body & CTA -->
-        <div class="p-4 bg-white dark:bg-slate-900 flex flex-col justify-between">
-          <p class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+        <!-- Bottom Floating Content (Title, Subtitle, Coupon, Big CTA Button) -->
+        <div class="relative z-10 p-4 pb-8 flex flex-col justify-end text-white space-y-2">
+          <!-- Judul Promo -->
+          <h3 class="text-lg sm:text-xl font-black leading-tight drop-shadow-md text-white line-clamp-2">
+            ${escapeHtml(slide.title || '')}
+          </h3>
+
+          <!-- Subjudul / Deskripsi -->
+          <p class="text-xs text-emerald-100/90 leading-relaxed drop-shadow-xs line-clamp-2 font-medium">
             ${escapeHtml(slide.subtitle || '')}
           </p>
 
+          <!-- Kupon Pill jika ada -->
           ${couponHtml}
 
-          <button type="button" onclick="event.stopPropagation(); handlePromoSlideAction(${idx})" class="mt-3.5 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all">
+          <!-- Big Vibrant CTA Button with Pulsing Glow -->
+          <button type="button" onclick="event.stopPropagation(); handlePromoSlideAction(${idx})" class="mt-2 w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-emerald-500 to-teal-500 hover:from-amber-300 hover:via-emerald-400 hover:to-teal-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 transition-all ring-2 ring-white/30 cursor-pointer">
             <span>${escapeHtml(slide.ctaText || 'Lihat Promo')}</span>
-            <i class="bi bi-arrow-right"></i>
+            <i class="bi bi-arrow-right-circle-fill text-base"></i>
           </button>
         </div>
       </div>
@@ -7715,6 +7724,20 @@ function handlePromoSlideAction(idx) {
     if (typeof showToast === "function") {
       showToast(`Menampilkan kategori: ${target || 'Semua Produk'}`);
     }
+  } else if (type === "hadiah" || type === "member") {
+    // Arahkan langsung ke Halaman Hadiah & Member Delina VIP
+    if (typeof setActiveBottomNav === "function") {
+      setActiveBottomNav("hadiah");
+    }
+    if (typeof openMemberModal === "function") {
+      openMemberModal("rewards");
+    }
+    if (slide.code && navigator.clipboard) {
+      navigator.clipboard.writeText(slide.code).catch(() => {});
+      if (typeof showToast === "function") {
+        showToast(`🎁 Kupon "${slide.code}" disalin! Cek kartu hadiah & stempel Anda.`);
+      }
+    }
   } else if (type === "coupon") {
     const code = slide.code || target;
     if (code && navigator.clipboard) {
@@ -7727,10 +7750,6 @@ function handlePromoSlideAction(idx) {
           showToast(`🎟️ Kupon: ${code}`);
         }
       });
-    }
-  } else if (type === "member") {
-    if (typeof openMemberModal === "function") {
-      openMemberModal();
     }
   } else if (type === "url") {
     if (target) {

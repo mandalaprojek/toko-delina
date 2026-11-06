@@ -125,31 +125,43 @@ function getPopupPromoDefaultSlides() {
       id: "promo_atk_1",
       title: "Paket Semangat Sekolah & Kantor",
       subtitle: "Kertas HVS, Buku Tulis SiDu, Pulpen & Map Hemat s.d 15%",
-      badge: "✏️ PROMO ATK & KANTOR",
-      image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80",
+      badge: "✏️ HEMAT S.D 15%",
+      badgeColor: "bg-rose-600",
+      code: "ATKHEMAT",
+      image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&auto=format&fit=crop&q=80",
       actionType: "category",
+      actionTarget: "ATK & Kantor",
       actionValue: "ATK & Kantor",
+      ctaText: "✏️ Belanja ATK Sekarang",
       buttonText: "✏️ Belanja ATK Sekarang"
     },
     {
       id: "promo_kosmetik_2",
       title: "Glow-Up & Cantik Tiap Hari",
       subtitle: "Diskon Spesial Skincare, Sunscreen & Micellar Water Original",
-      badge: "💄 BEAUTY DEALS",
-      image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80",
+      badge: "💄 GLOW-UP CANTIK",
+      badgeColor: "bg-pink-600",
+      code: "CANTIKORI",
+      image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop&q=80",
       actionType: "category",
+      actionTarget: "Kosmetik & Cantik",
       actionValue: "Kosmetik & Cantik",
+      ctaText: "💄 Lihat Koleksi Kosmetik",
       buttonText: "💄 Lihat Koleksi Kosmetik"
     },
     {
       id: "promo_sembako_3",
-      title: "Belanja Sembako + Gratis Stempel Member VIP",
-      subtitle: "Gunakan Kupon DELINABERKAH & Kumpulkan Poin Hadiah Gratis",
-      badge: "🎁 VOUCHER & MEMBER",
-      image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80",
-      actionType: "coupon",
-      actionValue: "DELINABERKAH",
-      buttonText: "🎟️ Klaim Kupon DELINABERKAH"
+      title: "Sembako Murah + Gratis Stempel VIP",
+      subtitle: "Kumpulkan 30 stempel belanja dan dapatkan hadiah gratis pilihan Anda!",
+      badge: "🎁 GRATIS 1 HADIAH",
+      badgeColor: "bg-amber-500",
+      code: "DELINABERKAH",
+      image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
+      actionType: "hadiah",
+      actionTarget: "rewards",
+      actionValue: "rewards",
+      ctaText: "🎁 Buka Halaman Hadiah & Member",
+      buttonText: "🎁 Buka Halaman Hadiah & Member"
     }
   ];
 }
@@ -2081,10 +2093,14 @@ _Pesan ini dikirim otomatis dari Panel Admin Toko Delina._ 🤲`;
           title: String(s.title || "").trim(),
           subtitle: String(s.subtitle || "").trim(),
           badge: String(s.badge || "").trim(),
-          image: imgUrl || "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&auto=format&fit=crop&q=80",
+          badgeColor: String(s.badgeColor || "bg-rose-600").trim(),
+          code: String(s.code || "").trim(),
+          image: imgUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
           actionType: String(s.actionType || "category").trim(),
-          actionValue: String(s.actionValue || "").trim(),
-          buttonText: String(s.buttonText || "Lihat Promo").trim()
+          actionTarget: String(s.actionTarget || s.actionValue || "").trim(),
+          actionValue: String(s.actionTarget || s.actionValue || "").trim(),
+          ctaText: String(s.ctaText || s.buttonText || "Lihat Promo").trim(),
+          buttonText: String(s.ctaText || s.buttonText || "Lihat Promo").trim()
         };
       });
 

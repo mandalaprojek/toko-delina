@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261105_05", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_01", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -215,7 +215,7 @@
   <!-- JsBarcode Library untuk Lembar Sakti Barcode Kasir -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <!-- Modul Printer Bluetooth Thermal ESC/POS -->
-  <script src="./js/printer.js?v=20261105_05"></script>
+  <script src="./js/printer.js?v=20261106_01"></script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased selection:bg-emerald-200 delina-admin-bg">
 
@@ -3136,8 +3136,8 @@
               <label class="block font-semibold text-slate-600 mb-1 text-[11px]">Tipe Aksi</label>
               <select id="promoSlideActionTypeInput" onchange="onPromoSlideActionTypeChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-600">
                 <option value="category">📂 Buka Kategori Tertentu</option>
+                <option value="hadiah">🎁 Buka Halaman Hadiah &amp; Member VIP</option>
                 <option value="coupon">🎟️ Salin Kode Kupon Diskon</option>
-                <option value="member">⭐ Buka Kartu Member VIP</option>
                 <option value="url">🔗 Buka Tautan Eksternal (URL)</option>
               </select>
             </div>
@@ -3205,7 +3205,7 @@
   <div id="modernToastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
 
   <!-- Konfigurasi URL Google Apps Script -->
-  <script src="./js/config.js?v=20261105_05"></script>
+  <script src="./js/config.js?v=20261106_01"></script>
 
   <!-- Script Logika Admin & Kasir -->
   <script>
@@ -6273,15 +6273,15 @@ ${escapeHtml(order.itemsText || "-")}
       },
       {
         id: "promo_sembako_member",
-        badge: "GRATIS STEMPEL",
+        badge: "GRATIS 1 HADIAH",
         badgeColor: "bg-amber-500",
-        title: "Sembako Murah + Stempel VIP",
-        subtitle: "Belanja harian hemat, kumpulkan stempel dan dapatkan hadiah!",
+        title: "Sembako Murah + Gratis Stempel VIP",
+        subtitle: "Kumpulkan 30 stempel belanja dan dapatkan hadiah gratis pilihan Anda!",
         code: "DELINABERKAH",
         image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80",
-        actionType: "member",
-        actionTarget: "open_member",
-        ctaText: "⭐ Buka Kartu Member VIP"
+        actionType: "hadiah",
+        actionTarget: "rewards",
+        ctaText: "🎁 Buka Halaman Hadiah & Member"
       }
     ];
 
@@ -6334,8 +6334,8 @@ ${escapeHtml(order.itemsText || "-")}
         const isLast = idx === slides.length - 1;
 
         let actionDesc = "Kategori: " + (s.actionTarget || "Semua");
-        if (s.actionType === "coupon") actionDesc = "Salin Kupon: " + (s.code || s.actionTarget || "-");
-        else if (s.actionType === "member") actionDesc = "Buka Member VIP";
+        if (s.actionType === "hadiah" || s.actionType === "member") actionDesc = "🎁 Halaman Hadiah & Member";
+        else if (s.actionType === "coupon") actionDesc = "Salin Kupon: " + (s.code || s.actionTarget || "-");
         else if (s.actionType === "url") actionDesc = "URL: " + (s.actionTarget || "-");
 
         return `
@@ -6478,10 +6478,10 @@ ${escapeHtml(order.itemsText || "-")}
           textInput.placeholder = "Masukkan kode kupon yang disalin saat diklik";
         }
         if (targetLabel) targetLabel.textContent = "Kode Kupon Diskon:";
-      } else if (val === "member") {
+      } else if (val === "hadiah" || val === "member") {
         if (catSelect) catSelect.classList.add("hidden");
         if (textInput) textInput.classList.add("hidden");
-        if (targetLabel) targetLabel.textContent = "Target: Kartu Member VIP Otomatis";
+        if (targetLabel) targetLabel.textContent = "Target: Langsung ke Halaman Hadiah & Member VIP";
       } else if (val === "url") {
         if (catSelect) catSelect.classList.add("hidden");
         if (textInput) {
@@ -6552,8 +6552,8 @@ ${escapeHtml(order.itemsText || "-")}
       let actionTarget = "";
       if (actionType === "category") {
         actionTarget = document.getElementById("promoSlideTargetCategorySelect").value;
-      } else if (actionType === "member") {
-        actionTarget = "open_member";
+      } else if (actionType === "hadiah" || actionType === "member") {
+        actionTarget = "rewards";
       } else {
         actionTarget = document.getElementById("promoSlideTargetTextInput").value.trim();
       }

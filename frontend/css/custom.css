@@ -898,10 +898,12 @@ footer {
 /* CAROUSEL DOTS STYLING */
 .promo-dot {
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 .promo-dot.active {
   width: 1.5rem !important;
-  background-color: #059669 !important;
+  background-color: #34d399 !important;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.9) !important;
 }
 
 

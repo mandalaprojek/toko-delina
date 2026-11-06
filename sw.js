@@ -1,17 +1,17 @@
 /**
  * sw.js - Service Worker Ringan PWA Delina.store
- * Versi v20261105-05 (Auto-Update & Network-First Jaminan Fitur Terbaru)
+ * Versi v20261106-01 (Full-Bleed Poster Immersive & Direct Hadiah Navigation)
  */
 
-const CACHE_NAME = "delina-store-pwa-v20261105-05";
+const CACHE_NAME = "delina-store-pwa-v20261106-01";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./admin.html",
-  "./css/custom.css?v=20261105_05",
-  "./js/app.js?v=20261105_05",
-  "./js/config.js?v=20261105_05",
-  "./js/printer.js?v=20261105_05",
+  "./css/custom.css?v=20261106_01",
+  "./js/app.js?v=20261106_01",
+  "./js/config.js?v=20261106_01",
+  "./js/printer.js?v=20261106_01",
   "./manifest.json",
   "./assets/Logo.png",
   "./assets/logo.png",
@@ -93,8 +93,8 @@ self.addEventListener("fetch", (event) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(req, responseToCache).catch(() => {});
-            }).catch(() => {});
+              cache.put(req, responseToCache).catch(() => { });
+            }).catch(() => { });
           }
           return networkResponse;
         })
@@ -115,8 +115,8 @@ self.addEventListener("fetch", (event) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(req, responseToCache).catch(() => {});
-            }).catch(() => {});
+              cache.put(req, responseToCache).catch(() => { });
+            }).catch(() => { });
           }
           return networkResponse;
         })
