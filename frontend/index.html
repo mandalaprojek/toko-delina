@@ -25,7 +25,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=20261106_01", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js?v=20261106_02", { updateViaCache: "none" })
           .then((reg) => {
             console.log("PWA Service Worker terdaftar:", reg.scope);
             if (reg.update) reg.update();
@@ -104,7 +104,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/custom.css?v=20261106_01" />
+  <link rel="stylesheet" href="./css/custom.css?v=20261106_02" />
 </head>
 
 <body
@@ -852,15 +852,26 @@
   <div id="cartDrawer"
     class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
     <!-- Header Drawer -->
-    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i class="bi bi-cart3 text-tokopedia-green text-lg"></i>
-        <h3 class="text-sm font-bold text-gray-800">Keranjang Belanja Delina</h3>
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-tokopedia-green flex items-center justify-center shadow-2xs border border-emerald-100">
+          <i class="bi bi-cart3 text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 leading-tight">Keranjang Belanja Delina</h3>
+          <p class="text-[10px] text-gray-400 font-medium" id="cartHeaderSubtext">Pilih barang yang ingin Anda beli</p>
+        </div>
       </div>
       <button onclick="toggleCartDrawer(false)"
-        class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm">
+        class="w-8 h-8 rounded-xl bg-gray-100 text-gray-500 hover:text-gray-800 hover:bg-gray-200 flex items-center justify-center text-sm transition-colors cursor-pointer"
+        aria-label="Tutup Keranjang">
         <i class="bi bi-x-lg"></i>
       </button>
+    </div>
+
+    <!-- Subheader: Bilah Pilih Semua & Hapus Terpilih (Sticky di Bawah Header) -->
+    <div id="cartSelectAllBar" class="px-4 py-2.5 bg-slate-50 border-b border-gray-100 flex items-center justify-between text-xs z-10 select-none">
+      <!-- Diisi secara dinamis oleh renderCartDrawer -->
     </div>
 
     <!-- Daftar Barang di Keranjang -->
@@ -869,16 +880,46 @@
     </div>
 
     <!-- Bagian Bawah: Total & Tombol Checkout -->
-    <div class="p-4 border-t border-gray-100 bg-gray-50 space-y-3">
+    <div class="p-4 border-t border-gray-100 bg-gray-50/95 backdrop-blur-xs space-y-3 z-10 shadow-lg">
       <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-500">Total Belanja:</span>
-        <span id="cartTotalPrice" class="text-base font-extrabold text-delina-emerald">Rp 0</span>
+        <div>
+          <span class="text-[11px] text-gray-500 block font-medium" id="cartSelectedSummaryLabel">Total Belanja (0 produk):</span>
+          <span id="cartTotalPrice" class="text-lg font-black text-delina-emerald">Rp 0</span>
+        </div>
+        <div id="cartGrosirAppliedBadge" class="hidden text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+          <i class="bi bi-tags-fill text-amber-600"></i> Diskon Grosir Aktif
+        </div>
       </div>
-      <button onclick="goToCheckout()"
-        class="w-full py-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
-        <span>Lanjut ke Pembayaran & Nota</span>
-        <i class="bi bi-arrow-right"></i>
+      <button id="cartCheckoutBtn" onclick="goToCheckout()"
+        class="w-full py-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+        <span id="cartCheckoutBtnText">Lanjut ke Pembayaran & Nota</span>
+        <i class="bi bi-arrow-right font-bold"></i>
       </button>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Hapus Keranjang Delina -->
+  <div id="cartDeleteConfirmModal" onclick="if(event.target === this) closeCartDeleteModal()"
+    class="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div onclick="event.stopPropagation()"
+      class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl border border-emerald-100 text-center space-y-3 transform transition-transform">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mx-auto shadow-inner border border-rose-100">
+        <i class="bi bi-trash3-fill"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-black text-gray-800" id="cartDeleteModalTitle">Hapus Barang?</h3>
+        <p class="text-xs text-gray-500 leading-relaxed mt-1" id="cartDeleteModalMsg">Barang ini akan dihapus dari keranjang belanja Anda.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button type="button" onclick="closeCartDeleteModal()"
+          class="py-2.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all active:scale-95 cursor-pointer">
+          Batal
+        </button>
+        <button type="button" id="cartDeleteConfirmActionBtn"
+          class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer">
+          Ya, Hapus
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3313,9 +3354,9 @@
   </div>
 
   <!-- Berkas Konfigurasi, Modul Printer Bluetooth & Logika Utama (Versi Terbaru) -->
-  <script src="./js/config.js?v=20261106_01"></script>
-  <script src="./js/printer.js?v=20261106_01"></script>
-  <script src="./js/app.js?v=20261106_01"></script>
+  <script src="./js/config.js?v=20261106_02"></script>
+  <script src="./js/printer.js?v=20261106_02"></script>
+  <script src="./js/app.js?v=20261106_02"></script>
 
 </body>
 

@@ -742,6 +742,7 @@ function addToCart(productId) {
   if (existingItem) {
     if (existingItem.qty < product.stock) {
       existingItem.qty += 1;
+      existingItem.selected = true;
       showToast(`Alhamdulillah, kuantitas "${product.name.slice(0, 25)}..." bertambah.`);
     } else {
       showToast(`Afwan, stok maksimal hanya ${product.stock} ${product.unit}.`, "warning");
@@ -754,7 +755,8 @@ function addToCart(productId) {
       price: product.price,
       image: product.image,
       unit: product.unit,
-      qty: 1
+      qty: 1,
+      selected: true
     });
     showToast(`Alhamdulillah, berhasil dimasukkan ke keranjang belanja.`);
   }
@@ -768,6 +770,21 @@ function addToCart(productId) {
 function updateCartQty(productId, change) {
   const itemIndex = cart.findIndex(item => item.id === productId);
   if (itemIndex > -1) {
+    if (change === -1 && cart[itemIndex].qty <= 1) {
+      confirmRemoveCartItem(productId);
+      return;
+    }
+
+    if (change > 0) {
+      const prod = (typeof DUMMY_PRODUCTS !== "undefined" ? DUMMY_PRODUCTS.find(p => p.id === productId) : null) ||
+                   (typeof window.LIVE_PRODUCTS !== "undefined" && Array.isArray(window.LIVE_PRODUCTS) ? window.LIVE_PRODUCTS.find(p => p.id === productId) : null);
+      const maxStock = (prod && prod.stock) ? prod.stock : 999;
+      if (cart[itemIndex].qty >= maxStock) {
+        showToast(`Stok maksimal tercapai (${maxStock} ${cart[itemIndex].unit || 'pcs'})`, "warning");
+        return;
+      }
+    }
+
     cart[itemIndex].qty += change;
     if (cart[itemIndex].qty <= 0) {
       cart.splice(itemIndex, 1);
@@ -793,74 +810,295 @@ function updateCartBadge() {
   });
 }
 
+// Toggle Pilih Semua (Select All)
+function toggleSelectAllCart(checked) {
+  cart.forEach(item => {
+    item.selected = !!checked;
+  });
+  saveCart();
+  renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
+}
+
+// Toggle Checkbox Pilihan Item Tertentu
+function toggleCartItemSelection(productId, checked) {
+  const item = cart.find(i => i.id === productId);
+  if (item) {
+    item.selected = !!checked;
+  }
+  saveCart();
+  renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
+}
+
+// Pending action callback untuk Modal Konfirmasi Hapus
+let pendingDeleteAction = null;
+
+function confirmRemoveCartItem(productId) {
+  const item = cart.find(i => i.id === productId);
+  if (!item) return;
+
+  const modal = document.getElementById("cartDeleteConfirmModal");
+  const title = document.getElementById("cartDeleteModalTitle");
+  const msg = document.getElementById("cartDeleteModalMsg");
+  const btn = document.getElementById("cartDeleteConfirmActionBtn");
+
+  if (title) title.textContent = "Hapus Barang?";
+  if (msg) msg.textContent = `Hapus "${item.name}" dari keranjang belanja Anda?`;
+
+  pendingDeleteAction = () => {
+    const idx = cart.findIndex(i => i.id === productId);
+    if (idx > -1) {
+      cart.splice(idx, 1);
+      saveCart();
+      updateCartBadge();
+      renderCartDrawer();
+      if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
+      showToast("Item berhasil dihapus dari keranjang.", "success");
+    }
+    closeCartDeleteModal();
+  };
+
+  if (btn) {
+    btn.onclick = () => {
+      if (typeof pendingDeleteAction === "function") pendingDeleteAction();
+    };
+  }
+
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+}
+
+function confirmRemoveSelectedCartItems() {
+  const selectedCount = cart.filter(item => item.selected !== false).length;
+  if (selectedCount === 0) {
+    showToast("Tidak ada barang yang dipilih untuk dihapus.", "warning");
+    return;
+  }
+
+  const modal = document.getElementById("cartDeleteConfirmModal");
+  const title = document.getElementById("cartDeleteModalTitle");
+  const msg = document.getElementById("cartDeleteModalMsg");
+  const btn = document.getElementById("cartDeleteConfirmActionBtn");
+
+  if (title) title.textContent = "Hapus Barang Terpilih?";
+  if (msg) msg.textContent = `Apakah Anda yakin ingin menghapus ${selectedCount} barang yang dipilih dari keranjang belanja?`;
+
+  pendingDeleteAction = () => {
+    cart = cart.filter(item => item.selected === false);
+    saveCart();
+    updateCartBadge();
+    renderCartDrawer();
+    if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
+    showToast(`${selectedCount} barang berhasil dihapus dari keranjang.`, "success");
+    closeCartDeleteModal();
+  };
+
+  if (btn) {
+    btn.onclick = () => {
+      if (typeof pendingDeleteAction === "function") pendingDeleteAction();
+    };
+  }
+
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeCartDeleteModal() {
+  const modal = document.getElementById("cartDeleteConfirmModal");
+  if (modal) modal.classList.add("hidden");
+  pendingDeleteAction = null;
+}
+
 // 7. Render Tampilan Laci Keranjang (Drawer Modal dengan Info File & Catatan Cetak)
 function renderCartDrawer() {
   const container = document.getElementById("cartItemsList");
   const totalElem = document.getElementById("cartTotalPrice");
+  const selectAllBar = document.getElementById("cartSelectAllBar");
+  const headerSubtext = document.getElementById("cartHeaderSubtext");
+  const selectedSummaryLabel = document.getElementById("cartSelectedSummaryLabel");
+  const grosirBadge = document.getElementById("cartGrosirAppliedBadge");
+  const checkoutBtn = document.getElementById("cartCheckoutBtn");
+  const checkoutBtnText = document.getElementById("cartCheckoutBtnText");
+
   if (!container || !totalElem) return;
 
   if (cart.length === 0) {
+    if (selectAllBar) {
+      selectAllBar.innerHTML = "";
+      selectAllBar.classList.add("hidden");
+    }
+    if (headerSubtext) headerSubtext.textContent = "Keranjang Anda kosong";
     container.innerHTML = `
-      <div class="py-12 text-center text-gray-500">
-        <i class="bi bi-cart-x text-4xl text-gray-300"></i>
-        <p class="mt-2 text-sm font-medium">Keranjang masih kosong</p>
-        <p class="text-xs text-gray-400 mt-1">Pilih ATK pilihan Anda untuk mengisi keranjang.</p>
+      <div class="py-14 px-4 text-center flex flex-col items-center justify-center">
+        <div class="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mb-3 shadow-inner border border-emerald-100">
+          <i class="bi bi-cart-x"></i>
+        </div>
+        <h4 class="text-sm font-bold text-gray-800">Keranjang Belanja Masih Kosong</h4>
+        <p class="text-xs text-gray-400 mt-1 max-w-xs leading-relaxed">
+          Yuk jelajahi produk ATK, kosmetik, atau sembako murah berkah di Delina.store!
+        </p>
+        <button type="button" onclick="toggleCartDrawer(false)" class="mt-5 px-5 py-2.5 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center gap-2 cursor-pointer">
+          <i class="bi bi-bag-plus-fill"></i>
+          <span>Mulai Belanja Sekarang</span>
+        </button>
       </div>
     `;
     totalElem.textContent = formatRupiah(0);
+    if (selectedSummaryLabel) selectedSummaryLabel.textContent = "Total Belanja (0 produk):";
+    if (grosirBadge) grosirBadge.classList.add("hidden");
+    if (checkoutBtn) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.className = "w-full py-3 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+      if (checkoutBtnText) checkoutBtnText.textContent = "Keranjang Kosong";
+    }
     return;
   }
 
-  let total = 0;
-  container.innerHTML = cart
-    .map(item => {
-      const itemSubtotal = item.price * item.qty;
-      total += itemSubtotal;
-      return `
-      <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-2">
-        <div class="flex items-center gap-3">
-          <img src="${formatImageUrl(item.image)}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg bg-white border flex-shrink-0" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300';" />
-          <div class="flex-1 min-w-0">
-            <h5 class="text-xs font-semibold text-gray-800 truncate">${item.name}</h5>
-            <p class="text-xs text-emerald-700 font-bold mt-0.5">${formatRupiah(item.price)}</p>
-            <div class="flex items-center gap-2 mt-1.5">
-              <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-md bg-white border border-gray-200 text-gray-600 flex items-center justify-center hover:bg-gray-100 text-xs">-</button>
-              <span class="text-xs font-semibold text-gray-800 w-6 text-center">${item.qty}</span>
-              <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-md bg-white border border-gray-200 text-gray-600 flex items-center justify-center hover:bg-gray-100 text-xs">+</button>
-            </div>
+  // Pastikan properti selected terdefinisi (default true)
+  cart.forEach(item => {
+    if (item.selected === undefined) item.selected = true;
+  });
+
+  const isAllSelected = cart.every(item => item.selected !== false);
+  const selectedItems = cart.filter(item => item.selected !== false);
+  const selectedCount = selectedItems.length;
+
+  // Render Bilah Pilih Semua & Hapus Terpilih
+  if (selectAllBar) {
+    selectAllBar.classList.remove("hidden");
+    selectAllBar.innerHTML = `
+      <label class="flex items-center gap-2 font-bold text-gray-700 cursor-pointer select-none">
+        <input type="checkbox" id="cartSelectAllCheck" onchange="toggleSelectAllCart(this.checked)"
+          class="w-4 h-4 rounded text-emerald-600 focus:ring-0 border-gray-300 cursor-pointer accent-emerald-600"
+          ${isAllSelected ? "checked" : ""} />
+        <span>Pilih Semua (${cart.length})</span>
+      </label>
+      <button type="button" onclick="confirmRemoveSelectedCartItems()"
+        class="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-rose-50 active:scale-95 transition-all ${selectedCount > 0 ? "" : "opacity-40 pointer-events-none"}"
+        title="Hapus barang terpilih">
+        <i class="bi bi-trash3 text-xs"></i>
+        <span>Hapus (${selectedCount})</span>
+      </button>
+    `;
+  }
+
+  if (headerSubtext) {
+    headerSubtext.textContent = `${selectedCount} dari ${cart.length} barang dipilih`;
+  }
+
+  // Hitung subtotal dan diskon grosir untuk item yang dipilih
+  let selectedTotal = 0;
+  selectedItems.forEach(item => {
+    selectedTotal += item.price * item.qty;
+  });
+  const diskonGrosir = hitungDiskonGrosirKeranjang(selectedItems);
+
+  if (grosirBadge) {
+    if (diskonGrosir > 0) {
+      grosirBadge.classList.remove("hidden");
+    } else {
+      grosirBadge.classList.add("hidden");
+    }
+  }
+
+  // Render List Item
+  container.innerHTML = cart.map(item => {
+    const isSelected = item.selected !== false;
+    const itemSubtotal = item.price * item.qty;
+    const cardClass = isSelected
+      ? "p-3 bg-white rounded-2xl border border-emerald-100 shadow-xs flex flex-col gap-2 transition-all"
+      : "p-3 bg-gray-50/80 rounded-2xl border border-gray-200/60 opacity-60 flex flex-col gap-2 transition-all";
+
+    return `
+      <div class="${cardClass}">
+        <div class="flex items-start gap-2.5">
+          <!-- Checkbox Item -->
+          <div class="pt-3.5 pr-0.5">
+            <input type="checkbox" onchange="toggleCartItemSelection('${item.id}', this.checked)"
+              class="w-4 h-4 rounded text-emerald-600 focus:ring-0 border-gray-300 cursor-pointer accent-emerald-600"
+              ${isSelected ? "checked" : ""} />
           </div>
-          <div class="text-right flex-shrink-0">
-            <span class="text-xs font-bold text-gray-800 block">${formatRupiah(itemSubtotal)}</span>
+
+          <!-- Foto Barang -->
+          <img src="${formatImageUrl(item.image)}" alt="${escapeHtml(item.name)}"
+            class="w-14 h-14 object-cover rounded-xl bg-white border border-gray-100 flex-shrink-0 shadow-2xs"
+            onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300';" />
+
+          <!-- Info Barang & Harga -->
+          <div class="flex-1 min-w-0 pr-1">
+            <div class="flex items-start justify-between gap-1">
+              <h5 class="text-xs font-bold text-gray-800 leading-snug line-clamp-2">${escapeHtml(item.name)}</h5>
+              <!-- Tombol Hapus Satuan -->
+              <button type="button" onclick="confirmRemoveCartItem('${item.id}')"
+                class="w-6 h-6 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all active:scale-90 flex-shrink-0 cursor-pointer"
+                title="Hapus barang ini">
+                <i class="bi bi-trash3 text-xs"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <p class="text-xs text-delina-emerald font-black">${formatRupiah(item.price)}</p>
+              ${item.isGrosir ? '<span class="text-[9px] text-amber-700 bg-amber-100 px-1 py-0.2 rounded font-bold">Grosir</span>' : ''}
+            </div>
+
+            <!-- Kontrol Stepper & Subtotal -->
+            <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-100/80">
+              <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-2xs">
+                <button type="button" onclick="updateCartQty('${item.id}', -1)"
+                  class="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-100 active:scale-95 text-xs font-bold transition-all cursor-pointer">
+                  -
+                </button>
+                <span class="text-xs font-extrabold text-gray-800 w-7 text-center">${item.qty}</span>
+                <button type="button" onclick="updateCartQty('${item.id}', 1)"
+                  class="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-100 active:scale-95 text-xs font-bold transition-all cursor-pointer">
+                  +
+                </button>
+              </div>
+              <span class="text-xs font-extrabold text-gray-800">${formatRupiah(itemSubtotal)}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Tampilan Nama Dokumen & Catatan Jika Ada (Pesanan Fotokopi) -->
-        ${
-          item.fileName
-            ? `
+        <!-- Tampilan Nama Dokumen & Catatan Jika Ada -->
+        ${item.fileName ? `
           <div class="pt-1.5 border-t border-gray-200/60 flex items-center justify-between text-[10px]">
             <span class="text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold truncate max-w-[220px]">
-              <i class="bi bi-file-earmark-check-fill text-emerald-600"></i> ${item.fileName} (${item.fileSize})
+              <i class="bi bi-file-earmark-check-fill text-emerald-600"></i> ${escapeHtml(item.fileName)} (${item.fileSize})
             </span>
           </div>
-        `
-            : ""
-        }
-        ${
-          item.notes
-            ? `
+        ` : ""}
+        ${item.notes ? `
           <div class="text-[10px] text-gray-500 italic bg-white/70 p-1.5 rounded-md border border-gray-100">
-            <span class="font-semibold text-gray-600">Catatan:</span> "${item.notes}"
+            <span class="font-semibold text-gray-600">Catatan:</span> "${escapeHtml(item.notes)}"
           </div>
-        `
-            : ""
-        }
+        ` : ""}
       </div>
     `;
-    })
-    .join("");
+  }).join("");
 
-  totalElem.textContent = formatRupiah(total);
+  // Update Total & Tombol Bawah
+  totalElem.textContent = formatRupiah(selectedTotal);
+  if (selectedSummaryLabel) {
+    selectedSummaryLabel.textContent = `Total Belanja (${selectedCount} produk):`;
+  }
+
+  if (checkoutBtn) {
+    if (selectedCount > 0) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.className = "w-full py-3 rounded-xl bg-tokopedia-green hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer";
+      if (checkoutBtnText) {
+        checkoutBtnText.textContent = `Lanjut ke Pembayaran (${selectedCount}) ➔`;
+      }
+    } else {
+      checkoutBtn.disabled = true;
+      checkoutBtn.className = "w-full py-3 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+      if (checkoutBtnText) {
+        checkoutBtnText.textContent = "Pilih minimal 1 barang";
+      }
+    }
+  }
 }
 
 // Web Audio Synthesizer untuk Notifikasi Audio Halus
@@ -1352,6 +1590,7 @@ function detailAddToCart() {
   const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
   if (existingIndex > -1) {
     cart[existingIndex].qty += detailCurrentQty;
+    cart[existingIndex].selected = true;
   } else {
     cart.push({
       id: detailCurrentProduct.id,
@@ -1360,14 +1599,18 @@ function detailAddToCart() {
       image: detailCurrentProduct.image,
       unit: detailCurrentProduct.unit || "Pcs",
       qty: detailCurrentQty,
-      category: detailCurrentProduct.category
+      category: detailCurrentProduct.category,
+      selected: true
     });
   }
-  localStorage.setItem("delina_cart", JSON.stringify(cart));
+  saveCart();
   updateCartBadge();
   renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
   showToast(`✅ ${detailCurrentQty}x ${detailCurrentProduct.name} ditambahkan ke keranjang!`, "success");
   closeProductDetailModal();
+  // Langsung buka Halaman Keranjang Belanja Delina
+  toggleCartDrawer(true);
 }
 
 function detailBuyNow() {
@@ -1375,6 +1618,7 @@ function detailBuyNow() {
   const existingIndex = cart.findIndex(item => item.id === detailCurrentProduct.id);
   if (existingIndex > -1) {
     cart[existingIndex].qty = Math.max(cart[existingIndex].qty, detailCurrentQty);
+    cart[existingIndex].selected = true;
   } else {
     cart.push({
       id: detailCurrentProduct.id,
@@ -1383,13 +1627,21 @@ function detailBuyNow() {
       image: detailCurrentProduct.image,
       unit: detailCurrentProduct.unit || "Pcs",
       qty: detailCurrentQty,
-      category: detailCurrentProduct.category
+      category: detailCurrentProduct.category,
+      selected: true
     });
   }
-  localStorage.setItem("delina_cart", JSON.stringify(cart));
+
+  // Pastikan produk yang baru dipilih ini tercentang (selected = true)
+  const item = cart.find(i => i.id === detailCurrentProduct.id);
+  if (item) item.selected = true;
+
+  saveCart();
   updateCartBadge();
   renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
   closeProductDetailModal();
+  // Langsung buka Halaman Checkout & Pembayaran Pesanan
   openCheckoutModal();
 }
 
@@ -1751,14 +2003,21 @@ const setPrintType = updatePrintTypeUI;
 // =========================================================================
 
 function goToCheckout() {
-  if (!cart || cart.length === 0) {
-    showToast("Keranjang belanja masih kosong kak. Silakan pilih produk terlebih dahulu!", "warning");
+  const selectedItems = Array.isArray(cart) ? cart.filter(item => item.selected !== false) : [];
+  if (selectedItems.length === 0) {
+    showToast("Pilih minimal 1 barang di keranjang sebelum lanjut ke pembayaran!", "warning");
     return;
   }
   openCheckoutModal();
 }
 
 function openCheckoutModal() {
+  const selectedItems = Array.isArray(cart) ? cart.filter(item => item.selected !== false) : [];
+  if (selectedItems.length === 0) {
+    showToast("Pilih minimal 1 barang di keranjang sebelum lanjut ke pembayaran!", "warning");
+    return;
+  }
+
   // Tutup drawer belanja tanpa memicu history.back() karena ini transisi maju
   toggleCartDrawer(false, false);
   renderCheckoutSummary();
@@ -1841,9 +2100,13 @@ function closeCheckoutModal(notifyHistory = true) {
 // =========================================================================
 
 // Aturan Diskon Grosir Bertingkat Otomatis (Tanpa Perlu Kode)
-function hitungDiskonGrosirKeranjang() {
+function hitungDiskonGrosirKeranjang(targetItems = null) {
   let totalDiskonGrosir = 0;
-  cart.forEach(item => {
+  const items = Array.isArray(targetItems)
+    ? targetItems
+    : (Array.isArray(cart) ? cart.filter(item => item.selected !== false) : []);
+
+  items.forEach(item => {
     const nameLower = (item.name || "").toLowerCase();
     
     // 1. Kertas HVS: Beli >= 5 Rim dapat potongan Rp 2.000 / rim
@@ -2017,11 +2280,12 @@ function renderCheckoutSummary() {
 
   if (!container) return;
 
-  const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const targetItems = Array.isArray(cart) ? cart.filter(item => item.selected !== false) : [];
+  const totalItemsCount = targetItems.reduce((sum, item) => sum + item.qty, 0);
+  const subtotal = targetItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // 1. Diskon Grosir Bertingkat
-  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  const diskonGrosir = hitungDiskonGrosirKeranjang(targetItems);
   if (rowGrosir && grosirElem) {
     if (diskonGrosir > 0) {
       rowGrosir.classList.remove("hidden");
@@ -2066,7 +2330,7 @@ function renderCheckoutSummary() {
 
   if (grandTotalElem) grandTotalElem.textContent = formatRupiah(grandTotal);
 
-  container.innerHTML = cart
+  container.innerHTML = targetItems
     .map(item => {
       const thumbUrl = resolveCartItemImageUrl(item);
       let badgeGrosirHtml = item.isGrosir
@@ -2503,14 +2767,20 @@ function submitOrderCheckout() {
   }
 
   // Buat Nomor Nota Pesanan Otomatis (#DLN-2026-XXXX)
+  const selectedItems = Array.isArray(cart) ? cart.filter(item => item.selected !== false) : [];
+  if (selectedItems.length === 0) {
+    showToast("Pilih minimal 1 barang di keranjang belanja sebelum checkout!", "warning");
+    return;
+  }
+
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   const orderId = `#DLN-2026-${randomSuffix}`;
   localStorage.setItem("delina_last_order_id", orderId);
 
   const orderTime = formatWaktuWIB(new Date());
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const diskonGrosir = hitungDiskonGrosirKeranjang(selectedItems);
   let diskonKupon = 0;
   if (appliedCoupon) {
     if (appliedCoupon.type === "fixed") {
@@ -2539,7 +2809,7 @@ function submitOrderCheckout() {
     totalAkhir: formatRupiah(totalAkhir),
     orderTime,
     status: "Menunggu Verifikasi Toko",
-    items: [...cart],
+    items: [...selectedItems],
     hasPaymentProof: !!uploadedPaymentProof,
     paymentProofName: uploadedPaymentProof ? uploadedPaymentProof.name : "QRIS / Transfer Resmi",
     couponCode: appliedCoupon ? appliedCoupon.code : null,
@@ -2602,12 +2872,13 @@ function submitOrderCheckout() {
   // Buka Modal Sukses
   openSuccessModal(latestOrderData);
 
-  // Kosongkan Keranjang Belanja & Kupon
-  cart = [];
+  // Hapus hanya barang yang sudah dicheckout (barang unselected tetap tersimpan di keranjang)
+  cart = cart.filter(item => item.selected === false);
   appliedCoupon = null;
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  if (typeof updateKikoMiniCartBar === "function") updateKikoMiniCartBar();
 
   // Bersihkan form input checkout
   if (nameInput && !currentMemberSession) nameInput.value = "";
@@ -3448,8 +3719,9 @@ function updateKikoMiniCartBar() {
   const totalEl = document.getElementById("kikoMiniCartTotal");
   if (!bar || !countEl || !totalEl) return;
 
-  const totalQty = Array.isArray(cart) ? cart.reduce((s, it) => s + (Number(it.qty) || 0), 0) : 0;
-  const totalPrice = Array.isArray(cart) ? cart.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 0), 0) : 0;
+  const selectedItems = Array.isArray(cart) ? cart.filter(it => it.selected !== false) : [];
+  const totalQty = selectedItems.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+  const totalPrice = selectedItems.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 0), 0);
 
   if (totalQty > 0) {
     countEl.textContent = `${totalQty} Barang`;
@@ -6441,9 +6713,10 @@ function populateAndOpenVerifyCartModal(mode = "file") {
     return;
   }
 
-  const totalItems = cart.reduce((s, i) => s + (i.qty || 1), 0);
-  const subtotal = cart.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
-  const diskonGrosir = hitungDiskonGrosirKeranjang();
+  const targetItems = Array.isArray(cart) ? cart.filter(i => i.selected !== false) : [];
+  const totalItems = targetItems.reduce((s, i) => s + (i.qty || 1), 0);
+  const subtotal = targetItems.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
+  const diskonGrosir = hitungDiskonGrosirKeranjang(targetItems);
   let diskonKupon = 0;
   if (appliedCoupon) {
     if (appliedCoupon.type === "fixed" || appliedCoupon.type === "NOMINAL") {
@@ -6478,7 +6751,7 @@ function populateAndOpenVerifyCartModal(mode = "file") {
   }
 
   if (listEl) {
-    listEl.innerHTML = cart.map((item, idx) => {
+    listEl.innerHTML = targetItems.map((item, idx) => {
       const thumbUrl = resolveCartItemImageUrl(item);
       return `
         <div class="flex items-center justify-between gap-2.5 py-2 border-b border-slate-200/70 dark:border-slate-700 last:border-none text-xs">
@@ -6820,6 +7093,11 @@ window.kikoSetCategoryQuickChips = kikoSetCategoryQuickChips;
   window.updateDetailSubtotal = updateDetailSubtotal;
   window.detailAddToCart = detailAddToCart;
   window.detailBuyNow = detailBuyNow;
+  window.toggleSelectAllCart = toggleSelectAllCart;
+  window.toggleCartItemSelection = toggleCartItemSelection;
+  window.confirmRemoveCartItem = confirmRemoveCartItem;
+  window.confirmRemoveSelectedCartItems = confirmRemoveSelectedCartItems;
+  window.closeCartDeleteModal = closeCartDeleteModal;
   window.useSimulatedReceipt = useSimulatedReceipt;
   window.openLacakPesananModal = openLacakPesananModal;
   window.closeLacakPesananModal = closeLacakPesananModal;
