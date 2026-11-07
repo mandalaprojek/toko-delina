@@ -3336,14 +3336,30 @@ function sendConfirmationWhatsApp(appMode = "regular") {
 // Helper Universal Membuka WhatsApp Biasa vs WhatsApp Business (Android, iOS & Desktop)
 function openWhatsAppWithAppChoice(cleanPhone, messageText, appMode = "regular") {
   const encodedText = encodeURIComponent(messageText || "");
-  const waUrl = cleanPhone
-    ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`
-    : `https://api.whatsapp.com/send?text=${encodedText}`;
+  let p = String(cleanPhone || "").replace(/\D/g, "");
+  if (p.startsWith("0")) p = "62" + p.slice(1);
+  else if (p.startsWith("8")) p = "62" + p;
+  else if (!p.startsWith("62") && p.length > 5) p = "62" + p;
+
+  const waUrl = p
+    ? `https://wa.me/${p}?text=${encodedText}`
+    : `https://wa.me/?text=${encodedText}`;
 
   // Buka URL WhatsApp secara universal & aman tanpa memicu error intent:// unregistered scheme
-  const opened = window.open(waUrl, "_blank");
-  if (!opened || opened.closed || typeof opened.closed === "undefined") {
-    window.location.href = waUrl;
+  try {
+    const link = document.createElement("a");
+    link.href = waUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      try {
+        if (link && link.parentNode) link.parentNode.removeChild(link);
+      } catch (e) {}
+    }, 400);
+  } catch (err) {
+    window.open(waUrl, "_blank");
   }
 }
 
@@ -5404,6 +5420,9 @@ function formatImageUrl(url) {
     return clean;
   }
   // Intercept URL Unsplash lama yang 404 agar bebas error di console
+  if (clean.includes("1456735190829") || clean.includes("80ab072ac1a0")) {
+    return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
+  }
   if (clean.includes("1608248597359") || clean.includes("1607006314330")) {
     return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
   }

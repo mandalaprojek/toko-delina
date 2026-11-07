@@ -66,6 +66,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -83,8 +84,32 @@
     }
   </script>
 
+  <!-- Script Pencegah Flash Tema Gelap (Dark Mode Instant Init) -->
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem("delina_theme");
+        if (savedTheme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch (e) { }
+    })();
+  </script>
+
   <style>
-    /* Styling Dasar & Scrollbar */
+    /* Styling Dasar & Aturan Dark Mode */
+    .dark { color-scheme: dark; }
+    .dark body, .dark body.delina-admin-bg {
+      background-image: none !important;
+      background-color: #0b1120 !important;
+      color: #f1f5f9 !important;
+    }
+    .dark main {
+      background-color: #0b1120 !important;
+    }
+
     body {
       background-color: #ffffff;
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -359,6 +384,18 @@
             <span class="hidden sm:inline">Segarkan</span>
           </button>
 
+          <!-- Tombol Cepat Toggle Dark Mode Header -->
+          <button 
+            type="button"
+            onclick="toggleAdminTheme()" 
+            id="btnHeaderThemeToggle"
+            class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15 text-amber-300 cursor-pointer"
+            title="Beralih Tema Terang / Gelap"
+          >
+            <i id="headerThemeIcon" class="bi bi-moon-stars-fill text-sm"></i>
+            <span id="headerThemeText" class="hidden md:inline text-xs font-bold">Mode</span>
+          </button>
+
           <a 
             href="index.html" 
             target="_blank"
@@ -466,78 +503,125 @@
       <!-- =========================================================
            TAB 1: DASHBOARD & KEUANGAN (KHUSUS SUPER ADMIN)
            ========================================================= -->
-      <section id="tabContentDashboard" class="tab-pane space-y-6">
+      <section id="tabContentDashboard" class="tab-pane space-y-4 px-3 pt-3 lg:px-0 lg:pt-0">
         
-        <!-- Bento Grid Kartu Ringkasan -->
+        <!-- Bar Pintasan Menu Super Admin (Khusus Mobile & Tablet lg:hidden) -->
+        <div class="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-bold -mx-3 px-3">
+          <button 
+            type="button" 
+            onclick="switchTab('dashboard')"
+            class="px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+          >
+            <span>📊 Ringkasan</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="switchTab('coupons')"
+            class="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all admin-only-feature"
+          >
+            <span>🎟️ Kupon Promo</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="switchTab('settings')"
+            class="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all admin-only-feature"
+          >
+            <span>⚙️ Profil Toko</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="openLembarSaktiModal()"
+            class="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+          >
+            <span>📑 Lembar Sakti</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="openAddProductModal()"
+            class="px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-2xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+          >
+            <span>➕ Produk Baru</span>
+          </button>
+        </div>
+
+        <!-- Bento Grid Kartu Ringkasan (5 Kartu) -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           
           <!-- Kartu 1: Omzet Hari Ini -->
-          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-slate-600">Omzet Hari Ini</span>
-              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-black">
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Omzet Hari Ini</span>
+              <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-black">
                 💰
               </div>
             </div>
             <div>
-              <div id="statOmzetHariIni" class="text-lg sm:text-2xl font-black text-emerald-700">Rp 0</div>
-              <p class="text-[11px] text-slate-400 mt-0.5">Real-time dari Google Sheets</p>
+              <div id="statOmzetHariIni" class="text-lg sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">Rp 0</div>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Real-time dari kasir &amp; web</p>
             </div>
           </div>
 
           <!-- Kartu 2: Pesanan Hari Ini -->
-          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-slate-600">Pesanan Hari Ini</span>
-              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-black">
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Pesanan Hari Ini</span>
+              <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-black">
                 🛍️
               </div>
             </div>
             <div>
-              <div id="statPesananHariIni" class="text-lg sm:text-2xl font-black text-slate-900">0</div>
-              <p class="text-[11px] text-slate-400 mt-0.5">Nota transaksi hari ini</p>
+              <div id="statPesananHariIni" class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">0</div>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Nota transaksi hari ini</p>
             </div>
           </div>
 
-          <!-- Kartu 3: Butuh Diproses -->
-          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <!-- Kartu 3: Menunggu Verifikasi (Klik langsung ke Tab Antrean) -->
+          <div 
+            onclick="switchTab('queue')" 
+            class="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-400 dark:hover:border-amber-500 flex flex-col justify-between transition-all cursor-pointer group"
+            title="Ketuk untuk membuka Antrean Pesanan"
+          >
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-slate-600">Menunggu Verifikasi</span>
-              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-black">
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Menunggu Verifikasi</span>
+              <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-black group-hover:scale-110 transition-transform">
                 ⏳
               </div>
             </div>
             <div>
-              <div id="statPesananMenunggu" class="text-lg sm:text-2xl font-black text-amber-600">0</div>
-              <p class="text-[11px] text-slate-400 mt-0.5">Perlu dicek di POS</p>
+              <div id="statPesananMenunggu" class="text-lg sm:text-2xl font-black text-amber-600 dark:text-amber-400">0</div>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 flex items-center gap-1">Perlu dicek di POS &rarr;</p>
             </div>
           </div>
 
-          <!-- Kartu 4: Stok Menipis -->
-          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <!-- Kartu 4: Stok Menipis (Klik scroll ke daftar stok kritis) -->
+          <div 
+            onclick="document.getElementById('lowStockTableContainerSection')?.scrollIntoView({behavior:'smooth'})" 
+            class="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-rose-400 dark:hover:border-rose-500 flex flex-col justify-between transition-all cursor-pointer group"
+            title="Ketuk untuk melihat daftar barang stok kritis"
+          >
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-slate-600">Barang Menipis</span>
-              <div class="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm font-black">
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Barang Menipis</span>
+              <div class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-sm font-black group-hover:scale-110 transition-transform">
                 ⚠️
               </div>
             </div>
             <div>
-              <div id="statLowStockCount" class="text-lg sm:text-2xl font-black text-red-600">0</div>
-              <p class="text-[11px] text-slate-400 mt-0.5">Stok &le; 3 pcs</p>
+              <div id="statLowStockCount" class="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400">0</div>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Stok &le; 3 pcs &darr;</p>
             </div>
           </div>
 
           <!-- Kartu 5: Estimasi Laba Kotor (Admin Only) -->
-          <div id="statCardLabaKotor" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 to-teal-50/60 border border-emerald-200/90 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1 admin-only-feature">
+          <div id="statCardLabaKotor" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 to-teal-50/60 dark:from-emerald-950/70 dark:to-slate-900 border border-emerald-200/90 dark:border-emerald-800/80 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1 admin-only-feature transition-colors">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-emerald-800">Estimasi Laba Kotor</span>
+              <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300">Estimasi Laba Kotor</span>
               <span id="statMarginHariIniBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
                 0% Margin
               </span>
             </div>
             <div>
-              <div id="statLabaKotorHariIni" class="text-lg sm:text-2xl font-black text-emerald-700">Rp 0</div>
-              <p class="text-[11px] text-emerald-600/90 mt-0.5">Penjualan dikurangi HPP</p>
+              <div id="statLabaKotorHariIni" class="text-lg sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">Rp 0</div>
+              <p class="text-[11px] text-emerald-600/90 dark:text-emerald-400/80 mt-0.5">Penjualan dikurangi HPP</p>
             </div>
           </div>
 
@@ -546,25 +630,25 @@
         <!-- =========================================================
              DIAGRAM OMZET SEPEKAN (SENIN - MINGGU)
              ========================================================= -->
-        <div class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-base font-black">
+                <span class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-base font-black">
                   <i class="bi bi-bar-chart-fill"></i>
                 </span>
-                <h3 class="font-extrabold text-base text-slate-800">Diagram Omzet Sepekan (Senin - Minggu)</h3>
-                <span id="badgeWeeklyTodayIndicator" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
+                <h3 class="font-extrabold text-base text-slate-800 dark:text-white">Diagram Omzet Sepekan (Senin - Minggu)</h3>
+                <span id="badgeWeeklyTodayIndicator" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                   <span id="badgeWeeklyTodayText">Hari Ini: Rp 0</span>
                 </span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">Grafik performa penjualan harian toko dari Senin sampai Minggu secara real-time</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Grafik performa penjualan harian toko dari Senin sampai Minggu secara real-time</p>
             </div>
             <div class="flex items-center gap-3">
               <div class="text-left sm:text-right">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Sepekan</div>
-                <div id="statWeeklyTotalOmzet" class="text-base sm:text-lg font-black text-slate-900">Rp 0</div>
+                <div class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Total Sepekan</div>
+                <div id="statWeeklyTotalOmzet" class="text-base sm:text-lg font-black text-slate-900 dark:text-white">Rp 0</div>
               </div>
             </div>
           </div>
@@ -576,34 +660,34 @@
         </div>
 
         <!-- Tombol Aksi Cepat Bento -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button onclick="switchTab('pos')" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-delina-emerald text-white shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-left">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <button onclick="switchTab('pos')" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-delina-emerald text-white shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-left active:scale-95 cursor-pointer">
             <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
               <i class="bi bi-cart-check-fill"></i>
             </div>
             <div>
-              <div class="font-extrabold text-sm">Buka Antrean Kasir</div>
-              <p class="text-xs text-emerald-100">Proses pesanan, struk & WA.</p>
+              <div class="font-extrabold text-sm">Buka Kasir POS</div>
+              <p class="text-xs text-emerald-100">Scan barcode, nota &amp; cetak struk.</p>
             </div>
           </button>
 
-          <button onclick="openAddProductModal()" class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-300 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl">
+          <button onclick="openAddProductModal()" class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-600 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left active:scale-95 cursor-pointer">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xl">
               <i class="bi bi-plus-circle-fill"></i>
             </div>
             <div>
-              <div class="font-extrabold text-sm text-slate-800">Tambah Produk Baru</div>
-              <p class="text-xs text-slate-500">Unggah foto & stok ATK baru.</p>
+              <div class="font-extrabold text-sm text-slate-800 dark:text-slate-100">Tambah Produk Baru</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Unggah foto &amp; stok ATK baru.</p>
             </div>
           </button>
 
-          <button onclick="openLembarSaktiModal()" class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-300 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left cursor-pointer">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
+          <button onclick="openLembarSaktiModal()" class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-600 shadow-xs hover:shadow-md transition-all flex items-center gap-3 text-left cursor-pointer active:scale-95">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-xl">
               <i class="bi bi-upc-scan"></i>
             </div>
             <div>
-              <div class="font-extrabold text-sm text-slate-800">Lembar Sakti Kasir</div>
-              <p class="text-xs text-slate-500">Barcode cheat sheet & cetak A4.</p>
+              <div class="font-extrabold text-sm text-slate-800 dark:text-slate-100">Lembar Sakti Kasir</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Barcode cheat sheet &amp; cetak A4.</p>
             </div>
           </button>
 
@@ -612,7 +696,7 @@
             type="button" 
             id="btnGenerateDummy"
             onclick="triggerGenerateDummy()" 
-            class="p-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-left active:scale-95 group border border-indigo-400/30"
+            class="p-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-left active:scale-95 group border border-indigo-400/30 cursor-pointer"
             title="Klik untuk mengisi database Google Sheets dengan 50 transaksi bervariasi dan produk ATK"
           >
             <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl group-hover:rotate-12 transition-transform">
@@ -623,19 +707,19 @@
                 <span>50 Data Dummy</span>
                 <span class="text-[9px] bg-amber-300 text-slate-900 font-black px-1.5 py-0.2 rounded-full uppercase">1-Klik</span>
               </div>
-              <p class="text-xs text-indigo-100">Populate pesanan & analitik.</p>
+              <p class="text-xs text-indigo-100">Populate pesanan &amp; analitik.</p>
             </div>
           </button>
         </div>
 
         <!-- Tabel Peringatan Barang Menipis -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+        <div id="lowStockTableContainerSection" class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3 transition-colors">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <i class="bi bi-exclamation-triangle-fill text-amber-500"></i>
-              Daftar Barang Stok Kritis (&le; 3 pcs)
+              <span>Daftar Barang Stok Kritis (&le; 3 pcs)</span>
             </h3>
-            <button onclick="switchTab('products')" class="text-xs text-emerald-700 hover:underline font-bold">
+            <button onclick="switchTab('products')" class="text-xs text-emerald-700 dark:text-emerald-400 hover:underline font-bold cursor-pointer">
               Kelola Semua Stok &rarr;
             </button>
           </div>
@@ -647,19 +731,19 @@
         <!-- =========================================================
              REKAP SEMUA TRANSAKSI BERHASIL (KASIR POS & ONLINE)
              ========================================================= -->
-        <div class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div id="completedOrdersSection" class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-base font-black">
+                <span class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-base font-black">
                   <i class="bi bi-receipt-cutoff"></i>
                 </span>
-                <h3 class="font-extrabold text-base text-slate-800">Rekap Semua Transaksi Berhasil</h3>
-                <span id="completedOrdersCountBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                <h3 class="font-extrabold text-base text-slate-800 dark:text-white">Rekap Semua Transaksi Berhasil</h3>
+                <span id="completedOrdersCountBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                   0 Transaksi
                 </span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">Daftar transaksi lunas dari Kasir POS dan Pesanan Web Online</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Daftar transaksi lunas dari Kasir POS dan Pesanan Web Online</p>
             </div>
 
             <!-- Kontrol Filter & Pencarian -->
@@ -672,29 +756,29 @@
                   id="searchCompletedOrdersInput" 
                   oninput="handleSearchCompletedOrders(this.value)" 
                   placeholder="Cari ID / Pelanggan / Item..." 
-                  class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium"
+                  class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white"
                 />
               </div>
 
               <!-- Filter Jenis Transaksi -->
-              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                 <button 
                   type="button" 
                   onclick="setCompletedOrdersFilter('all')" 
                   id="btnFilterCompletedAll" 
-                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-emerald-800 shadow-xs transition-all cursor-pointer"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-300 shadow-xs transition-all cursor-pointer"
                 >Semua</button>
                 <button 
                   type="button" 
                   onclick="setCompletedOrdersFilter('pos')" 
                   id="btnFilterCompletedPos" 
-                  class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all cursor-pointer"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                 >Kasir POS</button>
                 <button 
                   type="button" 
                   onclick="setCompletedOrdersFilter('online')" 
                   id="btnFilterCompletedOnline" 
-                  class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all cursor-pointer"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                 >Online</button>
               </div>
             </div>
@@ -706,8 +790,55 @@
           </div>
 
           <!-- Pagination / Navigasi Halaman -->
-          <div id="completedOrdersPaginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div id="completedOrdersPaginationContainer" class="pt-3 border-t border-slate-100 dark:border-slate-800">
             <!-- Diisi dinamis -->
+          </div>
+        </div>
+
+        <!-- =========================================================
+             SEKSI SAKLAR 3D "MAU MODE TERANG ATAU GELAP?"
+             ========================================================= -->
+        <div id="adminThemeSwitcherSection" class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs text-center space-y-2 transition-colors">
+          <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Mau mode terang atau gelap?
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            Nyalain atau matiin saklar sesuai kenyamanan matamu saat mengelola toko.
+          </p>
+
+          <!-- Kartu Saklar 3D Vertikal -->
+          <div id="adminThemeSwitchCard" onclick="toggleAdminTheme()"
+            class="w-48 h-48 sm:w-52 sm:h-52 bg-[#f3f4f8] dark:bg-slate-800/90 rounded-3xl shadow-inner border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-center mx-auto my-5 cursor-pointer select-none transition-all hover:scale-[1.02] active:scale-95"
+            title="Ketuk saklar untuk beralih mode terang / gelap">
+            
+            <!-- Wadah Saklar Vertikal Kapsul (3D Toggle Track) -->
+            <div id="adminThemeSwitchTrack"
+              class="w-16 h-28 bg-[#e2e5e9] dark:bg-slate-950 rounded-full p-1.5 cursor-pointer relative shadow-inner select-none transition-colors duration-300 flex flex-col justify-between">
+              
+              <!-- Ikon Mini Matahari (Atas) -->
+              <div class="w-full flex justify-center text-xs text-amber-500/80 font-bold py-1 pointer-events-none">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                </svg>
+              </div>
+
+              <!-- Kenop Saklar 3D (Bisa Bergeser ke Bawah) -->
+              <div id="adminThemeSwitchKnob"
+                class="w-[52px] h-[52px] rounded-full shadow-md transition-all duration-300 transform flex items-center justify-center absolute top-1.5 left-1.5 bg-gradient-to-b from-white to-[#e4e7eb] border border-white/90 text-amber-500">
+                <div id="adminThemeKnobIcon" class="flex items-center justify-center">
+                  <svg class="w-5 h-5 text-amber-500/70" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Ikon Mini Bulan (Bawah) -->
+              <div class="w-full flex justify-center text-xs text-emerald-400 font-bold py-1 pointer-events-none">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1281,7 +1412,7 @@
       <section id="tabContentProducts" class="tab-pane hidden space-y-3 md:space-y-4 px-3 md:px-0">
         
         <!-- Header Aksi Katalog -->
-        <div class="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center justify-between">
           <div class="relative w-full sm:w-80">
             <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
             <input 
@@ -1289,7 +1420,7 @@
               id="productSearchInput" 
               oninput="handleProductSearch(this.value)" 
               placeholder="Cari nama barang, kategori, barcode SKU..." 
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white transition-all font-medium" 
+              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium" 
             />
           </div>
 
@@ -1494,9 +1625,9 @@
         </div>
 
         <!-- 1. KELOLA 10 PILIHAN HADIAH ROYALTY -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-            <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h4 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <i class="bi bi-gift text-amber-500"></i>
               <span>10 Slot Pilihan Hadiah Royalty (30x Belanja)</span>
             </h4>
@@ -1509,18 +1640,18 @@
         </div>
 
         <!-- 2. DAFTAR KLAIM HADIAH PELANGGAN (VERIFIKASI PENYERAHAN) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-            <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <i class="bi bi-clock-history text-emerald-700"></i>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h4 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i class="bi bi-clock-history text-emerald-700 dark:text-emerald-400"></i>
               <span>Daftar Klaim Hadiah Pelanggan (Serahkan Hadiah)</span>
             </h4>
-            <span class="text-xs text-slate-500">Tunjukkan kode klaim untuk serahkan</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">Tunjukkan kode klaim untuk serahkan</span>
           </div>
           
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold">
                 <tr>
                   <th class="p-3">Kode Klaim</th>
                   <th class="p-3">Waktu</th>
@@ -1530,7 +1661,7 @@
                   <th class="p-3 text-right">Aksi Kasir / Admin</th>
                 </tr>
               </thead>
-              <tbody id="adminClaimsTableBody" class="divide-y divide-slate-100">
+              <tbody id="adminClaimsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
                 <!-- Diisi otomatis oleh JavaScript -->
               </tbody>
             </table>
@@ -1538,14 +1669,14 @@
         </div>
 
         <!-- 3. DAFTAR MEMBER TERDAFTAR -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <h4 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
                 <i class="bi bi-people-fill text-delina-emerald"></i>
                 <span>Database Member VIP Terdaftar</span>
               </h4>
-              <p class="text-xs text-slate-500">Poin belanja bertambah otomatis setiap transaksi website & kasir.</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Poin belanja bertambah otomatis setiap transaksi website & kasir.</p>
             </div>
             <div class="relative w-full sm:w-64">
               <i class="bi bi-search text-slate-400 absolute left-3 top-2 text-xs"></i>
@@ -1554,14 +1685,14 @@
                 id="searchMemberInput" 
                 placeholder="Cari No HP / Nama..." 
                 oninput="filterAdminMembers(this.value)"
-                class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:border-emerald-600"
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
               />
             </div>
           </div>
 
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold">
                 <tr>
                   <th class="p-3">Nomor HP</th>
                   <th class="p-3">Nama Member</th>
@@ -1570,7 +1701,7 @@
                   <th class="p-3">Tanggal Daftar</th>
                 </tr>
               </thead>
-              <tbody id="adminMembersTableBody" class="divide-y divide-slate-100">
+              <tbody id="adminMembersTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
                 <!-- Diisi otomatis oleh JavaScript -->
               </tbody>
             </table>
@@ -1585,35 +1716,35 @@
       <section id="tabContentCoupons" class="tab-pane hidden space-y-4">
         
         <!-- Form Tambah Kupon -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs max-w-3xl mx-auto space-y-4">
-          <div class="border-b border-slate-100 pb-3">
-            <h3 class="font-extrabold text-base text-slate-800">Kelola Kupon Diskon Berkah</h3>
-            <p class="text-xs text-slate-500">Kupon aktif dapat digunakan oleh pembeli saat checkout belanja.</p>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs max-w-3xl mx-auto space-y-4">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 class="font-extrabold text-base text-slate-800 dark:text-slate-100">Kelola Kupon Diskon Berkah</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Kupon aktif dapat digunakan oleh pembeli saat checkout belanja.</p>
           </div>
 
           <form id="formCoupon" onsubmit="handleSaveCoupon(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Kode Kupon (Huruf Kapital)</label>
-              <input type="text" id="couponCodeInput" placeholder="Contoh: JUMATBERKAH" class="w-full uppercase font-mono tracking-wider font-extrabold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Kode Kupon (Huruf Kapital)</label>
+              <input type="text" id="couponCodeInput" placeholder="Contoh: JUMATBERKAH" class="w-full uppercase font-mono tracking-wider font-extrabold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Tipe Diskon</label>
-              <select id="couponTypeInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600">
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tipe Diskon</label>
+              <select id="couponTypeInput" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600">
                 <option value="NOMINAL">Potongan Rupiah (Nominal)</option>
                 <option value="PERSEN">Potongan Persen (%)</option>
               </select>
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Nilai Diskon (Rp atau %)</label>
-              <input type="number" id="couponValueInput" placeholder="5000 atau 10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nilai Diskon (Rp atau %)</label>
+              <input type="number" id="couponValueInput" placeholder="5000 atau 10" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Minimal Belanja (Rp)</label>
-              <input type="number" id="couponMinSpendInput" placeholder="30000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Minimal Belanja (Rp)</label>
+              <input type="number" id="couponMinSpendInput" placeholder="30000" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
             </div>
             <div class="sm:col-span-2">
-              <label class="block font-bold text-slate-700 mb-1">Keterangan Kupon</label>
-              <input type="text" id="couponDescInput" placeholder="Contoh: Diskon 10% Spesial Jumat Berkah" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Keterangan Kupon</label>
+              <input type="text" id="couponDescInput" placeholder="Contoh: Diskon 10% Spesial Jumat Berkah" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
             </div>
             <div class="sm:col-span-2 flex justify-end pt-2">
               <button type="submit" id="btnSaveCoupon" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2">
@@ -1625,13 +1756,13 @@
         </div>
 
         <!-- Tabel Kupon Aktif -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs max-w-3xl mx-auto overflow-hidden">
-          <div class="p-4 border-b border-slate-100 font-extrabold text-sm text-slate-800">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs max-w-3xl mx-auto overflow-hidden">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 font-extrabold text-sm text-slate-800 dark:text-slate-100">
             Daftar Kupon Tersedia di Database
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold">
                 <tr>
                   <th class="p-3">Kode Kupon</th>
                   <th class="p-3">Diskon</th>
@@ -1640,7 +1771,7 @@
                   <th class="p-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody id="couponsTableBody" class="divide-y divide-slate-100">
+              <tbody id="couponsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
                 <!-- Diisi otomatis oleh JavaScript -->
               </tbody>
             </table>
@@ -1650,33 +1781,33 @@
         <!-- =========================================================
              KELOLA POP-UP BANNER PROMO SAMBUTAN (CAROUSEL ALA ALFAGIFT)
              ========================================================= -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs max-w-3xl mx-auto space-y-4">
-          <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs max-w-3xl mx-auto space-y-4">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                <span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-sm">
                   <i class="bi bi-images"></i>
                 </span>
-                <h3 class="font-extrabold text-base text-slate-800">Pop-up Banner Promo Sambutan (Carousel)</h3>
+                <h3 class="font-extrabold text-base text-slate-800 dark:text-slate-100">Pop-up Banner Promo Sambutan (Carousel)</h3>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">Banner promo bergerak dinamis yang menyambut pelanggan pertama kali membuka website Delina.</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Banner promo bergerak dinamis yang menyambut pelanggan pertama kali membuka website Delina.</p>
             </div>
             
             <!-- Toggle Switch Aktif/Nonaktif -->
-            <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-              <span class="text-xs font-bold text-slate-700">Status Pop-up:</span>
+            <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Status Pop-up:</span>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="adminPromoEnabledToggle" onchange="toggleAdminPromoEnabled(this.checked)" class="sr-only peer" checked>
-                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                <span id="adminPromoEnabledText" class="ml-2 text-xs font-extrabold text-emerald-700">Aktif</span>
+                <div class="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <span id="adminPromoEnabledText" class="ml-2 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">Aktif</span>
               </label>
             </div>
           </div>
 
           <!-- Action Bar: Tambah Slide & Simpan -->
           <div class="flex items-center justify-between gap-2 pt-1">
-            <button type="button" onclick="openAddPromoSlideModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 font-bold text-xs border border-slate-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
-              <i class="bi bi-plus-circle text-emerald-600"></i>
+            <button type="button" onclick="openAddPromoSlideModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+              <i class="bi bi-plus-circle text-emerald-600 dark:text-emerald-400"></i>
               <span>Tambah Slide Promo</span>
             </button>
             <button type="button" id="btnSaveAllPromoSlides" onclick="handleSavePopupPromos()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
@@ -1697,159 +1828,159 @@
            TAB 6: PROFIL TOKO & PENGATURAN (SUPER ADMIN)
            ========================================================= -->
       <section id="tabContentSettings" class="tab-pane hidden space-y-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs max-w-2xl mx-auto space-y-4">
-          <div class="border-b border-slate-100 pb-3">
-            <h3 class="font-extrabold text-base text-slate-800">Profil Toko & Parameter Sistem</h3>
-            <p class="text-xs text-slate-500">Perubahan disimpan langsung ke Tab Pengaturan Google Sheets.</p>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs max-w-2xl mx-auto space-y-4 text-slate-800 dark:text-slate-100">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 class="font-extrabold text-base text-slate-800 dark:text-slate-100">Profil Toko & Parameter Sistem</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Perubahan disimpan langsung ke Tab Pengaturan Google Sheets.</p>
           </div>
 
           <form id="formSettings" onsubmit="handleSaveSettings(event)" class="space-y-3 text-xs">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Nama Toko</label>
-              <input type="text" id="settingNamaToko" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Toko</label>
+              <input type="text" id="settingNamaToko" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-emerald-600" required />
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Slogan Toko</label>
-              <input type="text" id="settingSloganToko" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Slogan Toko</label>
+              <input type="text" id="settingSloganToko" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1">No. WhatsApp Toko</label>
-              <input type="text" id="settingNoWa" placeholder="081234567890" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">No. WhatsApp Toko</label>
+              <input type="text" id="settingNoWa" placeholder="081234567890" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" required />
             </div>
 
             <!-- Rekening Bank & E-Wallet Toko -->
-            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div class="font-extrabold text-slate-800 flex items-center justify-between text-xs">
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <div class="font-extrabold text-slate-800 dark:text-slate-100 flex items-center justify-between text-xs">
                 <span class="flex items-center gap-1.5">
-                  <i class="bi bi-wallet2 text-emerald-700"></i>
+                  <i class="bi bi-wallet2 text-emerald-700 dark:text-emerald-400"></i>
                   <span>Rekening Bank & E-Wallet Toko</span>
                 </span>
                 <span class="text-[10px] text-slate-400 font-normal">Otomatis tampil di checkout website & struk</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Rekening Bank 1 (Utama)</label>
-                  <input type="text" id="settingRekening1" placeholder="BCA 1234567890 a.n Delina Shop" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Rekening Bank 1 (Utama)</label>
+                  <input type="text" id="settingRekening1" placeholder="BCA 1234567890 a.n Delina Shop" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Rekening Bank 2 (Cadangan)</label>
-                  <input type="text" id="settingRekening2" placeholder="BRI / Mandiri 9876543210 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Rekening Bank 2 (Cadangan)</label>
+                  <input type="text" id="settingRekening2" placeholder="BRI / Mandiri 9876543210 a.n Delina" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
                 </div>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">E-Wallet ShopeePay</label>
-                  <input type="text" id="settingShopeePay" placeholder="ShopeePay 081234567890 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">E-Wallet ShopeePay</label>
+                  <input type="text" id="settingShopeePay" placeholder="ShopeePay 081234567890 a.n Delina" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">E-Wallet GoPay / DANA</label>
-                  <input type="text" id="settingGopay" placeholder="GoPay 081234567890 a.n Delina" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">E-Wallet GoPay / DANA</label>
+                  <input type="text" id="settingGopay" placeholder="GoPay 081234567890 a.n Delina" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 font-medium" />
                 </div>
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Username / Link Bot Telegram</label>
-                <input type="text" id="settingTelegramBot" placeholder="https://t.me/KikoDelinaBot" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Username / Link Bot Telegram</label>
+                <input type="text" id="settingTelegramBot" placeholder="https://t.me/KikoDelinaBot" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
               </div>
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Tautan Google Maps Toko</label>
-                <input type="text" id="settingGoogleMaps" placeholder="https://maps.google.com/?q=Toko+Delina+ATK" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tautan Google Maps Toko</label>
+                <input type="text" id="settingGoogleMaps" placeholder="https://maps.google.com/?q=Toko+Delina+ATK" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600" />
               </div>
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Alamat Fisik Toko</label>
-              <textarea id="settingAlamat" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat Fisik Toko</label>
+              <textarea id="settingAlamat" rows="2" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"></textarea>
             </div>
 
             <!-- Upload Logo Toko -->
-            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <label class="block font-bold text-slate-800">Logo Toko (Header Web & Struk Kasir)</label>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <label class="block font-bold text-slate-800 dark:text-slate-200">Logo Toko (Header Web & Struk Kasir)</label>
               <div class="flex items-center gap-3">
-                <img id="settingLogoPreview" src="" alt="Logo Toko" class="w-16 h-16 object-contain rounded-2xl bg-white border border-slate-200 p-1 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
+                <img id="settingLogoPreview" src="" alt="Logo Toko" class="w-16 h-16 object-contain rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=200'" />
                 <div class="flex-1 space-y-1">
-                  <input type="file" id="settingLogoFile" accept="image/*" onchange="previewLogoFile(this)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200 cursor-pointer" />
+                  <input type="file" id="settingLogoFile" accept="image/*" onchange="previewLogoFile(this)" class="text-xs text-slate-500 dark:text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 dark:file:bg-emerald-950 file:text-emerald-800 dark:file:text-emerald-300 hover:file:bg-emerald-200 cursor-pointer" />
                   <p class="text-[10px] text-slate-400">Pilih gambar logo baru (PNG/JPG/SVG). Otomatis diunggah ke Google Drive dan tampil di header & struk.</p>
                 </div>
               </div>
             </div>
 
             <!-- Upload QRIS Toko -->
-            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <label class="block font-bold text-slate-800">Barcode QRIS Toko</label>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <label class="block font-bold text-slate-800 dark:text-slate-200">Barcode QRIS Toko</label>
               <div class="flex items-center gap-3">
-                <img id="settingQrisPreview" src="" alt="QRIS" class="w-20 h-20 object-contain rounded-xl bg-white border border-slate-200 p-1" />
+                <img id="settingQrisPreview" src="" alt="QRIS" class="w-20 h-20 object-contain rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1" />
                 <div class="flex-1 space-y-1">
-                  <input type="file" id="settingQrisFile" accept="image/*" onchange="previewQrisFile(this)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" />
+                  <input type="file" id="settingQrisFile" accept="image/*" onchange="previewQrisFile(this)" class="text-xs text-slate-500 dark:text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 dark:file:bg-emerald-950 file:text-emerald-800 dark:file:text-emerald-300 hover:file:bg-emerald-200" />
                   <p class="text-[10px] text-slate-400">Pilih gambar baru jika ingin mengganti barcode QRIS di etalase belanja.</p>
                 </div>
               </div>
             </div>
 
             <!-- Integrasi Otak AI: Google Gemini API Key -->
-            <div class="p-3.5 bg-gradient-to-r from-emerald-50/80 to-teal-50/80 rounded-2xl border border-emerald-200 space-y-2">
+            <div class="p-3.5 bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/40 dark:to-teal-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 space-y-2">
               <div class="flex items-center justify-between">
-                <div class="font-extrabold text-emerald-900 flex items-center gap-2">
-                  <i class="bi bi-robot text-base text-emerald-700"></i>
+                <div class="font-extrabold text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
+                  <i class="bi bi-robot text-base text-emerald-700 dark:text-emerald-400"></i>
                   <span>Otak AI Toko: Google Gemini API Key</span>
                 </div>
-                <span id="badgeGeminiStatus" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                <span id="badgeGeminiStatus" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                   🟡 Mode Database Sheets
                 </span>
               </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Kunci API Google Gemini untuk mengaktifkan kecerdasan penuh <strong>Asisten AI Kiko</strong> (konsultasi produk & obrolan interaktif) serta <strong>Vision Multimodal</strong> untuk auto-identifikasi barcode & foto barang.
               </p>
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Google Gemini API Key</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Google Gemini API Key</label>
                 <div class="relative">
-                  <input type="password" id="settingGeminiApiKey" placeholder="AIzaSy..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 pr-10 font-mono text-xs focus:outline-none focus:border-emerald-600" />
-                  <button type="button" onclick="togglePasswordVisibility('settingGeminiApiKey', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer" title="Lihat/Sembunyikan Kunci">
+                  <input type="password" id="settingGeminiApiKey" placeholder="AIzaSy..." class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 pr-10 font-mono text-xs focus:outline-none focus:border-emerald-600" />
+                  <button type="button" onclick="togglePasswordVisibility('settingGeminiApiKey', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer" title="Lihat/Sembunyikan Kunci">
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
               </div>
               <div class="flex items-center justify-between text-[10px] pt-1">
-                <span class="text-slate-500">Model aktif: <code>gemini-3.5-flash</code> (Google Generative AI)</span>
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:underline font-bold flex items-center gap-1">
+                <span class="text-slate-500 dark:text-slate-400">Model aktif: <code>gemini-3.5-flash</code> (Google Generative AI)</span>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-700 dark:text-emerald-400 hover:underline font-bold flex items-center gap-1">
                   <span>Dapatkan Kunci Gratis</span> <i class="bi bi-box-arrow-up-right text-[9px]"></i>
                 </a>
               </div>
             </div>
 
             <!-- Integrasi Bot Telegram & Notifikasi Grup Toko (Real-Time) -->
-            <div class="p-3.5 bg-gradient-to-r from-sky-50/80 to-blue-50/80 rounded-2xl border border-sky-200 space-y-3">
+            <div class="p-3.5 bg-gradient-to-r from-sky-50/80 to-blue-50/80 dark:from-sky-950/40 dark:to-blue-950/40 rounded-2xl border border-sky-200 dark:border-sky-800/60 space-y-3">
               <div class="flex items-center justify-between">
-                <div class="font-extrabold text-sky-950 flex items-center gap-2">
-                  <i class="bi bi-telegram text-base text-sky-600"></i>
+                <div class="font-extrabold text-sky-950 dark:text-sky-200 flex items-center gap-2">
+                  <i class="bi bi-telegram text-base text-sky-600 dark:text-sky-400"></i>
                   <span>Bot Telegram & Notifikasi Grup Toko</span>
                 </div>
-                <span id="badgeTelegramStatus" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                <span id="badgeTelegramStatus" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                   ⚪ Belum Terhubung
                 </span>
               </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Laporan otomatis untuk seluruh aktivitas: pesanan baru online, transaksi kasir POS, pendaftaran member baru, dan peringatan keamanan. Mendukung <strong>Grup Telegram</strong> agar banyak admin/kasir menerima notifikasi bersamaan!
               </p>
 
               <div class="space-y-2.5">
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Token Bot Telegram (dari @BotFather)</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Token Bot Telegram (dari @BotFather)</label>
                   <div class="relative">
-                    <input type="password" id="settingTelegramBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 pr-10 font-mono text-xs focus:outline-none focus:border-sky-600" />
-                    <button type="button" onclick="togglePasswordVisibility('settingTelegramBotToken', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer" title="Lihat/Sembunyikan Token">
+                    <input type="password" id="settingTelegramBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 pr-10 font-mono text-xs focus:outline-none focus:border-sky-600" />
+                    <button type="button" onclick="togglePasswordVisibility('settingTelegramBotToken', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer" title="Lihat/Sembunyikan Token">
                       <i class="bi bi-eye"></i>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Chat ID Admin / ID Grup Telegram</label>
-                  <input type="text" id="settingTelegramAdminChatId" placeholder="Contoh Grup: -1001234567890 atau Pribadi: 123456789" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-mono text-xs focus:outline-none focus:border-sky-600" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Chat ID Admin / ID Grup Telegram</label>
+                  <input type="text" id="settingTelegramAdminChatId" placeholder="Contoh Grup: -1001234567890 atau Pribadi: 123456789" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-mono text-xs focus:outline-none focus:border-sky-600" />
                   <p class="text-[10px] text-slate-400 mt-1">
                     💡 <strong>Tips Grup:</strong> Buat grup di Telegram, masukkan bot & admin toko, lalu ketik <code>/id</code> di grup tersebut untuk melihat Chat ID Grup.
                   </p>
@@ -1857,8 +1988,8 @@
 
                 <!-- Tombol Aksi Telegram -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  <button type="button" onclick="triggerTestTelegramNotif()" id="btnTestTelegram" class="py-2 px-3 rounded-xl bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
-                    <i class="bi bi-send-check text-sm text-sky-600"></i>
+                  <button type="button" onclick="triggerTestTelegramNotif()" id="btnTestTelegram" class="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-700 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                    <i class="bi bi-send-check text-sm text-sky-600 dark:text-sky-400"></i>
                     <span>🧪 Uji Kirim Pesan Tes</span>
                   </button>
                   <button type="button" onclick="triggerSetupTelegramWebhook()" id="btnSetupWebhook" class="py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
@@ -1870,24 +2001,24 @@
             </div>
 
             <!-- Ganti PIN Keamanan -->
-            <div class="p-3.5 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-2">
-              <div class="font-extrabold text-amber-900 flex items-center gap-1.5">
+            <div class="p-3.5 bg-amber-50/60 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800/60 space-y-2">
+              <div class="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                 <i class="bi bi-shield-lock-fill"></i>
                 <span>Ganti PIN Keamanan Akses</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">PIN Super Admin (4-6 Angka)</label>
-                  <input type="password" id="settingPinAdmin" maxlength="6" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-center tracking-widest font-black focus:outline-none focus:border-emerald-600" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">PIN Super Admin (4-6 Angka)</label>
+                  <input type="password" id="settingPinAdmin" maxlength="6" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-center tracking-widest font-black focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">PIN Kasir POS (4-6 Angka)</label>
-                  <input type="password" id="settingPinKasir" maxlength="6" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-center tracking-widest font-black focus:outline-none focus:border-emerald-600" />
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">PIN Kasir POS (4-6 Angka)</label>
+                  <input type="password" id="settingPinKasir" maxlength="6" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 text-center tracking-widest font-black focus:outline-none focus:border-emerald-600" />
                 </div>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex justify-end">
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button 
                 type="submit" 
                 id="btnSaveSettings"
@@ -3637,6 +3768,9 @@
       }
 
       // Perbaiki link Unsplash yang kadaluwarsa / 404 dari database dummy
+      if (clean.includes("1456735190829") || clean.includes("80ab072ac1a0")) {
+        return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80";
+      }
       if (clean.includes("1585336261026")) {
         return "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80";
       }
@@ -3669,6 +3803,59 @@
       return clean;
     }
 
+    let currentAdminTheme = localStorage.getItem("delina_theme") || "light";
+
+    function applyAdminTheme(theme) {
+      currentAdminTheme = theme;
+      const html = document.documentElement;
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      const headerBtnIcon = document.getElementById("headerThemeIcon");
+      const headerBtnText = document.getElementById("headerThemeText");
+
+      const pageKnob = document.getElementById("adminThemeSwitchKnob");
+      const pageKnobIcon = document.getElementById("adminThemeKnobIcon");
+
+      if (theme === "dark") {
+        html.classList.add("dark");
+        try { localStorage.setItem("delina_theme", "dark"); } catch (e) {}
+        if (metaThemeColor) metaThemeColor.setAttribute("content", "#0b1120");
+
+        if (headerBtnIcon) headerBtnIcon.className = "bi bi-sun-fill text-sm text-amber-300";
+        if (headerBtnText) headerBtnText.innerText = "Terang";
+
+        if (pageKnob) {
+          pageKnob.style.transform = "translateY(52px)";
+          pageKnob.className = "w-[52px] h-[52px] rounded-full shadow-lg shadow-emerald-500/50 transition-all duration-300 transform flex items-center justify-center absolute top-1.5 left-1.5 bg-emerald-500 border border-emerald-400 text-white";
+        }
+        if (pageKnobIcon) {
+          pageKnobIcon.innerHTML = `<svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" /></svg>`;
+        }
+      } else {
+        html.classList.remove("dark");
+        try { localStorage.setItem("delina_theme", "light"); } catch (e) {}
+        if (metaThemeColor) metaThemeColor.setAttribute("content", "#065f46");
+
+        if (headerBtnIcon) headerBtnIcon.className = "bi bi-moon-stars-fill text-sm text-amber-200";
+        if (headerBtnText) headerBtnText.innerText = "Gelap";
+
+        if (pageKnob) {
+          pageKnob.style.transform = "translateY(0px)";
+          pageKnob.className = "w-[52px] h-[52px] rounded-full shadow-md transition-all duration-300 transform flex items-center justify-center absolute top-1.5 left-1.5 bg-gradient-to-b from-white to-[#e4e7eb] border border-white/90 text-amber-500";
+        }
+        if (pageKnobIcon) {
+          pageKnobIcon.innerHTML = `<svg class="w-5 h-5 text-amber-500/70" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>`;
+        }
+      }
+    }
+
+    function toggleAdminTheme() {
+      const nextTheme = currentAdminTheme === "dark" ? "light" : "dark";
+      applyAdminTheme(nextTheme);
+      if (typeof showToastAdmin === "function") {
+        showToastAdmin(nextTheme === "dark" ? "🌙 Beralih ke Mode Gelap" : "☀️ Beralih ke Mode Terang");
+      }
+    }
+
     let activeOrderFilter = "all";
     let orderSearchQuery = "";
     let queueOrdersPage = 1;
@@ -3685,6 +3872,8 @@
 
     // Inisialisasi Saat Dokumen Siap
     document.addEventListener("DOMContentLoaded", () => {
+      // Pasang tema awal
+      applyAdminTheme(currentAdminTheme);
       // Periksa apakah sudah ada sesi login tersimpan
       const savedPin = sessionStorage.getItem("delina_admin_pin");
       if (savedPin) {
@@ -4214,11 +4403,13 @@
       renderCompletedOrdersTable();
     }
 
+    let lowStockPage = 1;
+    const lowStockPerPage = 5;
+
     function renderLowStockTable() {
       const lowEl = document.getElementById("statLowStockCount");
       const tableContainer = document.getElementById("lowStockTableContainer");
       
-      const sum = adminData.summary || {};
       const prods = (adminData.products || []).filter(p => p && typeof p === "object");
       const lowItems = prods.filter(p => Number(p.stock) <= 3);
 
@@ -4226,49 +4417,85 @@
       if (!tableContainer) return;
 
       if (lowItems.length === 0) {
-        tableContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">Alhamdulillah, seluruh stok produk dalam batas aman (&gt; 3 pcs).</p>`;
+        tableContainer.innerHTML = `<p class="text-xs text-slate-400 dark:text-slate-500 py-4 text-center">Alhamdulillah, seluruh stok produk dalam batas aman (&gt; 3 pcs).</p>`;
         return;
       }
 
+      const totalLowPages = Math.max(1, Math.ceil(lowItems.length / lowStockPerPage));
+      if (lowStockPage > totalLowPages) lowStockPage = totalLowPages;
+      if (lowStockPage < 1) lowStockPage = 1;
+
+      const startIdx = (lowStockPage - 1) * lowStockPerPage;
+      const endIdx = Math.min(startIdx + lowStockPerPage, lowItems.length);
+      const pageLowItems = lowItems.slice(startIdx, endIdx);
+
       tableContainer.innerHTML = `
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-bold">
-            <tr>
-              <th class="p-2">Nama Barang</th>
-              <th class="p-2">Kategori</th>
-              <th class="p-2 text-center">Sisa Stok</th>
-              <th class="p-2 text-right">Tambah Stok Cepat</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            ${lowItems.map(it => {
-              const itName = it.name || "Barang";
-              const itCat = it.category || "Umum";
-              const itId = it.id || "-";
-              const isOut = Number(it.stock || 0) <= 0;
-              return `
-              <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                <td class="p-2 font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full ${isOut ? 'bg-red-500' : 'bg-amber-500'}"></span>
-                  <span>${escapeHtml(itName)}</span>
-                </td>
-                <td class="p-2 text-slate-500 dark:text-slate-400">${escapeHtml(itCat)}</td>
-                <td class="p-2 text-center">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isOut ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}">
-                    ${it.stock || 0} ${it.unit || 'pcs'}
-                  </span>
-                </td>
-                <td class="p-2 text-right">
-                  <button onclick="quickUpdateStock('${itId}', 10, true)" class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[11px] transition-all cursor-pointer">
-                    +10 Stok
-                  </button>
-                </td>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold">
+              <tr>
+                <th class="p-2.5">Nama Barang</th>
+                <th class="p-2.5">Kategori</th>
+                <th class="p-2.5 text-center">Sisa Stok</th>
+                <th class="p-2.5 text-right">Tambah Stok Cepat</th>
               </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+              ${pageLowItems.map(it => {
+                const itName = it.name || "Barang";
+                const itCat = it.category || "Umum";
+                const itId = it.id || "-";
+                const isOut = Number(it.stock || 0) <= 0;
+                return `
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                  <td class="p-2.5 font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0 ${isOut ? 'bg-red-500' : 'bg-amber-500'}"></span>
+                    <span class="truncate">${escapeHtml(itName)}</span>
+                  </td>
+                  <td class="p-2.5 text-slate-500 dark:text-slate-400">${escapeHtml(itCat)}</td>
+                  <td class="p-2.5 text-center">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isOut ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}">
+                      ${it.stock || 0} ${it.unit || 'pcs'}
+                    </span>
+                  </td>
+                  <td class="p-2.5 text-right">
+                    <button onclick="quickUpdateStock('${itId}', 10, true)" class="px-2.5 py-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 font-bold text-[11px] transition-all cursor-pointer shadow-2xs active:scale-95">
+                      +10 Stok
+                    </button>
+                  </td>
+                </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        ${lowItems.length > lowStockPerPage ? `
+          <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 px-1">
+            <span>Menampilkan ${startIdx + 1}-${endIdx} dari ${lowItems.length} barang menipis</span>
+            <div class="flex items-center gap-1">
+              <button 
+                type="button" 
+                onclick="changeLowStockPage(-1)" 
+                ${lowStockPage <= 1 ? "disabled" : ""} 
+                class="px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold text-xs cursor-pointer"
+              >&larr;</button>
+              <span class="font-bold px-1">${lowStockPage}/${totalLowPages}</span>
+              <button 
+                type="button" 
+                onclick="changeLowStockPage(1)" 
+                ${lowStockPage >= totalLowPages ? "disabled" : ""} 
+                class="px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold text-xs cursor-pointer"
+              >&rarr;</button>
+            </div>
+          </div>
+        ` : ''}
       `;
+    }
+
+    function changeLowStockPage(delta) {
+      lowStockPage += delta;
+      renderLowStockTable();
     }
 
     // =========================================================
@@ -4277,7 +4504,7 @@
     let completedOrdersFilter = "all"; // 'all' | 'pos' | 'online'
     let completedOrdersSearch = "";
     let completedOrdersPage = 1;
-    const completedOrdersPerPage = 10;
+    const completedOrdersPerPage = 5;
 
     function formatRupiahCompact(num) {
       const n = Number(num) || 0;
@@ -4376,19 +4603,19 @@
                 <!-- Label Omzet di atas batang -->
                 <div class="text-center mb-1 transition-transform group-hover:-translate-y-1">
                   ${isToday ? `<span class="inline-block text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-600 text-white mb-0.5 shadow-xs">Hari Ini</span><br>` : ''}
-                  <span class="text-[10px] sm:text-xs font-black ${isToday ? 'text-emerald-700' : (val > 0 ? 'text-slate-800' : 'text-slate-400')}">
+                  <span class="text-[10px] sm:text-xs font-black ${isToday ? 'text-emerald-700 dark:text-emerald-400' : (val > 0 ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500')}">
                     ${val > 0 ? formatRupiahCompact(val) : 'Rp 0'}
                   </span>
-                  <div class="text-[9px] text-slate-400 hidden sm:block">${cnt > 0 ? cnt + ' nota' : '-'}</div>
+                  <div class="text-[9px] text-slate-400 dark:text-slate-500 hidden sm:block">${cnt > 0 ? cnt + ' nota' : '-'}</div>
                 </div>
 
                 <!-- Batang Grafik -->
-                <div class="w-full max-w-[44px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end h-full">
+                <div class="w-full max-w-[44px] bg-slate-100 dark:bg-slate-800 rounded-t-xl overflow-hidden flex items-end h-full">
                   <div 
                     class="w-full rounded-t-xl transition-all duration-500 ease-out cursor-pointer ${
                       isToday 
-                        ? 'bg-gradient-to-t from-emerald-600 via-emerald-500 to-teal-400 ring-2 ring-emerald-500 shadow-sm shadow-emerald-200' 
-                        : (val > 0 ? 'bg-gradient-to-t from-slate-400 to-slate-300 group-hover:from-emerald-500 group-hover:to-teal-400' : 'bg-slate-200/60')
+                        ? 'bg-gradient-to-t from-emerald-600 via-emerald-500 to-teal-400 ring-2 ring-emerald-500 shadow-sm shadow-emerald-200 dark:shadow-emerald-950' 
+                        : (val > 0 ? 'bg-gradient-to-t from-slate-400 to-slate-300 dark:from-slate-600 dark:to-slate-500 group-hover:from-emerald-500 group-hover:to-teal-400' : 'bg-slate-200/60 dark:bg-slate-800/80')
                     }" 
                     style="height: ${pct}%; min-height: 6px;"
                     title="${d.day} (${d.dateFormatted}): ${formatRupiah(val)} [${cnt} transaksi]"
@@ -4397,8 +4624,8 @@
 
                 <!-- Label Hari & Tanggal di bawah batang -->
                 <div class="text-center mt-2">
-                  <div class="text-[11px] sm:text-xs font-extrabold ${isToday ? 'text-emerald-700 font-black' : 'text-slate-700'}">${d.day}</div>
-                  <div class="text-[9px] sm:text-[10px] text-slate-400">${d.dateFormatted}</div>
+                  <div class="text-[11px] sm:text-xs font-extrabold ${isToday ? 'text-emerald-700 dark:text-emerald-400 font-black' : 'text-slate-700 dark:text-slate-300'}">${d.day}</div>
+                  <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500">${d.dateFormatted}</div>
                 </div>
               </div>
             `;
@@ -4459,129 +4686,218 @@
       const endIndex = Math.min(startIndex + completedOrdersPerPage, completed.length);
       const pageOrders = completed.slice(startIndex, endIndex);
 
-      // Render Table
+      // Render Dual View (Mobile Card & Desktop Table)
       if (completed.length === 0) {
         container.innerHTML = `
-          <div class="py-10 text-center text-slate-400 text-xs">
-            <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl mx-auto mb-2">
+          <div class="py-10 text-center text-slate-400 dark:text-slate-500 text-xs space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xl mx-auto mb-1">
               <i class="bi bi-inbox"></i>
             </div>
-            <p class="font-bold text-slate-600">Tidak ada transaksi berhasil ditemukan</p>
-            <p class="text-[11px] text-slate-400 mt-0.5">Coba sesuaikan kata kunci pencarian atau ubah filter di atas.</p>
+            <p class="font-bold text-slate-600 dark:text-slate-300">Tidak ada transaksi berhasil ditemukan</p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500">Coba sesuaikan kata kunci pencarian atau ubah filter di atas.</p>
           </div>
         `;
       } else {
         container.innerHTML = `
-          <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
-              <tr>
-                <th class="p-3">No. Transaksi & Waktu</th>
-                <th class="p-3">Pelanggan / Member</th>
-                <th class="p-3">Rincian Barang</th>
-                <th class="p-3 text-right">Total & Bayar</th>
-                <th class="p-3 text-center">Status</th>
-                <th class="p-3 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              ${pageOrders.map(order => {
-                const isPos = (order.orderId || "").startsWith("#POS-") || (order.orderStatus || "").toLowerCase().includes("kasir");
-                const isMember = (order.customerPhone && order.customerPhone !== "-") || (order.itemsText || "").includes("Member");
-                
-                // Format ringkasan item singkat
-                const rawItems = (order.itemsText || "").split("\n").filter(line => line.trim() && !line.includes("Member:"));
-                const itemsSummary = rawItems.length > 0 ? rawItems.slice(0, 2).join(", ") + (rawItems.length > 2 ? ` (+${rawItems.length - 2} item lainnya)` : "") : (order.itemsText || "-");
+          <!-- TAMPILAN KARTU RITEL MOBILE (GoBiz / GrabMerchant Style: md:hidden) -->
+          <div class="space-y-2.5 md:hidden">
+            ${pageOrders.map(order => {
+              const isPos = (order.orderId || "").startsWith("#POS-") || (order.orderStatus || "").toLowerCase().includes("kasir");
+              const isMember = (order.customerPhone && order.customerPhone !== "-") || (order.itemsText || "").includes("Member");
+              const rawItems = (order.itemsText || "").split("\n").filter(line => line.trim() && !line.includes("Member:"));
+              const itemsSummary = rawItems.length > 0 ? rawItems.slice(0, 2).join(", ") + (rawItems.length > 2 ? ` (+${rawItems.length - 2} item lainnya)` : "") : (order.itemsText || "-");
 
-                return `
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="p-3">
-                      <div class="font-mono font-extrabold text-slate-800 text-[11px]">${escapeHtml(order.orderId)}</div>
-                      <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(order.orderTime || "-")}</div>
-                      <div class="mt-1">
-                        ${isPos 
-                          ? `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-200">Kasir Langsung</span>`
-                          : `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">Pesanan Web</span>`
-                        }
-                      </div>
-                    </td>
-                    <td class="p-3">
-                      <div class="font-bold text-slate-800">${escapeHtml(order.customerName || "Pelanggan Toko")}</div>
-                      <div class="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-1">
-                        <i class="bi bi-telephone text-[10px] text-slate-400"></i>
-                        <span>${escapeHtml(order.customerPhone || "-")}</span>
-                      </div>
-                      ${isMember ? `
+              return `
+                <div class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-2 text-xs transition-colors">
+                  <div class="flex items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-700/50 pb-2">
+                    <div class="min-w-0">
+                      <span class="font-mono font-black text-slate-800 dark:text-slate-100 text-xs">${escapeHtml(order.orderId)}</span>
+                      <span class="text-[10px] text-slate-400 block">${escapeHtml(order.orderTime || "-")}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                      ${isPos 
+                        ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800">Kasir Langsung</span>`
+                        : `<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Pesanan Web</span>`
+                      }
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between text-[11px]">
+                    <div class="min-w-0">
+                      <span class="font-bold text-slate-800 dark:text-slate-200 truncate block">${escapeHtml(order.customerName || "Pelanggan Toko")}</span>
+                      <span class="text-slate-400 text-[10px]">${escapeHtml(order.customerPhone || "-")}</span>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                      <span class="font-black text-sm text-emerald-700 dark:text-emerald-400 block">${formatRupiah(order.total || 0)}</span>
+                      <span class="text-[10px] text-slate-400">${escapeHtml(order.paymentMethod || "Lunas")}</span>
+                    </div>
+                  </div>
+
+                  <div class="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 bg-white dark:bg-slate-900/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800 font-mono">
+                    ${escapeHtml(itemsSummary)}
+                  </div>
+
+                  <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/40">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                      <i class="bi bi-check-circle-fill text-emerald-600 dark:text-emerald-400"></i> Selesai
+                    </span>
+                    <button 
+                      type="button"
+                      onclick="openThermalReceiptModal('${escapeHtml(order.orderId)}')"
+                      class="h-7 px-3 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-bold text-[11px] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      title="Cetak Struk Transaksi"
+                    >
+                      <i class="bi bi-printer text-amber-400"></i>
+                      <span>Cetak Struk</span>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <!-- TAMPILAN TABEL DESKTOP (hidden md:block) -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="p-3">No. Transaksi & Waktu</th>
+                  <th class="p-3">Pelanggan / Member</th>
+                  <th class="p-3">Rincian Barang</th>
+                  <th class="p-3 text-right">Total & Bayar</th>
+                  <th class="p-3 text-center">Status</th>
+                  <th class="p-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${pageOrders.map(order => {
+                  const isPos = (order.orderId || "").startsWith("#POS-") || (order.orderStatus || "").toLowerCase().includes("kasir");
+                  const isMember = (order.customerPhone && order.customerPhone !== "-") || (order.itemsText || "").includes("Member");
+                  const rawItems = (order.itemsText || "").split("\n").filter(line => line.trim() && !line.includes("Member:"));
+                  const itemsSummary = rawItems.length > 0 ? rawItems.slice(0, 2).join(", ") + (rawItems.length > 2 ? ` (+${rawItems.length - 2} item lainnya)` : "") : (order.itemsText || "-");
+
+                  return `
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                      <td class="p-3">
+                        <div class="font-mono font-extrabold text-slate-800 dark:text-slate-100 text-[11px]">${escapeHtml(order.orderId)}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(order.orderTime || "-")}</div>
                         <div class="mt-1">
-                          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
-                            🎁 Member Royalty
-                          </span>
+                          ${isPos 
+                            ? `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">Kasir Langsung</span>`
+                            : `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Pesanan Web</span>`
+                          }
                         </div>
-                      ` : ''}
-                    </td>
-                    <td class="p-3 max-w-xs">
-                      <div class="text-slate-700 line-clamp-2 text-[11px]" title="${escapeHtml(order.itemsText || "")}">
-                        ${escapeHtml(itemsSummary)}
-                      </div>
-                    </td>
-                    <td class="p-3 text-right">
-                      <div class="font-black text-emerald-700 text-xs sm:text-sm">${formatRupiah(order.total || 0)}</div>
-                      <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(order.paymentMethod || "Tunai Kasir")}</div>
-                    </td>
-                    <td class="p-3 text-center">
-                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        <i class="bi bi-check-circle-fill text-emerald-600"></i>
-                        <span>Selesai</span>
-                      </span>
-                    </td>
-                    <td class="p-3 text-right">
-                      <button 
-                        type="button"
-                        onclick="openThermalReceiptModal('${escapeHtml(order.orderId)}')"
-                        class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-[11px] shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                        title="Cetak Struk Roll 58mm / 80mm"
-                      >
-                        <i class="bi bi-printer text-amber-400"></i>
-                        <span>Struk</span>
-                      </button>
-                    </td>
-                  </tr>
-                `;
-              }).join("")}
-            </tbody>
-          </table>
+                      </td>
+                      <td class="p-3">
+                        <div class="font-bold text-slate-800 dark:text-slate-100">${escapeHtml(order.customerName || "Pelanggan Toko")}</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 flex items-center gap-1">
+                          <i class="bi bi-telephone text-[10px] text-slate-400"></i>
+                          <span>${escapeHtml(order.customerPhone || "-")}</span>
+                        </div>
+                        ${isMember ? `
+                          <div class="mt-1">
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                              🎁 Member Royalty
+                            </span>
+                          </div>
+                        ` : ''}
+                      </td>
+                      <td class="p-3 max-w-xs">
+                        <div class="text-slate-700 dark:text-slate-300 line-clamp-2 text-[11px]" title="${escapeHtml(order.itemsText || "")}">
+                          ${escapeHtml(itemsSummary)}
+                        </div>
+                      </td>
+                      <td class="p-3 text-right">
+                        <div class="font-black text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">${formatRupiah(order.total || 0)}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(order.paymentMethod || "Tunai Kasir")}</div>
+                      </td>
+                      <td class="p-3 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          <i class="bi bi-check-circle-fill text-emerald-600 dark:text-emerald-400"></i>
+                          <span>Selesai</span>
+                        </span>
+                      </td>
+                      <td class="p-3 text-right">
+                        <button 
+                          type="button"
+                          onclick="openThermalReceiptModal('${escapeHtml(order.orderId)}')"
+                          class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-[11px] shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                          title="Cetak Struk Roll 58mm / 80mm"
+                        >
+                          <i class="bi bi-printer text-amber-400"></i>
+                          <span>Struk</span>
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
         `;
       }
 
-      // Render Pagination
+      // Render Pagination 5 Baris
       const paginationContainer = document.getElementById("completedOrdersPaginationContainer");
       if (paginationContainer) {
         if (completed.length === 0) {
           paginationContainer.innerHTML = "";
         } else {
+          let pageButtonsHtml = "";
+          let startP = Math.max(1, completedOrdersPage - 2);
+          let endP = Math.min(totalPages, startP + 4);
+          if (endP - startP < 4) {
+            startP = Math.max(1, endP - 4);
+          }
+
+          for (let p = startP; p <= endP; p++) {
+            if (p === completedOrdersPage) {
+              pageButtonsHtml += `
+                <button type="button" class="w-8 h-8 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-xs pointer-events-none">
+                  ${p}
+                </button>
+              `;
+            } else {
+              pageButtonsHtml += `
+                <button type="button" onclick="changeCompletedOrdersPage(${p}, true)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer">
+                  ${p}
+                </button>
+              `;
+            }
+          }
+
           paginationContainer.innerHTML = `
-            <div class="text-[11px] text-slate-500">
-              Menampilkan <strong>${startIndex + 1}</strong> - <strong>${endIndex}</strong> dari <strong>${completed.length}</strong> transaksi berhasil
-            </div>
-            <div class="flex items-center gap-2">
-              <button 
-                type="button" 
-                onclick="changeCompletedOrdersPage(-1)" 
-                ${completedOrdersPage <= 1 ? "disabled" : ""}
-                class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-              >
-                &larr; Sebelumnya
-              </button>
-              <span class="px-2 font-bold text-slate-700 text-xs">
-                ${completedOrdersPage} / ${totalPages}
-              </span>
-              <button 
-                type="button" 
-                onclick="changeCompletedOrdersPage(1)" 
-                ${completedOrdersPage >= totalPages ? "disabled" : ""}
-                class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-              >
-                Selanjutnya &rarr;
-              </button>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-3 shadow-xs space-y-2.5">
+              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 px-1 flex-wrap gap-1">
+                <span>Halaman <strong>${completedOrdersPage}</strong> dari <strong>${totalPages}</strong></span>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500">(Menampilkan ${startIndex + 1}-${endIndex} dari Total ${completed.length} transaksi)</span>
+              </div>
+
+              <div class="flex items-center justify-between gap-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                  type="button" 
+                  onclick="changeCompletedOrdersPage(-1)" 
+                  ${completedOrdersPage <= 1 ? "disabled" : ""} 
+                  class="h-8 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <i class="bi bi-chevron-left text-[11px]"></i>
+                  <span class="hidden sm:inline">Sebelumnya</span>
+                </button>
+
+                <div class="flex items-center gap-1">
+                  ${pageButtonsHtml}
+                </div>
+
+                <button 
+                  type="button" 
+                  onclick="changeCompletedOrdersPage(1)" 
+                  ${completedOrdersPage >= totalPages ? "disabled" : ""} 
+                  class="h-8 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <span class="hidden sm:inline">Selanjutnya</span>
+                  <i class="bi bi-chevron-right text-[11px]"></i>
+                </button>
+              </div>
             </div>
           `;
         }
@@ -4602,8 +4918,8 @@
       const btnPos = document.getElementById("btnFilterCompletedPos");
       const btnOnline = document.getElementById("btnFilterCompletedOnline");
 
-      const activeCls = "px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-emerald-800 shadow-xs transition-all cursor-pointer";
-      const inactiveCls = "px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all cursor-pointer";
+      const activeCls = "px-2.5 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-300 shadow-xs transition-all cursor-pointer";
+      const inactiveCls = "px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer";
 
       if (btnAll) btnAll.className = filter === "all" ? activeCls : inactiveCls;
       if (btnPos) btnPos.className = filter === "pos" ? activeCls : inactiveCls;
@@ -4612,9 +4928,17 @@
       renderCompletedOrdersTable();
     }
 
-    function changeCompletedOrdersPage(delta) {
-      completedOrdersPage += delta;
+    function changeCompletedOrdersPage(val, isAbsolute = false) {
+      if (isAbsolute) {
+        completedOrdersPage = val;
+      } else {
+        completedOrdersPage += val;
+      }
       renderCompletedOrdersTable();
+      const sec = document.getElementById("completedOrdersSection");
+      if (sec) {
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
 
     // =========================================================
@@ -7476,9 +7800,9 @@ ${escapeHtml(order.itemsText || "-")}
       else if (!p.startsWith("62") && p.length > 5) p = "62" + p;
 
       if (text) {
-        return `https://api.whatsapp.com/send?phone=${p}&text=${encodeURIComponent(text)}`;
+        return `https://wa.me/${p}?text=${encodeURIComponent(text)}`;
       } else {
-        return `https://api.whatsapp.com/send?phone=${p}`;
+        return `https://wa.me/${p}`;
       }
     }
 
