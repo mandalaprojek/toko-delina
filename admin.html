@@ -2853,6 +2853,76 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       MODAL LIGHTBOX BUKTI PEMBAYARAN TRANSFER (PREVIEW HD & VERIFIKASI KILAT)
+       ========================================================================= -->
+  <div id="paymentProofLightboxModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col text-slate-100 animate-fadeIn">
+      <!-- Header Modal Lightbox -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="lightboxOrderNota" class="font-mono font-black text-sm text-emerald-400">#DLN-...</span>
+            <span class="text-xs text-slate-500">&bull;</span>
+            <span id="lightboxCustomerName" class="font-extrabold text-xs text-white truncate">Pelanggan</span>
+          </div>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span class="text-[11px] text-slate-400">Total Tagihan:</span>
+            <span id="lightboxOrderTotal" class="font-black text-sm text-amber-400 font-mono">Rp 0</span>
+          </div>
+        </div>
+        <button type="button" onclick="closePaymentProofLightbox()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors" title="Tutup Modal">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Area Tampilan Gambar Bukti Transfer -->
+      <div class="p-3 bg-black/70 flex items-center justify-center min-h-[280px] max-h-[62vh] overflow-auto">
+        <img 
+          id="lightboxProofImg" 
+          src="" 
+          alt="Bukti Transfer Pelanggan" 
+          class="max-w-full max-h-[58vh] rounded-2xl object-contain shadow-lg mx-auto transition-transform"
+          onerror="this.src='https://placehold.co/400x500/1e293b/94a3b8?text=Bukti+Gagal+Dimuat'"
+        />
+      </div>
+
+      <!-- Action Bar Bawah -->
+      <div class="p-3.5 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <a 
+          id="lightboxOpenOriginalLink" 
+          href="#" 
+          target="_blank" 
+          class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          title="Buka Gambar Asli di Tab Baru"
+        >
+          <i class="bi bi-box-arrow-up-right text-[11px]"></i>
+          <span>Buka Asli</span>
+        </a>
+
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            onclick="closePaymentProofLightbox()" 
+            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+          >
+            ✕ Tutup
+          </button>
+          <button 
+            type="button" 
+            onclick="verifyAndProcessFromLightbox()" 
+            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+            title="Verifikasi dan ubah status pesanan menjadi Sedang Diproses"
+          >
+            <i class="bi bi-check2-circle text-sm"></i>
+            <span>✅ Verifikasi &amp; Proses Pesanan</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 
   <!-- =========================================================================
        6b. MODAL LOADING IDENTIFIKASI BARCODE (GEMINI 3.8 FLASH + TIMEOUT)
@@ -3605,6 +3675,8 @@
     const queueOrdersPerPage = 5;
     let orderQrScanner = null;
     let isOrderScannerRunning = false;
+    let currentLightboxOrderId = null;
+    let currentLightboxImgUrl = null;
     let productSearchQuery = "";
     let activeReceiptOrder = null;
 
@@ -4674,30 +4746,98 @@
       }
     }
 
-    function renderSingleOrderCard(order) {
-      const statusLower = (order.orderStatus || "").toLowerCase();
-      let borderLClass = "border-l-amber-500";
-      let badgeClass = "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-700";
+    function getOrderStatusClasses(statusStr) {
+      const s = (statusStr || "").toLowerCase();
+      if (s.includes("diproses")) {
+        return {
+          borderL: "border-l-blue-500",
+          badge: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-700",
+          select: "bg-blue-50 hover:bg-blue-100/80 border-2 border-blue-400 text-blue-900 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-500"
+        };
+      }
+      if (s.includes("siap")) {
+        return {
+          borderL: "border-l-purple-500",
+          badge: "bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/50 dark:text-purple-200 dark:border-purple-700",
+          select: "bg-purple-50 hover:bg-purple-100/80 border-2 border-purple-400 text-purple-900 dark:bg-purple-950/60 dark:text-purple-200 dark:border-purple-500"
+        };
+      }
+      if (s.includes("selesai")) {
+        return {
+          borderL: "border-l-emerald-500",
+          badge: "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-700",
+          select: "bg-emerald-50 hover:bg-emerald-100/80 border-2 border-emerald-500 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-500"
+        };
+      }
+      if (s.includes("batal")) {
+        return {
+          borderL: "border-l-rose-500",
+          badge: "bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/50 dark:text-rose-200 dark:border-rose-700",
+          select: "bg-rose-50 hover:bg-rose-100/80 border-2 border-rose-400 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-500"
+        };
+      }
+      // Default: Menunggu Verifikasi
+      return {
+        borderL: "border-l-amber-500",
+        badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-700",
+        select: "bg-amber-50 hover:bg-amber-100/80 border-2 border-amber-400 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-500"
+      };
+    }
 
-      if (statusLower.includes("diproses")) {
-        borderLClass = "border-l-blue-500";
-        badgeClass = "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-700";
-      } else if (statusLower.includes("siap")) {
-        borderLClass = "border-l-purple-500";
-        badgeClass = "bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/50 dark:text-purple-200 dark:border-purple-700";
-      } else if (statusLower.includes("selesai")) {
-        borderLClass = "border-l-emerald-500";
-        badgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-700";
-      } else if (statusLower.includes("batal")) {
-        borderLClass = "border-l-rose-500";
-        badgeClass = "bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/50 dark:text-rose-200 dark:border-rose-700";
+    function applyOrderStatusVisuals(safeId, statusVal, selectEl) {
+      const styles = getOrderStatusClasses(statusVal);
+      const cardEl = document.getElementById(`order-card-${safeId}`);
+      const badgeEl = document.getElementById(`order-badge-${safeId}`);
+      const select = selectEl || document.getElementById(`order-status-select-${safeId}`);
+
+      if (cardEl) {
+        cardEl.classList.remove("border-l-amber-500", "border-l-blue-500", "border-l-purple-500", "border-l-emerald-500", "border-l-rose-500");
+        cardEl.classList.add(styles.borderL);
       }
 
+      if (badgeEl) {
+        badgeEl.className = `px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${styles.badge} whitespace-nowrap`;
+        badgeEl.innerText = statusVal;
+      }
+
+      if (select) {
+        select.className = `w-full rounded-xl px-2.5 py-2 text-xs font-black focus:outline-none transition-all cursor-pointer shadow-2xs ${styles.select}`;
+      }
+    }
+
+    function handleOrderStatusChange(orderId, safeId, selectEl) {
+      const newStatus = selectEl.value;
+      applyOrderStatusVisuals(safeId, newStatus, selectEl);
+      handleUpdateOrderStatus(orderId, newStatus);
+    }
+
+    function renderSingleOrderCard(order) {
+      const statusLower = (order.orderStatus || "").toLowerCase();
+      const statusClasses = getOrderStatusClasses(order.orderStatus);
+      const safeId = String(order.orderId || Math.random().toString(36).substring(2)).replace(/[^a-zA-Z0-9_-]/g, "");
+
       const buktiBtn = (order.paymentProofLink && order.paymentProofLink !== "-")
-        ? `<a href="${order.paymentProofLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-bold text-[10px] border border-emerald-300 dark:border-emerald-700 transition-colors whitespace-nowrap shadow-2xs" title="Lihat Bukti Transfer"><i class="bi bi-image-fill text-emerald-600 dark:text-emerald-400"></i> Bukti Transfer</a>`
+        ? `
+          <button 
+            type="button"
+            onclick="openPaymentProofLightbox('${escapeHtml(order.paymentProofLink)}', '${escapeHtml(order.orderId)}', '${escapeHtml(order.customerName)}', ${Number(order.total || 0)})"
+            class="inline-flex items-center gap-2 p-1 pr-2.5 rounded-xl bg-white hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-emerald-300 dark:border-emerald-700/60 shadow-2xs transition-all active:scale-95 cursor-pointer group"
+            title="Ketuk untuk memperbesar Bukti Transfer"
+          >
+            <img 
+              src="${formatImageUrl(order.paymentProofLink)}" 
+              alt="Struk" 
+              class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 group-hover:scale-105 transition-transform flex-shrink-0"
+              onerror="this.src='https://placehold.co/80x80/e2e8f0/475569?text=QRIS'"
+            />
+            <div class="text-left leading-none">
+              <span class="block text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300">Cek Bukti Bayar</span>
+              <span class="text-[9px] text-slate-400 font-semibold">🔍 Ketuk Perbesar</span>
+            </div>
+          </button>
+        `
         : "";
 
-      const safeId = String(order.orderId || Math.random().toString(36).substring(2)).replace(/[^a-zA-Z0-9_-]/g, "");
       const itemsRaw = order.itemsText || "-";
       const itemLines = itemsRaw.split("\n").map(l => l.trim()).filter(Boolean);
       const isMultiLine = itemLines.length > 2 || itemsRaw.length > 90;
@@ -4705,7 +4845,7 @@
       const isDelivery = (order.deliveryMethod || "").toLowerCase().includes("antar") || (order.deliveryMethod || "").toLowerCase().includes("delivery") || (order.deliveryMethod || "").toLowerCase().includes("kurir");
 
       return `
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all p-3 sm:p-4 space-y-2.5 border-l-4 ${borderLClass}">
+        <div id="order-card-${safeId}" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all p-3 sm:p-4 space-y-2.5 border-l-4 ${statusClasses.borderL}">
           <!-- Header Kartu (1 Baris Sejajar) -->
           <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
             <div class="min-w-0">
@@ -4713,7 +4853,7 @@
               <span class="text-[11px] text-slate-400 block">${escapeHtml(order.orderTime || "-")}</span>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0 text-right">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeClass} whitespace-nowrap">
+              <span id="order-badge-${safeId}" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${statusClasses.badge} whitespace-nowrap">
                 ${escapeHtml(order.orderStatus || "Menunggu Verifikasi")}
               </span>
               <span class="font-black text-sm sm:text-base text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
@@ -4724,7 +4864,7 @@
 
           <!-- Blok Info Pelanggan & Pengambilan (Grid Ringkas) -->
           <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-2.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border border-slate-100 dark:border-slate-700/50">
-            <!-- Baris Atas: Nama Pembeli + WA + Tombol Bukti Transfer -->
+            <!-- Baris Atas: Nama Pembeli + WA + Tombol Mini Thumbnail Bukti Transfer -->
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-1.5 flex-wrap min-w-0">
                 <span class="font-extrabold text-slate-900 dark:text-white truncate">
@@ -4766,17 +4906,18 @@ ${escapeHtml(order.itemsText || "-")}
 
           <!-- Footer Action Bar (1 Baris Sejajar di Bawah Kartu) -->
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <!-- Dropdown Ubah Status -->
+            <!-- Dropdown Ubah Status Berwarna Dinamis -->
             <div class="flex-1 min-w-0">
               <select 
-                onchange="handleUpdateOrderStatus('${order.orderId}', this.value)"
-                class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-extrabold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 transition-all cursor-pointer"
+                id="order-status-select-${safeId}"
+                onchange="handleOrderStatusChange('${order.orderId}', '${safeId}', this)"
+                class="w-full rounded-xl px-2.5 py-2 text-xs font-black focus:outline-none transition-all cursor-pointer shadow-2xs ${statusClasses.select}"
               >
-                <option value="Menunggu Verifikasi Toko" ${statusLower.includes("menunggu") ? "selected" : ""}>Menunggu Verifikasi</option>
-                <option value="Sedang Diproses" ${statusLower.includes("diproses") ? "selected" : ""}>Sedang Diproses</option>
-                <option value="Siap Diambil di Toko" ${statusLower.includes("siap") ? "selected" : ""}>Siap Diambil</option>
-                <option value="Selesai" ${statusLower.includes("selesai") ? "selected" : ""}>Selesai</option>
-                <option value="Dibatalkan" ${statusLower.includes("batal") ? "selected" : ""}>Dibatalkan</option>
+                <option value="Menunggu Verifikasi Toko" class="bg-amber-50 text-amber-900 font-bold" ${statusLower.includes("menunggu") ? "selected" : ""}>🟠 Menunggu Verifikasi</option>
+                <option value="Sedang Diproses" class="bg-blue-50 text-blue-900 font-bold" ${statusLower.includes("diproses") ? "selected" : ""}>🔵 Sedang Diproses</option>
+                <option value="Siap Diambil di Toko" class="bg-purple-50 text-purple-900 font-bold" ${statusLower.includes("siap") ? "selected" : ""}>🟣 Siap Diambil di Toko</option>
+                <option value="Selesai" class="bg-emerald-50 text-emerald-900 font-bold" ${statusLower.includes("selesai") ? "selected" : ""}>🟢 Selesai</option>
+                <option value="Dibatalkan" class="bg-rose-50 text-rose-900 font-bold" ${statusLower.includes("batal") ? "selected" : ""}>🔴 Dibatalkan</option>
               </select>
             </div>
 
@@ -4991,6 +5132,58 @@ ${escapeHtml(order.itemsText || "-")}
       });
       renderOrders();
       showToastAdmin(`QR Berhasil Dideteksi: ${targetId}`);
+    }
+
+    // =========================================================
+    // MODAL LIGHTBOX BUKTI PEMBAYARAN TRANSFER
+    // =========================================================
+    function openPaymentProofLightbox(rawUrl, orderId, customerName, total) {
+      currentLightboxOrderId = orderId;
+      currentLightboxImgUrl = rawUrl;
+
+      const modal = document.getElementById("paymentProofLightboxModal");
+      const imgEl = document.getElementById("lightboxProofImg");
+      const notaEl = document.getElementById("lightboxOrderNota");
+      const nameEl = document.getElementById("lightboxCustomerName");
+      const totalEl = document.getElementById("lightboxOrderTotal");
+      const linkEl = document.getElementById("lightboxOpenOriginalLink");
+
+      let targetOrder = null;
+      if (adminData && Array.isArray(adminData.orders)) {
+        targetOrder = adminData.orders.find(o => o.orderId === orderId);
+      }
+
+      const displayUrl = rawUrl || (targetOrder && targetOrder.paymentProofLink) || "";
+      const displayName = customerName || (targetOrder && targetOrder.customerName) || "Pelanggan";
+      const displayTotal = total || (targetOrder && targetOrder.total) || 0;
+
+      const resolvedUrl = typeof formatImageUrl === "function" ? formatImageUrl(displayUrl) : displayUrl;
+      if (imgEl) imgEl.src = resolvedUrl;
+      if (notaEl) notaEl.innerText = orderId || "-";
+      if (nameEl) nameEl.innerText = displayName;
+      if (totalEl) totalEl.innerText = typeof formatRupiah === "function" ? formatRupiah(displayTotal) : `Rp ${Number(displayTotal || 0).toLocaleString("id-ID")}`;
+      if (linkEl) linkEl.href = displayUrl;
+
+      if (modal) {
+        modal.classList.remove("hidden");
+        if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("paymentProofLightboxModal");
+      }
+    }
+
+    function closePaymentProofLightbox() {
+      const modal = document.getElementById("paymentProofLightboxModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
+      if (modal) modal.classList.add("hidden");
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
+    }
+
+    function verifyAndProcessFromLightbox() {
+      if (!currentLightboxOrderId) return;
+      const targetId = currentLightboxOrderId;
+      closePaymentProofLightbox();
+      const safeId = String(targetId).replace(/[^a-zA-Z0-9_-]/g, "");
+      applyOrderStatusVisuals(safeId, "Sedang Diproses");
+      handleUpdateOrderStatus(targetId, "Sedang Diproses");
     }
 
     async function handleUpdateOrderStatus(orderId, newStatus) {
@@ -11049,6 +11242,13 @@ ${escapeHtml(order.itemsText || "-")}
       const orderScanner = document.getElementById("orderQrScannerModal");
       if (orderScanner && !orderScanner.classList.contains("hidden")) {
         closeOrderQrScannerModal();
+        anyClosed = true;
+      }
+
+      // 4c. Payment Proof Lightbox Modal
+      const proofModal = document.getElementById("paymentProofLightboxModal");
+      if (proofModal && !proofModal.classList.contains("hidden")) {
+        closePaymentProofLightbox();
         anyClosed = true;
       }
 
