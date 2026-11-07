@@ -1197,50 +1197,80 @@
       <!-- =========================================================
            TAB 3: ANTREAN PESANAN MASUK (ONLINE / EXPRESS PICK-UP)
            ========================================================= -->
-      <section id="tabContentQueue" class="tab-pane hidden space-y-4 px-3 md:px-0">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center text-xl shadow-xs">
+      <section id="tabContentQueue" class="tab-pane hidden space-y-3.5 px-3 md:px-0">
+        <!-- Header Antrean Pesanan -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center text-xl shadow-xs flex-shrink-0">
               <i class="bi bi-inbox-fill"></i>
             </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Antrean Pesanan Masuk (Online / Express Pick-up)</span>
-                <span id="queueOrdersCountBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0 Pesanan</span>
-              </h3>
-              <p class="text-xs text-slate-500">Scan QR nota pelanggan untuk mencari cepat & perbarui status pesanan</p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-extrabold text-base text-slate-900 dark:text-white truncate">
+                  Antrean Pesanan Masuk
+                </h3>
+                <span id="queueOrdersCountBadge" class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold whitespace-nowrap shadow-2xs">0 Pesanan</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Express Pick-up & Delivery Toko Delina</p>
             </div>
           </div>
         </div>
 
-        <!-- Filter & Search Bar Antrean -->
-        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl md:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row gap-2.5 md:gap-3 items-center justify-between">
+        <!-- Sticky Filter Status & Pencarian Bar Antrean -->
+        <div id="queueStickyFilterContainer" class="sticky top-14 lg:top-[98px] z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md -mx-3 md:mx-0 p-3 rounded-none md:rounded-2xl border-y md:border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2.5 transition-all">
           
-          <!-- Filter Status Pesanan -->
-          <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold no-scrollbar">
-            <button onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs">Semua</button>
-            <button onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Menunggu</button>
-            <button onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Diproses</button>
-            <button onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Siap Ambil</button>
-            <button onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">Selesai</button>
+          <!-- Baris 1: Filter Status Pills Real-Time Counter -->
+          <div class="flex items-center gap-1.5 overflow-x-auto w-full pb-0.5 text-xs font-bold no-scrollbar">
+            <button type="button" onclick="filterOrders('all')" data-order-filter="all" class="order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs font-bold text-xs whitespace-nowrap transition-all cursor-pointer">
+              Semua (<span id="filterCountAll">0</span>)
+            </button>
+            <button type="button" onclick="filterOrders('Menunggu')" data-order-filter="Menunggu" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer">
+              Menunggu (<span id="filterCountPending">0</span>)
+            </button>
+            <button type="button" onclick="filterOrders('Diproses')" data-order-filter="Diproses" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer">
+              Diproses (<span id="filterCountProcessing">0</span>)
+            </button>
+            <button type="button" onclick="filterOrders('Siap')" data-order-filter="Siap" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer">
+              Siap Ambil (<span id="filterCountReady">0</span>)
+            </button>
+            <button type="button" onclick="filterOrders('Selesai')" data-order-filter="Selesai" class="order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer">
+              Selesai (<span id="filterCountDone">0</span>)
+            </button>
           </div>
 
-          <!-- Pencarian Pesanan -->
-          <div class="relative w-full md:w-72">
-            <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-            <input 
-              type="text" 
-              id="orderSearchInput" 
-              oninput="handleOrderSearch(this.value)" 
-              placeholder="Cari No. Nota, Nama, No. WA..." 
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white"
-            />
+          <!-- Baris 2: Kolom Pencarian + Tombol Scan QR Nota -->
+          <div class="flex items-center gap-2 w-full">
+            <div class="relative flex-1 min-w-0">
+              <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="orderSearchInput" 
+                oninput="handleOrderSearch(this.value)" 
+                placeholder="Cari No. Nota (#DLN-...), Nama, No. WA..." 
+                class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-8 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white"
+              />
+              <button type="button" id="btnClearOrderSearch" onclick="clearOrderSearch()" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer" title="Bersihkan">✕</button>
+            </div>
+            <button 
+              type="button" 
+              onclick="openOrderQrScannerModal()" 
+              class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-all cursor-pointer flex-shrink-0"
+              title="Scan QR Code Nota Pelanggan"
+            >
+              <i class="bi bi-qr-code-scan text-sm"></i>
+              <span class="whitespace-nowrap">Scan QR</span>
+            </button>
           </div>
 
         </div>
 
-        <!-- Daftar Antrean Pesanan (Flat List Native Android Retail) -->
-        <div id="ordersCardsContainer" class="divide-y divide-slate-150 dark:divide-slate-800 bg-white dark:bg-slate-900 rounded-none md:rounded-2xl border-0 md:border border-slate-200/80 dark:border-slate-800 shadow-none md:shadow-xs overflow-hidden">
+        <!-- Daftar Antrean Pesanan (Kompak GoBiz / GrabMerchant Style) -->
+        <div id="ordersCardsContainer" class="space-y-3">
+          <!-- Diisi otomatis oleh JavaScript -->
+        </div>
+
+        <!-- Kontrol Paginasi 5 Pesanan Per Halaman -->
+        <div id="queuePaginationContainer" class="mt-4">
           <!-- Diisi otomatis oleh JavaScript -->
         </div>
       </section>
@@ -2788,6 +2818,43 @@
   </div>
 
   <!-- =========================================================================
+       MODAL PEMINDAI QR NOTA ANTREAN PESANAN (Html5Qrcode)
+       ========================================================================= -->
+  <div id="orderQrScannerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col text-slate-100">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i class="bi bi-qr-code-scan"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-white">Scan QR Nota Pelanggan</h4>
+            <p class="text-[11px] text-slate-400">Arahkan kamera ke QR Struk atau Nota Digital</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeOrderQrScannerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <div id="order-qr-reader" class="w-full overflow-hidden rounded-2xl border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center shadow-inner"></div>
+        <div class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 text-xs text-slate-300 flex items-center gap-2">
+          <i class="bi bi-info-circle text-emerald-400 text-sm flex-shrink-0"></i>
+          <span>Nomor nota (#DLN-...) akan langsung difilter secara otomatis setelah terdeteksi.</span>
+        </div>
+      </div>
+
+      <div class="p-3.5 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button type="button" onclick="closeOrderQrScannerModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer">
+          Tutup Kamera
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
        6b. MODAL LOADING IDENTIFIKASI BARCODE (GEMINI 3.8 FLASH + TIMEOUT)
        ========================================================================= -->
   <div id="barcodeLookupLoadingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
@@ -3534,6 +3601,10 @@
 
     let activeOrderFilter = "all";
     let orderSearchQuery = "";
+    let queueOrdersPage = 1;
+    const queueOrdersPerPage = 5;
+    let orderQrScanner = null;
+    let isOrderScannerRunning = false;
     let productSearchQuery = "";
     let activeReceiptOrder = null;
 
@@ -4479,11 +4550,12 @@
     // =========================================================
     function filterOrders(filter) {
       activeOrderFilter = filter;
+      queueOrdersPage = 1;
       document.querySelectorAll(".order-filter-btn").forEach(btn => {
         if (btn.getAttribute("data-order-filter") === filter) {
-          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs font-bold text-xs";
+          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs font-bold text-xs whitespace-nowrap transition-all cursor-pointer";
         } else {
-          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold text-xs";
+          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer";
         }
       });
       renderOrders();
@@ -4491,128 +4563,214 @@
 
     function handleOrderSearch(val) {
       orderSearchQuery = (val || "").toLowerCase().trim();
+      queueOrdersPage = 1;
+      renderOrders();
+    }
+
+    function clearOrderSearch() {
+      const input = document.getElementById("orderSearchInput");
+      if (input) input.value = "";
+      orderSearchQuery = "";
+      queueOrdersPage = 1;
       renderOrders();
     }
 
     function renderOrders() {
       const container = document.getElementById("ordersCardsContainer");
+      const paginationContainer = document.getElementById("queuePaginationContainer");
       const queueBadge = document.getElementById("queueOrdersCountBadge");
       const topBadge = document.getElementById("badgePendingCount");
       const mobBadge = document.getElementById("mobileQueueCountBadge");
       if (!container) return;
 
-      let orders = adminData.orders || [];
+      const allOrders = adminData.orders || [];
 
-      // Update counters
-      const pendingCount = orders.filter(o => (o.orderStatus || "").toLowerCase().includes("menunggu")).length;
-      if (queueBadge) queueBadge.innerText = `${orders.length} Pesanan`;
+      // Update counters real-time di tombol filter
+      const countAll = allOrders.length;
+      const countPending = allOrders.filter(o => (o.orderStatus || "").toLowerCase().includes("menunggu")).length;
+      const countProcessing = allOrders.filter(o => (o.orderStatus || "").toLowerCase().includes("diproses")).length;
+      const countReady = allOrders.filter(o => (o.orderStatus || "").toLowerCase().includes("siap")).length;
+      const countDone = allOrders.filter(o => (o.orderStatus || "").toLowerCase().includes("selesai")).length;
+
+      const elCountAll = document.getElementById("filterCountAll");
+      const elCountPending = document.getElementById("filterCountPending");
+      const elCountProcessing = document.getElementById("filterCountProcessing");
+      const elCountReady = document.getElementById("filterCountReady");
+      const elCountDone = document.getElementById("filterCountDone");
+
+      if (elCountAll) elCountAll.innerText = countAll;
+      if (elCountPending) elCountPending.innerText = countPending;
+      if (elCountProcessing) elCountProcessing.innerText = countProcessing;
+      if (elCountReady) elCountReady.innerText = countReady;
+      if (elCountDone) elCountDone.innerText = countDone;
+
+      if (queueBadge) queueBadge.innerText = `${countAll} Pesanan`;
       if (topBadge) {
-        topBadge.innerText = pendingCount;
-        if (pendingCount > 0) topBadge.classList.remove("hidden");
+        topBadge.innerText = countPending;
+        if (countPending > 0) topBadge.classList.remove("hidden");
         else topBadge.classList.add("hidden");
       }
       if (mobBadge) {
-        mobBadge.innerText = pendingCount;
-        if (pendingCount > 0) mobBadge.classList.remove("hidden");
+        mobBadge.innerText = countPending;
+        if (countPending > 0) mobBadge.classList.remove("hidden");
         else mobBadge.classList.add("hidden");
       }
 
       // Filter status
+      let orders = [...allOrders];
       if (activeOrderFilter !== "all") {
         orders = orders.filter(o => (o.orderStatus || "").toLowerCase().includes(activeOrderFilter.toLowerCase()));
       }
 
       // Filter search
       if (orderSearchQuery) {
+        const q = orderSearchQuery.toLowerCase();
         orders = orders.filter(o => {
-          const q = orderSearchQuery;
           return (
             (o.orderId || "").toLowerCase().includes(q) ||
             (o.customerName || "").toLowerCase().includes(q) ||
             (o.customerPhone || "").toLowerCase().includes(q) ||
-            (o.itemsText || "").toLowerCase().includes(q)
+            (o.itemsText || "").toLowerCase().includes(q) ||
+            (o.deliveryMethod || "").toLowerCase().includes(q) ||
+            (o.customerAddress || "").toLowerCase().includes(q)
           );
         });
       }
 
-      if (orders.length === 0) {
+      // Toggle tombol bersihkan pencarian
+      const btnClear = document.getElementById("btnClearOrderSearch");
+      if (btnClear) {
+        if (orderSearchQuery) btnClear.classList.remove("hidden");
+        else btnClear.classList.add("hidden");
+      }
+
+      const totalFilteredOrders = orders.length;
+      const totalPages = Math.max(1, Math.ceil(totalFilteredOrders / queueOrdersPerPage));
+
+      if (queueOrdersPage > totalPages) queueOrdersPage = totalPages;
+      if (queueOrdersPage < 1) queueOrdersPage = 1;
+
+      if (totalFilteredOrders === 0) {
         container.innerHTML = `
-          <div class="p-12 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-            <i class="bi bi-inbox text-3xl"></i>
-            <p class="text-xs">Tidak ada data pesanan yang sesuai filter.</p>
+          <div class="p-10 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+            <i class="bi bi-inbox text-3xl text-slate-300 dark:text-slate-600"></i>
+            <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Tidak ada antrean pesanan yang cocok.</p>
+            <p class="text-[11px] text-slate-400">Silakan ubah filter status atau periksa kembali kata kunci pencarian Anda.</p>
           </div>
         `;
+        if (paginationContainer) paginationContainer.innerHTML = "";
         return;
       }
 
-      container.innerHTML = orders.map(o => renderSingleOrderCard(o)).join("");
+      // Potong 5 baris pesanan per halaman
+      const startIndex = (queueOrdersPage - 1) * queueOrdersPerPage;
+      const endIndex = Math.min(startIndex + queueOrdersPerPage, totalFilteredOrders);
+      const paginatedOrders = orders.slice(startIndex, endIndex);
+
+      container.innerHTML = paginatedOrders.map(o => renderSingleOrderCard(o)).join("");
+
+      if (paginationContainer) {
+        renderQueuePaginationControls(paginationContainer, queueOrdersPage, totalPages, totalFilteredOrders, startIndex + 1, endIndex);
+      }
     }
 
     function renderSingleOrderCard(order) {
       const statusLower = (order.orderStatus || "").toLowerCase();
-      let badgeClass = "bg-amber-100 text-amber-900 border-amber-300";
-      if (statusLower.includes("diproses")) badgeClass = "bg-blue-100 text-blue-900 border-blue-300";
-      if (statusLower.includes("siap")) badgeClass = "bg-purple-100 text-purple-900 border-purple-300";
-      if (statusLower.includes("selesai")) badgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300";
-      if (statusLower.includes("batal")) badgeClass = "bg-red-100 text-red-900 border-red-300";
+      let borderLClass = "border-l-amber-500";
+      let badgeClass = "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-700";
 
-      const fotokopiBtn = "";
+      if (statusLower.includes("diproses")) {
+        borderLClass = "border-l-blue-500";
+        badgeClass = "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-700";
+      } else if (statusLower.includes("siap")) {
+        borderLClass = "border-l-purple-500";
+        badgeClass = "bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/50 dark:text-purple-200 dark:border-purple-700";
+      } else if (statusLower.includes("selesai")) {
+        borderLClass = "border-l-emerald-500";
+        badgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-700";
+      } else if (statusLower.includes("batal")) {
+        borderLClass = "border-l-rose-500";
+        badgeClass = "bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/50 dark:text-rose-200 dark:border-rose-700";
+      }
 
       const buktiBtn = (order.paymentProofLink && order.paymentProofLink !== "-")
-        ? `<a href="${order.paymentProofLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] border border-emerald-200"><i class="bi bi-image"></i> Cek Bukti Transfer</a>`
+        ? `<a href="${order.paymentProofLink}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-bold text-[10px] border border-emerald-300 dark:border-emerald-700 transition-colors whitespace-nowrap shadow-2xs" title="Lihat Bukti Transfer"><i class="bi bi-image-fill text-emerald-600 dark:text-emerald-400"></i> Bukti Transfer</a>`
         : "";
 
+      const safeId = String(order.orderId || Math.random().toString(36).substring(2)).replace(/[^a-zA-Z0-9_-]/g, "");
+      const itemsRaw = order.itemsText || "-";
+      const itemLines = itemsRaw.split("\n").map(l => l.trim()).filter(Boolean);
+      const isMultiLine = itemLines.length > 2 || itemsRaw.length > 90;
+
+      const isDelivery = (order.deliveryMethod || "").toLowerCase().includes("antar") || (order.deliveryMethod || "").toLowerCase().includes("delivery") || (order.deliveryMethod || "").toLowerCase().includes("kurir");
+
       return `
-        <div class="p-3.5 sm:p-5 bg-white dark:bg-slate-900 hover:bg-slate-50/70 transition-colors space-y-2.5">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-black text-sm text-slate-900">${order.orderId}</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeClass}">
-                  ${order.orderStatus || "Menunggu Verifikasi"}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all p-3 sm:p-4 space-y-2.5 border-l-4 ${borderLClass}">
+          <!-- Header Kartu (1 Baris Sejajar) -->
+          <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
+            <div class="min-w-0">
+              <span class="font-mono font-black text-sm text-slate-900 dark:text-white">${escapeHtml(order.orderId || "-")}</span>
+              <span class="text-[11px] text-slate-400 block">${escapeHtml(order.orderTime || "-")}</span>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 text-right">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeClass} whitespace-nowrap">
+                ${escapeHtml(order.orderStatus || "Menunggu Verifikasi")}
+              </span>
+              <span class="font-black text-sm sm:text-base text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                ${formatRupiah(order.total || 0)}
+              </span>
+            </div>
+          </div>
+
+          <!-- Blok Info Pelanggan & Pengambilan (Grid Ringkas) -->
+          <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-2.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border border-slate-100 dark:border-slate-700/50">
+            <!-- Baris Atas: Nama Pembeli + WA + Tombol Bukti Transfer -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                <span class="font-extrabold text-slate-900 dark:text-white truncate">
+                  <i class="bi bi-person-fill text-slate-400 mr-0.5"></i>${escapeHtml(order.customerName || "Pelanggan")}
                 </span>
+                <a href="${formatUniversalWaUrl(order.customerPhone, '')}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:underline font-bold text-[11px] border border-emerald-200 dark:border-emerald-800 transition-colors">
+                  <i class="bi bi-whatsapp text-emerald-600"></i> ${escapeHtml(order.customerPhone || "-")}
+                </a>
               </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">${order.orderTime || "-"}</p>
+              ${buktiBtn}
             </div>
 
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500">Total:</span>
-              <span class="font-black text-base text-emerald-700">${formatRupiah(order.total || 0)}</span>
+            <!-- Baris Bawah: Metode & Jam Pengambilan/Pengantaran + Alamat -->
+            <div class="flex items-start gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5 border-t border-slate-200/50 dark:border-slate-700/40">
+              <i class="${isDelivery ? 'bi bi-truck text-emerald-600' : 'bi bi-shop text-amber-600'} text-xs mt-0.5 flex-shrink-0"></i>
+              <div class="min-w-0 flex-1">
+                <span class="font-bold text-slate-700 dark:text-slate-200">${escapeHtml(order.deliveryMethod || "Ambil di Toko")}</span>
+                ${order.customerAddress && order.customerAddress !== "-" ? `<span class="text-slate-500 dark:text-slate-400"> &bull; ${escapeHtml(order.customerAddress)}</span>` : ""}
+              </div>
             </div>
           </div>
 
-          <!-- Info Pembeli -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl">
-            <div>
-              <div><strong>Pembeli:</strong> ${escapeHtml(order.customerName)}</div>
-              <div><strong>WhatsApp:</strong> <a href="${formatUniversalWaUrl(order.customerPhone, '')}" target="_blank" class="text-emerald-700 font-bold hover:underline">${escapeHtml(order.customerPhone)}</a></div>
+          <!-- Blok Rincian Item (Collapsible jika lebih dari 2 baris) -->
+          <div class="text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px]">
+                <i class="bi bi-bag-check mr-1 text-slate-400"></i>Rincian Item:
+              </span>
             </div>
-            <div>
-              <div><strong>Metode:</strong> ${escapeHtml(order.deliveryMethod)}</div>
-              <div><strong>Alamat:</strong> ${escapeHtml(order.customerAddress || "-")}</div>
-            </div>
-          </div>
-
-          <!-- Rincian Barang -->
-          <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-100">
-            <div class="font-bold text-slate-900 mb-1">Rincian Item:</div>
-            <div class="whitespace-pre-line text-slate-600 font-mono text-[11px] leading-relaxed">
+            <div id="order-items-${safeId}" class="${isMultiLine ? 'line-clamp-2' : ''} whitespace-pre-line text-slate-600 dark:text-slate-300 font-mono text-[11px] leading-relaxed transition-all">
 ${escapeHtml(order.itemsText || "-")}
             </div>
+            ${isMultiLine ? `
+              <button type="button" onclick="toggleOrderItemsCollapse('${safeId}', this)" class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 mt-1 cursor-pointer">
+                <span>Lihat semua item</span> <i class="bi bi-chevron-down text-[10px]"></i>
+              </button>
+            ` : ''}
           </div>
 
-          <!-- File Uploads -->
-          ${(fotokopiBtn || buktiBtn) ? `<div class="flex flex-wrap gap-2 pt-1">${fotokopiBtn} ${buktiBtn}</div>` : ""}
-
-          <!-- Baris Aksi Kasir -->
-          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-            
-            <!-- Ubah Status Dropdown -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-600">Ubah Status:</span>
+          <!-- Footer Action Bar (1 Baris Sejajar di Bawah Kartu) -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <!-- Dropdown Ubah Status -->
+            <div class="flex-1 min-w-0">
               <select 
                 onchange="handleUpdateOrderStatus('${order.orderId}', this.value)"
-                class="bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600"
+                class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-extrabold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 transition-all cursor-pointer"
               >
                 <option value="Menunggu Verifikasi Toko" ${statusLower.includes("menunggu") ? "selected" : ""}>Menunggu Verifikasi</option>
                 <option value="Sedang Diproses" ${statusLower.includes("diproses") ? "selected" : ""}>Sedang Diproses</option>
@@ -4622,31 +4780,217 @@ ${escapeHtml(order.itemsText || "-")}
               </select>
             </div>
 
-            <div class="flex items-center gap-2">
-              <!-- Tombol Notif WA Siap Ambil -->
+            <!-- Tombol WA & Cetak Nota -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
               <button 
+                type="button"
                 onclick="sendCustomerWhatsAppReady('${order.orderId}')"
-                class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5"
-                title="Kirim Notifikasi WA Siap Ambil"
+                class="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-all cursor-pointer flex-1 sm:flex-initial"
+                title="Kirim Pesan WhatsApp Siap Diambil"
               >
                 <i class="bi bi-whatsapp"></i>
-                <span class="hidden sm:inline">WA Siap Ambil</span>
+                <span>Siap Ambil</span>
               </button>
 
-              <!-- Tombol Cetak Struk Termal -->
               <button 
+                type="button"
                 onclick="openThermalReceiptModal('${order.orderId}')"
-                class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5"
-                title="Cetak Struk Roll 58mm / 80mm"
+                class="h-9 px-3 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer flex-1 sm:flex-initial"
+                title="Cetak Nota Termal"
               >
                 <i class="bi bi-printer text-amber-400"></i>
                 <span>Cetak Nota</span>
               </button>
             </div>
-
           </div>
         </div>
       `;
+    }
+
+    function toggleOrderItemsCollapse(safeId, btn) {
+      const el = document.getElementById(`order-items-${safeId}`);
+      if (!el) return;
+      const isCollapsed = el.classList.contains("line-clamp-2");
+      if (isCollapsed) {
+        el.classList.remove("line-clamp-2");
+        if (btn) btn.innerHTML = `<span>Ciutkan item</span> <i class="bi bi-chevron-up text-[10px]"></i>`;
+      } else {
+        el.classList.add("line-clamp-2");
+        if (btn) btn.innerHTML = `<span>Lihat semua item</span> <i class="bi bi-chevron-down text-[10px]"></i>`;
+      }
+    }
+
+    function renderQueuePaginationControls(container, currentPage, totalPages, totalOrders, startNum, endNum) {
+      if (totalPages <= 1) {
+        container.innerHTML = `
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-2 py-1">
+            <span>Halaman <strong>1</strong> dari <strong>1</strong> (Menampilkan ${totalOrders} dari Total ${totalOrders} pesanan)</span>
+          </div>
+        `;
+        return;
+      }
+
+      let pageButtonsHtml = "";
+      let startP = Math.max(1, currentPage - 2);
+      let endP = Math.min(totalPages, startP + 4);
+      if (endP - startP < 4) {
+        startP = Math.max(1, endP - 4);
+      }
+
+      for (let p = startP; p <= endP; p++) {
+        if (p === currentPage) {
+          pageButtonsHtml += `
+            <button type="button" class="w-8 h-8 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-xs pointer-events-none">
+              ${p}
+            </button>
+          `;
+        } else {
+          pageButtonsHtml += `
+            <button type="button" onclick="changeQueueOrdersPage(${p})" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer">
+              ${p}
+            </button>
+          `;
+        }
+      }
+
+      container.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-3 shadow-xs space-y-2.5">
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 px-1 flex-wrap gap-1">
+            <span>Halaman <strong>${currentPage}</strong> dari <strong>${totalPages}</strong></span>
+            <span class="text-[11px] text-slate-400">(Menampilkan ${startNum}-${endNum} dari Total ${totalOrders} pesanan)</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              type="button" 
+              onclick="changeQueueOrdersPage(${currentPage - 1})" 
+              ${currentPage <= 1 ? "disabled" : ""} 
+              class="h-8 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+            >
+              <i class="bi bi-chevron-left text-[11px]"></i>
+              <span class="hidden sm:inline">Sebelumnya</span>
+            </button>
+
+            <div class="flex items-center gap-1">
+              ${pageButtonsHtml}
+            </div>
+
+            <button 
+              type="button" 
+              onclick="changeQueueOrdersPage(${currentPage + 1})" 
+              ${currentPage >= totalPages ? "disabled" : ""} 
+              class="h-8 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+            >
+              <span class="hidden sm:inline">Selanjutnya</span>
+              <i class="bi bi-chevron-right text-[11px]"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function changeQueueOrdersPage(newPage) {
+      queueOrdersPage = newPage;
+      renderOrders();
+      const queueHeader = document.getElementById("tabContentQueue");
+      if (queueHeader) {
+        queueHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    // Pemindai QR Nota Pelanggan (Html5Qrcode)
+    function openOrderQrScannerModal() {
+      const modal = document.getElementById("orderQrScannerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      if (typeof pushAdminModalHistory === "function") pushAdminModalHistory("orderQrScannerModal");
+
+      if (typeof Html5Qrcode === "undefined") {
+        showToastAdmin("Pustaka pemindai QR belum siap. Periksa koneksi internet.", "warning");
+        return;
+      }
+
+      if (orderQrScanner) {
+        try { orderQrScanner.clear(); } catch (e) {}
+      }
+
+      orderQrScanner = new Html5Qrcode("order-qr-reader");
+      const scanConfig = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      orderQrScanner.start(
+        { facingMode: "environment" },
+        scanConfig,
+        (decodedText) => {
+          handleOrderQrDetected(decodedText);
+        },
+        (errorMessage) => {}
+      ).then(() => {
+        isOrderScannerRunning = true;
+      }).catch(err => {
+        console.warn("Kamera belakang gagal, mencoba default...", err);
+        orderQrScanner.start(
+          {},
+          scanConfig,
+          (decodedText) => {
+            handleOrderQrDetected(decodedText);
+          },
+          (errorMessage) => {}
+        ).then(() => {
+          isOrderScannerRunning = true;
+        }).catch(camErr => {
+          console.error("Gagal memulai kamera nota:", camErr);
+          showToastAdmin("Akses kamera tidak diizinkan atau tidak tersedia.", "error");
+        });
+      });
+    }
+
+    function closeOrderQrScannerModal() {
+      const modal = document.getElementById("orderQrScannerModal");
+      const wasOpen = modal && !modal.classList.contains("hidden");
+      if (modal) modal.classList.add("hidden");
+
+      if (orderQrScanner && isOrderScannerRunning) {
+        orderQrScanner.stop().then(() => {
+          orderQrScanner.clear();
+          isOrderScannerRunning = false;
+        }).catch(err => {
+          console.warn("Error stopping order scanner:", err);
+          isOrderScannerRunning = false;
+        });
+      }
+      if (wasOpen && typeof notifyAdminModalClosed === "function") notifyAdminModalClosed();
+    }
+
+    function handleOrderQrDetected(rawText) {
+      if (!rawText) return;
+      closeOrderQrScannerModal();
+
+      let targetId = rawText.trim();
+      const match = targetId.match(/#?DLN-[\w-]+/i);
+      if (match) {
+        targetId = match[0];
+      }
+
+      const input = document.getElementById("orderSearchInput");
+      if (input) {
+        input.value = targetId;
+      }
+      orderSearchQuery = targetId.toLowerCase();
+      queueOrdersPage = 1;
+      activeOrderFilter = "all";
+      document.querySelectorAll(".order-filter-btn").forEach(btn => {
+        if (btn.getAttribute("data-order-filter") === "all") {
+          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs font-bold text-xs whitespace-nowrap transition-all cursor-pointer";
+        } else {
+          btn.className = "order-filter-btn px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs whitespace-nowrap transition-all cursor-pointer";
+        }
+      });
+      renderOrders();
+      showToastAdmin(`QR Berhasil Dideteksi: ${targetId}`);
     }
 
     async function handleUpdateOrderStatus(orderId, newStatus) {
@@ -10698,6 +11042,13 @@ ${escapeHtml(order.itemsText || "-")}
       const scanner = document.getElementById("productBarcodeScannerModal");
       if (scanner && !scanner.classList.contains("hidden")) {
         closeProductBarcodeScannerModal();
+        anyClosed = true;
+      }
+
+      // 4b. Order QR Scanner Modal
+      const orderScanner = document.getElementById("orderQrScannerModal");
+      if (orderScanner && !orderScanner.classList.contains("hidden")) {
+        closeOrderQrScannerModal();
         anyClosed = true;
       }
 

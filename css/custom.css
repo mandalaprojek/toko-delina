@@ -906,6 +906,15 @@ footer {
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.9) !important;
 }
 
+/* Line clamp utility for compact card descriptions & item lists */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
 
 
 
